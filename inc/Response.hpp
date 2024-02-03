@@ -25,13 +25,16 @@ public:
 	Response ( const Response& cpy );
 	Response& operator= ( const Response& cpy );
 
-	void		sendResponse( int const &  _baby_socket);
-	void		sendFile(const std::string & file_path, int const & _baby_socket );
-	void		buildHeader( std::ifstream & file, std::ostringstream & headers );
+	void		sendResponse();
+	void		craftResponse();
+	// void		sendFile();
+	void		buildHeader( std::ifstream & file);
 
 private:
+	std::string		_header;
+	std::string		_body; // repsonse
 
-	// uint16_t		_status;
+	std::string		_status;
 	// int				_port;
 	// int				_socket_fd;
 
@@ -46,7 +49,7 @@ private:
 	// void		buildResource( ??? );
 	// void		buildHeader( ??? );
 	// void		buildResponse( ??? );
-	// void		sendResponse( ??? );
+	// void		craftResponse( ??? );
 };
 
 // #endif /* __RESPONSE__ */

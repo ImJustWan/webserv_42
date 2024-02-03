@@ -23,37 +23,7 @@ void	Server::initData()
 	memset(client_socket, 0, sizeof(client_socket));
 }
 
-void	Server::buildSocket( void ) {
-	if ((this->_master_socket = socket(AF_INET, SOCK_STREAM, 0)) == 0)
-		throw SocketError();
-	if (setsockopt(this->_master_socket, SOL_SOCKET, SO_REUSEADDR, &ling, sizeof(ling)) < 0)
-		throw SocketOptionError();
-	if (bind(this->_master_socket, (struct sockaddr *)&address, sizeof(address))<0)
-		throw BindError();
-	if (listen(this->_master_socket, 10) < 0)
-		throw ListenError();
-}
-
-void Server::serverProcess() {
-	struct epoll_event interestList;
-
-	interestList.events = EPOLLIN;
-
-	if ((this->_baby_socket[_baby_index] = accept(this->_master_socket, (struct sockaddr *)&address, &addrlen)) < 0)
-		throw SocketLoopError();
-
-	Request *current = new Request;
-
-	current->setEventSocket(this->_baby_socket[_baby_index]);
-	current->setEpfd(this->_epfd);
-	interestList.data.ptr = current;
-	if (epoll_ctl(this->_epfd, EPOLL_CTL_ADD, this->_baby_socket[_baby_index], &interestList) == -1)
-		std::cout << "MASTER epoll error" << std::endl;
-	_baby_index++;
-}
-
-
-Server::Server ( const Server& cpy ) {
+Server::Server ( const Server& cpy ) : IEvent(cpy) {
 	*this = cpy;
 }
 
@@ -101,3 +71,33 @@ void	Server::determinism()
 	std::cout << _AQUAMARINE "Determining Server " _END << std::endl;
 	serverProcess();
 }
+
+void	Server::buildSocket( void ) {
+	if ((this->_master_socket = socket(AF_INET, SOCK_STREAM, 0)) == 0)
+		throw SocketError();
+	if (setsockopt(this->_master_socket, SOL_SOCKET, SO_REUSEADDR, &ling, sizeof(ling)) < 0)
+		throw SocketOptionError();
+	if (bind(this->_master_socket, (struct sockaddr *)&address, sizeof(address))<0)
+		throw BindError();
+	if (listen(this->_master_socket, 10) < 0)
+		throw ListenError();
+}
+
+void Server::serverProcess() {
+	struct epoll_event interestList;
+
+	interestList.events = EPOLLIN;
+
+	if ((this->_baby_socket[_baby_index] = accept(this->_master_socket, (struct sockaddr *)&address, &addrlen)) < 0)
+		throw SocketLoopError();
+
+	Request *current = new Request;
+
+	current->setEventSocket(this->_baby_socket[_baby_index]);
+	current->setEpfd(this->_epfd);
+	interestList.data.ptr = current;
+	if (epoll_ctl(this->_epfd, EPOLL_CTL_ADD, this->_baby_socket[_baby_index], &interestList) == -1)
+		std::cout << "MASTER epoll error" << std::endl;
+	_baby_index++;
+}
+

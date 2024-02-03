@@ -9,7 +9,7 @@ Request::~Request() {
 
 }
 
-Request::Request ( const Request& cpy ) {
+Request::Request ( const Request& cpy ) : IEvent(cpy) {
 	*this = cpy;
 }
 
@@ -48,10 +48,10 @@ void	Request::setEventSocket( const int socket ) {
 	this->_event_socket = socket;
 }
 
-void	Request::setRequest( const int _baby_socket ) {
+void	Request::setRequest() {
 	char	buffer[4096];
 
-	_valread = read(_baby_socket, buffer, sizeof(buffer) - 1);
+	_valread = read(this->_event_socket, buffer, sizeof(buffer) - 1);
 	buffer[_valread] = 0;
 	_request = buffer;
 }
@@ -73,5 +73,7 @@ void	Request::determinism()
 {
 	std::cout << _SALMON "Determining Request " _END << std::endl;
 	Response response;
-	response.sendResponse(_event_socket);
+	response.setEventSocket(this->_event_socket);
+	response.craftResponse();
+	response.sendResponse();
 }

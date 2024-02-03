@@ -10,6 +10,7 @@
 # include <fcntl.h>			/* Manipulate file descriptor*/
 # include <vector>
 # include <iostream>		/* I/O streams library  */
+# include <unistd.h>
 # include <stdlib.h>
 # include <exception>		/* Error handling library  */
 # include <sys/stat.h>
@@ -39,7 +40,7 @@ public:
 	/* SETTERS */
 	void				setEpfd( const int epfd );
 	void				setEventSocket( const int socket );
-	void				setRequest( const int _baby_socket );
+	void				setRequest();
 
 	/* METHODS */
 	void				setAttributes();

@@ -1,11 +1,11 @@
-INC += ./inc/Post.hpp
-INC += ./inc/Response.hpp
 INC += ./inc/Delete.hpp
-INC += ./inc/Request.hpp
-INC += ./inc/colors.hpp
-INC += ./inc/IEvent.hpp
 INC += ./inc/ServerHandler.hpp
-INC += ./inc/Get.hpp
+INC += ./inc/Request.hpp
+INC += ./inc/Post.hpp
 INC += ./inc/IServerHandler.hpp
+INC += ./inc/colors.hpp
 INC += ./inc/webserv.hpp
+INC += ./inc/IEvent.hpp
+INC += ./inc/Get.hpp
+INC += ./inc/Response.hpp
 INC += ./inc/Server.hpp

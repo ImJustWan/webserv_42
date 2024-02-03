@@ -5,6 +5,7 @@
 # include <fcntl.h>			/* Manipulate file descriptor*/
 # include <vector>
 # include <iostream>		/* I/O streams library  */
+# include <unistd.h>
 # include <stdlib.h>
 # include <exception>		/* Error handling library  */
 # include <sys/stat.h>
