@@ -92,7 +92,7 @@ void Server::serverProcess() {
 		throw SocketLoopError();
 
 	Request *current = new Request;
-
+	current->socketState = true;
 	current->setEventSocket(this->_baby_socket[_baby_index]);
 	current->setEpfd(this->_epfd);
 	interestList.data.ptr = current;

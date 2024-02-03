@@ -71,9 +71,28 @@ void				Request::setAttributes()
 
 void	Request::determinism()
 {
-	std::cout << _SALMON "Determining Request " _END << std::endl;
+	struct epoll_event modifiedList;
+	modifiedList.data.ptr = this;
 	Response response;
 	response.setEventSocket(this->_event_socket);
-	response.craftResponse();
-	response.sendResponse();
+
+	if (socketState == true) {
+		std::cout << _SALMON "READING Request " _END << std::endl;
+		response.craftResponse();
+		this->_request = response._request;
+		this->_ressource = response._ressource;
+		socketState = false;
+		modifiedList.events = EPOLLOUT;
+		if (epoll_ctl(this->_epfd, EPOLL_CTL_MOD, _event_socket, &modifiedList) == -1)
+			std::cout << "EPOLLOUT epoll error" << std::endl;
+	}
+	else {
+		std::cout << _SALMON "SENDING Request " _END << std::endl;
+		response._ressource = this->_ressource;
+		response.sendResponse();
+		socketState = true;
+		modifiedList.events = EPOLLIN;
+		if (epoll_ctl(this->_epfd, EPOLL_CTL_MOD, _event_socket, &modifiedList) == -1)
+			std::cout << "EPOLLOUT epoll error" << std::endl;
+	}
 }

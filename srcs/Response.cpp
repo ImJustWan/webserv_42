@@ -53,7 +53,7 @@ void	Response::sendResponse()
 
 	this->_status = "200 OK";
 	if (!file.is_open()) {
-		std::cerr << "Error: Could not open " << this->_ressource << std::endl;
+		// std::cerr << "Error: Could not open " << this->_ressource << std::endl;
 		this->_status = "403 Forbidden";
 	}
 
@@ -69,6 +69,7 @@ void	Response::sendResponse()
 			std::cerr << _RED _BOLD "Error: SEND BUFFER" _END << std::endl;
 	}
 	file.close();
+	std::cout << "(message sent)" << std::endl;
 }
 
 

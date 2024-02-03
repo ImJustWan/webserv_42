@@ -22,6 +22,8 @@
 # include "colors.hpp"
 # include "IEvent.hpp"
 
+class Response;
+
 class Request : IEvent {
 
 public:
@@ -46,7 +48,7 @@ public:
 	void				setAttributes();
 	void				determinism();
 
-
+	bool				socketState;
 protected:
 
 	int					_epfd;
@@ -54,6 +56,7 @@ protected:
 	std::string			_request;
 	std::string			_method;
 	std::string			_ressource;
+	std::string			_response;
 
 	long				_valread;
 };

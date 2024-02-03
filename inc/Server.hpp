@@ -51,7 +51,7 @@ public:
 	void	initData();
 	void	determinism();
 	void	serverProcess();
-
+	std::map<int, bool> socketReadStates; 
 
 private:
 

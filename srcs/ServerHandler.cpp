@@ -38,6 +38,7 @@ void	ServerHandler::processHandler()
 	int readyz;
 	while (1)
 	{
+		std::cerr << "WOOP WOOP" << std::endl;
 		readyz = epoll_wait(this->_epfd, readyList, 30, 5000);
 		if (readyz != 0)
 		{
