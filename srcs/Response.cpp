@@ -80,15 +80,15 @@ bool	Response::requestLineCheck( void )
 void	Response::responseError( const unsigned int & status_code )
 {
 	this->setValread(0);
-	std::map<uint16_t, std::string>::const_iterator it = this->_current_server->getErrors().find(status_code);
-	if (it != this->_current_server->getErrors().end())
-	{
-		std::cout << _EMERALD "FOUND A MATCH, can we use it ?" _END << std::endl;
-	}
-	else
-	{
-		std::cout << _SALMON "NO MATCH, do your thing" _END << std::endl;
-	}
+	// std::map<uint16_t, std::string>::const_iterator it = this->_current_server->getErrors().find(status_code);
+	// if (it != this->_current_server->getErrors().end())
+	// {
+	// 	std::cout << _EMERALD "FOUND A MATCH, can we use it ?" _END << std::endl;
+	// }
+	// else
+	// {
+	// 	std::cout << _SALMON "NO MATCH, do your thing" _END << std::endl;
+	// }
 
 	std::stringstream status_code_str;
 	status_code_str << status_code;
