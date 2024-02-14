@@ -1,0 +1,207 @@
+*{
+	padding: 0;
+	margin: 0;
+	font-family: 'Roboto Mono', monospace;
+	color: black;
+}
+
+::selection {
+	background: #0000FE  ;
+	color:white;
+}
+
+h1 {
+	font-size: 24px;
+}
+
+.header_wrapper {
+	padding-top: 0.5em;
+	padding-bottom: 0.5em;
+	padding-left: 4vw;
+	padding-right: 4vw;
+	position: sticky;
+	top: 0;
+	background-color: white;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	z-index: 1;
+	border-bottom: 2px #000000 solid;
+	box-shadow: rgba(99, 99, 99, 0.2) 0px 2px 8px 0px;
+}
+
+
+nav {
+
+	justify-content: space-between;
+}
+
+nav a {
+	margin-left: 30px;
+	text-decoration: none;
+	color: black;
+}
+
+.window {
+	margin-top: 5%;
+	margin-bottom: 5%;
+	margin-left: 10%;
+	margin-right: 10%;
+	background-color: #000000;
+	border-top: 15px #42413E solid;
+	border-bottom: 2px #42413E solid;
+	border-left: 2px #42413E solid;
+	border-right: 2px #42413E solid;
+	box-shadow: rgba(99, 99, 99, 0.5) 0px 2px 8px 0px;
+}
+
+.window h3 { 
+	color: #A8A8A8;
+	padding-top: 2%;
+	text-align: center;
+	font-weight: 300;
+	font-size: 1em;
+}
+
+.window p { 
+	color: #A8A8A8;
+	padding-top: 2%;
+	text-align: left;
+	font-weight: 300;
+	font-size: 0.9em;
+	padding-left: 5%;
+	padding-bottom: 2%;
+	padding-right: 5%;
+}
+
+.gnu_wrapper {
+	margin-top: 2%;
+	margin-bottom: 2%;
+	margin-left: 5%;
+	margin-right: 5%;
+	border-top: 8px #0000FE solid;
+	border-bottom: 8px #0000FE solid;
+	border-left: 3px #0000FE solid;
+	border-right: 3px #0000FE solid;
+}
+
+.gnu {
+	background: #0000FE;
+	border: 2px #00A8A8 solid;
+	padding: 2%;
+	margin: 0;
+}
+
+.gnu p{
+	color: white;
+	text-align: left;
+	font-weight: 300;
+	font-size: 0.9em;
+}
+
+.gnu h1{
+	color: white;
+	text-align: left;
+	font-weight: 400;
+	font-size: 1em;
+}
+
+.gnu h2{
+	color: #00A8A8 ;
+	text-align: left;
+	font-weight: 400;
+	font-size: 1em;
+}
+
+
+fieldset {
+	border: none;
+	border-radius: 6px;
+	margin-bottom: 20px;
+}
+
+form {
+	color: #ffffff;
+	font-weight: 300;
+	font-size: 0.9em;
+	text-align: center;
+}
+
+input[type=text], input[type=label], label{
+	background-color: #0000FE;
+	border: none;
+	color: white;
+	padding-top: 0.5em;
+	padding-bottom: 0.5em;
+	text-decoration: none;
+	text-align: left;
+	cursor:text;
+}
+
+input[type=submit] {
+	background-color: #0000FE;
+	border: none;
+	color: white;
+	text-decoration: none;
+	text-align: center;
+	font-size: 1em;
+	cursor: pointer;
+}
+
+footer {
+	padding-left: 15vh;
+	padding-right: 15vh;
+	padding-top: 5vh;
+	padding-bottom: 5vh;
+	color: rgb(136, 136, 136);
+	grid-template-columns: 1fr 1fr 1fr;
+	grid-gap: 8%;
+	display: grid;
+	background-color: #42413E;
+	font-size: smaller;
+	font-weight: 200;
+	text-align: center;
+}
+
+footer p{
+	color: rgb(136, 136, 136);
+	font-size: smaller;
+}
+
+.socials{
+	height: 100%;
+	filter: invert(59%) sepia(4%) saturate(17%) hue-rotate(323deg) brightness(90%) contrast(90%);
+	width: 32px;
+	display: inline;
+}
+
+.socials:hover {
+	filter: invert(100%) sepia(0%) saturate(7500%) hue-rotate(142deg) brightness(96%) contrast(110%);
+	transition-duration: .2s;
+	transition-timing-function: ease-in-out;
+}
+
+.tinder{
+	filter: invert(59%) sepia(4%) saturate(17%) hue-rotate(323deg) brightness(90%) contrast(90%);
+	height: 100%;
+	width: 32px;
+	display: inline;
+}
+
+.tinder:hover {
+	filter: invert(37%) sepia(65%) saturate(851%) hue-rotate(313deg) brightness(113%) contrast(110%);
+	transition-duration: .2s;
+	transition-timing-function: ease-in-out;
+}
+
+footer a {
+	text-decoration: none;
+	color: rgb(136, 136, 136);
+}
+
+footer a:hover {
+	text-decoration: none;
+	transition-duration: .2s;
+	transition-timing-function: ease-in-out;
+	color: white;
+}
