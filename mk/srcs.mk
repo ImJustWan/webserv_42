@@ -1,0 +1,12 @@
+SRC += ./srcs/Get.cpp
+SRC += ./srcs/cgi.cpp
+SRC += ./srcs/ServerHandler.cpp
+SRC += ./srcs/webserv.cpp
+SRC += ./srcs/IEvent.cpp
+SRC += ./srcs/Location.cpp
+SRC += ./srcs/Server.cpp
+SRC += ./srcs/Response.cpp
+SRC += ./srcs/Request.cpp
+SRC += ./srcs/Delete.cpp
+SRC += ./srcs/Post.cpp
+SRC += ./srcs/main.cpp

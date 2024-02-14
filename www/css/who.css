@@ -1,0 +1,142 @@
+
+html, body {
+	height:100%;
+	font-family: 'Verdana', 'Arial', 'Helvetica', sans-serif;
+}
+
+h1 {
+	color:blue;
+}
+
+header {
+	border:3px solid #4302b3;
+	border-radius:10px;
+	z-index:100;
+	background-color:#1354BD;
+	color:white;
+}
+
+
+#titre_principal {
+	display:inline-block;
+}
+
+header h1 {
+	color:white;
+	font-family:'Helvetica';
+	text-align:center;
+	font-size:2.5em;
+	font-weight:900;
+}
+
+header h2 {
+	font-family:'Verdana';
+	font-size:1.1em;
+	text-align:center;
+	font-weight:normal;
+}
+
+#session_reset {
+}
+
+#session_reset input{
+	float:right;
+}
+
+#menu {
+	float:left;
+	padding:2%;
+	display:block;
+	color:blue;
+
+}
+
+#who {
+	float:right;
+	padding:2%;
+	display:block;
+	color:blue;
+
+}
+
+input[type=submit] {
+	margin:10px;
+}
+
+nav a {
+	font-size:1.3em;
+	line-height:1.6em;
+	display:block;
+	text-decoration:none;
+}
+
+nav a:hover {
+	color:#00008B;
+	border-bottom:3px solid #760001;
+}
+
+#dircontent {
+	font-family:'Verdana';
+	width:100%;
+}
+
+
+#container {
+	min-height:100%;
+	width:100%;
+	position:relative;
+}
+
+#main {
+	float:left;
+	width:40%;
+	margin-left:auto;
+	margin-right:auto;
+	margin-bottom:70px;
+}
+
+#main p {
+	font-weight:bold;
+}
+
+#ck {
+	display: inline-block;
+	vertical-align:top;
+}
+
+#ta {
+	display:inline-block;
+}
+
+#result {
+	border:3px solid blue;
+	border-radius:10px;
+
+}
+
+footer {
+	position: absolute;
+	bottom:10px;
+	width:95%;
+	border:3px solid #4302b3;
+	border-radius:10px;
+	padding:0% 2%;
+	z-index:100;
+	background-color:#1354BD;
+	color:white;
+}
+
+.sign {
+	font-weight:400;
+}
+
+.sign b {
+	font-weight:900;
+}
+
+.devise
+{
+	float: right;
+	font-family:"Dancing Script"; 
+	font-size:1.3em;
+}

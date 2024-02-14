@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>WebServ42</title>
+		<link rel="stylesheet" type="text/css" href="/css/styleFp.css">
+		</head>
+	<body>
+		<div id="HelloId">
+			<h1>Welcome to our WebServer</h1>
+			<h2>This page is provided by Rertzer and Pjay</h2>
+		</div>
+		<div class="container">
+			<div id="ForbiddenPage">
+				<h3>Let's try to access a non-authorized page</h3>
+				<h3>Let's click on this link</h3>
+				<a href="/html/page/forbidden.html">Forbidden Page</a>
+			</div>
+			<div id="DeletePage">
+				<h3>Let's try to delete a file</h3>
+				<a href="/html/page/toDelete.html">Delete Page</a>
+			</div>
+			<div id="autoIndex">
+				<h3>Let's try to access a directory with autoindex on </h3>
+				<a href="/html/page/">/html/page/</a>
+			</div>
+			<div id="autoIndexOff">
+				<h3>Let's try to access a directory with auto index off </h3>
+				<a href="/html/">/html/</a>
+			</div>
+			<div id="RedirRequest">
+				<h3>Let's try to access a page that is going to be redirected in the conf file</h3>
+				<a href="/redir/anything">/redir/anything</a>
+			</div>
+			<div id="ChangeRoot">
+				<h3>Let's try to access a page that is using a new root specified in the conf file</h3>
+				<a href="/newRoot/newRoot.html">/newRoot/</a>
+			</div>
+			<div id="NewIndex">
+				<h3>Let's try to access a page that is using a new index specified in the conf file</h3>
+				<a href="/newIndex/">/newIndex/</a>
+			</div>
+
+		</div>
+	</body>
+</html>
+
+
+

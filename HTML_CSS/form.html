@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+	<meta charset="utf-8" >
+	<title>Formulaire - Robbie Lens Photographie</title>
+	<!-- <link href="style.css" rel="stylesheet" > -->
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Manrope&family=Montserrat&display=swap" rel="stylesheet">
+</head>
+
+
+<div>
+	<form action="form_script.php" method="POST" enctype="multipart/form-data">
+		<div class="mb-3">
+			<label for="screenshot" class="form-label">Screenshot</label>
+			<input type="file" id="screenshot" name="screenshot" class="form-control"> <br>
+			<label for="email" class="form-label">Email</label> <br>
+			<input type="email" class="form-control" id="email" name="email" aria-describedby="email-help">
+		</div>
+		<div class="mb-3">
+			<label for="message" class="form-label">Votre message</label> <br>
+			<textarea class="form-control" placeholder="Exprimez vous" id="message" name="message"></textarea>
+		</div>
+		<button type="submit" class="btn btn-primary">Envoyer</button>
+	</form>
+</div>

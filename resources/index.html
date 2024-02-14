@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Our Webserv</title>
+	<link href="style.css" rel="stylesheet">
+	<link rel="icon" type="image/x-icon" href="icons/favicon.ico">
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css2?family=Cutive+Mono&display=swap" rel="stylesheet"> 
+	<link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+</head>
+<body>
+	<header>
+		<nav>
+			<h1><strong>Webserv</strong></h1>
+			<ul>
+				<a href="#">Home</a>
+				<a href="#">Form</a>
+				<a href="#">Upload</a>
+			</ul>
+		</nav>
+	</header>
+	<main>
+		<li class="image_wrapper">
+			<img src="images/server_room.jpg" alt="Old servers" />
+			<div class="overlay overlay_2">
+				<div class="intro">
+				<h1>Welcome to Webserv</h1>
+				<h2>Our very own web server</h2>
+				<p>	This website is served by our very own web server, developped in C++98.<br>
+					Througout this project, we explored the way the World Wide Web works.<br>
+					From configuring a simple web server, such as Nginx, to crafting server responses:<br> we built a fully functionnal webserver.<br>
+					Here are the languages and technologies we used:
+						<ul>
+							<li> C++98 </li>
+							<li> PHP </li>
+							<li> Python3 </li>
+							<li> HTML5-CSS3 </li>
+							<li> Nginx - for reference only </li>
+						</ul>
+				<p>	For more infomation about the project specifications, check out the subject bellow.</p>
+				<div class="button-wrapper-cta">
+				  <a class="button-cta cta-button" href="https://cdn.intra.42.fr/pdf/pdf/120868/en.subject.pdf" target="_blank">Webserv Subject</a>
+				</div>
+				</div>
+			</div>
+		  </li>
+
+		 <section class="the_team">
+			<div class="the_team_header"> <h2> Meet The Team </h2> <p> And who did what</p> </div>
+			<div class="box">
+				<a href="http://profile.intra.42.fr/users/mrony" target="_blank">
+				<ul class="img__wrap" ><img src="images/mrony.jpg" alt="Marie">
+					<p class="img__description"> </p></ul></a>
+					<p><a href="https://profile.intra.42.fr/users/mrony" target="_blank"><strong>Marie</strong></a></p>
+					<p>Overall project architecture, Configuration file, Parsing, html-CSS content</p>
+				</div>
+				<div class="box">
+					<a href="http://profile.intra.42.fr/users/tgibier" target="_blank">
+				<ul class="img__wrap" ><img src="images/tgibier.jpg" alt="Tiffany">
+					<p class="img__description"> </p></ul></a>
+					<p><a href="https://profile.intra.42.fr/users/tgibier" target="_blank"><strong>Tiffany</strong></a></p>
+					<p>Overall project architecture,<br>Epoll / Multiplexing,<br> Requests, Responses</p>
+			</div>
+			<div class="box">
+				<a href="http://profile.intra.42.fr/users/mmeguedm" target="_blank">
+				<ul class="img__wrap" ><img src="images/mmeguedm.jpg" alt="Mohamed">
+					<p class="img__description"> </p></ul></a>
+					<p><a href="https://profile.intra.42.fr/users/mmeguedm" target="_blank"><strong>Mohamed</strong></a></p>
+					<p>Overall project architecture,<br> Requests, Responses,<br> CGI</p>
+				</div>
+		</section>
+		<section class="structure">
+				<h2>About The Project</h2>
+				<p>
+					We embarked on this project with the realization that our understanding of the workings of the web, particularly the <strong>HTTP protocol</strong>, was quite limited.
+					Consequently, we began by delving into the process of how clients send <strong>requests</strong> to servers and how servers <strong>respond</strong>.
+					This involved grasping the structure of messages (both requests and responses) and the underlying system calls (EPOLL) involved in this exchange, akin to a game of <strong>'ping pong'</strong>.
+					Additionally, we needed to familiarize ourselves with <strong>server configuration</strong>. Drawing inspiration from Nginx, we structured our configuration file and standards accordingly.
+					In terms of implementing <strong>CGI</strong>, we opted to create both a form and a file uploader to enhance functionality.
+				</p>
+				<p>This website offers you the ability to accomplish two things:<br>filling out a form and uploading a file.<br>Give it a try!</p>
+				<div class="struct-wrapper-cta"><a class="struct-cta cta-struct" href="form/index.html" target="_blank">
+						<img src="png/icons8-checklist-96.png" alt="form">Fill up a form</a>
+				</div>
+				<div class="struct-wrapper-cta">
+					<a class="struct-cta cta-struct" href="upload/index.html" target="_blank">
+						<img src="png/icons8-upload-96.png" alt="upload">Upload a file</a>
+				</div>
+		</section>
+	</main>
+	<footer>
+		<div>
+			<p>Webserv ltd.<br>
+			+33 01 23 45 67 89<br>
+			tgibier@student.42.fr<br>
+			mrony@student.42.fr<br>
+			mmeguedm@student.42.fr<br>
+			92 boulevard Bessiere<br>
+			75017 Paris<br>
+			France</p>
+		</div>
+		<div>
+			<p>Sitemap <br>
+				<br>
+				<a href="index.html">Home</a><br>
+				<a href="index.html">Form</a><br>
+				<a href="index.html">Upload</a><br>
+		</div>
+		<div>
+			<p>Social medias:<br>
+			<br>
+			<a href="https://facebook.com" target="_blank"><img src="icons/icons8-facebook.svg" class="socials" alt="facebook"></a>
+			<a href="https://instagram.com" target="_blank"><img src="icons/icons8-instagram.svg" class="socials" alt="instagram"></a>
+			<a href="https://twitter.com" target="_blank"><img src="icons/icons8-twitter.svg" class="socials" alt="twitter"></a>
+			<a href="https://tiktok.com" target="_blank"><img src="icons/icons8-tiktok.svg" class="socials" alt="tiktok"></a><br>
+			<a href="https://reddit.com" target="_blank"><img src="icons/icons8-reddit.svg" class="socials" alt="reddit"></a>
+			<a href="https://tinder.com" target="_blank"><img src="icons/icons8-tinder.svg" class="tinder" alt="tinder"></a>
+			<a href="https://youtube.com" target="_blank"><img src="icons/icons8-youtube-logo.svg" class="socials" alt="youtube"></a>
+			<a href="https://pinterest.com" target="_blank"><img src="icons/icons8-pinterest.svg" class="socials" alt="pinterest"></a>
+		</div>
+		<div>Privacy policy</div>
+		<div>Legal notices</div>
+		<div>CGU</div>
+	</footer>
+</body>
+</html>
