@@ -5,7 +5,6 @@ Get::Get() {
 }
 
 Get::~Get() {
-
 }
 
 Get& Get::operator= ( const Get& cpy ) {

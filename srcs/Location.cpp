@@ -64,6 +64,14 @@ void Location::setRoot(std::vector<std::string> root) {
 	this->_root = data;
 }
 
+
+ 	/* TO CORRECT :
+	Location {
+		methods deny all;
+	}
+	
+	*/
+
 void Location::setMethods(std::vector<std::string> methods) {
 	std::string methodsID[5] = {"", "GET", "POST", "", "DELETE"};
 	for(std::vector<std::string>::iterator i = methods.begin() + 1; i!= methods.end(); ++i)

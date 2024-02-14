@@ -19,7 +19,6 @@ public:
 	~ServerHandler();
 
 	void	handleServers();
-	void	processHandler();
 	void	addMasterSockets();
 
 	std::vector<Server *> const & getServers(void)const;		// returns the vector containing servers;

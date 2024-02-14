@@ -59,10 +59,6 @@ void	Response::setAttributes()
 	_resource.erase(0, 1);
 }
 
-// Is there matching location
-// allowed methods on said location
-// is the resource accessible
-
 bool	Response::requestLineCheck( void )
 {
 	std::ifstream	file(this->_resource.c_str(), std::ios::binary);
@@ -79,7 +75,7 @@ bool	Response::requestLineCheck( void )
 }
 
 // Is there error_map and corresponding error
-
+// Header for errors with macros fixed content of error_page
 
 void	Response::responseError( const unsigned int & status_code )
 {
@@ -88,13 +84,9 @@ void	Response::responseError( const unsigned int & status_code )
 	if (it != this->_current_server->getErrors().end())
 	{
 		std::cout << _EMERALD "FOUND A MATCH, can we use it ?" _END << std::endl;
-
-		std::cout << "Error : " << it->second << std::endl;
-
 	}
 	else
 	{
-
 		std::cout << _SALMON "NO MATCH, do your thing" _END << std::endl;
 	}
 
@@ -115,7 +107,6 @@ void	Response::responseError( const unsigned int & status_code )
 		std::cout << _RED _BOLD "responseError: SEND HEADER" _END << std::endl;
 	if (send(this->_event_socket,  this->_body.c_str(), this->_body.size(), 0) < 0)
 		std::cout << _RED _BOLD "responseError: SEND BUFFER" _END << std::endl;
-	// std::cout << _PINK "RESPONSE\n" << _header << _body << _END << std::endl;
 }
 
 void	Response::executeMethod()

@@ -13,7 +13,7 @@ void Server::configurationMap(void)
 	this->_configMap["autoindex"] = &Server::setAutoindex;
 }
 
-Server::Server(std::vector<std::string> &tokens, int id) :   _serverID(id), _listen(0), _autoindex(true), _methods(1), _clientMaxBodySize(1000000), _master_socket(-1), _baby_index(0), _request_index(0)
+Server::Server(std::vector<std::string> &tokens, int id) :   _serverID(id), _listen(0), _autoindex(true), _methods(0), _clientMaxBodySize(1000000), _master_socket(-1), _baby_index(0), _request_index(0)
 {
 	configurationMap();
 	for (std::vector<std::string>::iterator i = tokens.begin(); i != tokens.end(); ++i) {
@@ -95,7 +95,7 @@ int const & Server::getBabySocket(size_t idx) const { return this->_baby_socket[
 long long int const & Server::getTimeout(void) const { return this->_timeout; }
 
 
-/* ****************  SETTERS **************** */
+/* ****************  PARSING SETTERS **************** */
 
 void Server::setListen(std::vector<std::string> listen)
 {
@@ -198,6 +198,9 @@ void Server::setErrors(std::vector<std::string> errors)
 	this->_errors[code] = errors[2];
 }
 
+/* **************** EXEC SETTERS **************** */
+
+
 void Server::setBabySocket(int * sockets) {
 	for (int i = 0; i < MAX_BBY_SOCKET; ++i)
 		this->_baby_socket[i] = sockets[i];
@@ -210,12 +213,6 @@ void Server::setEpfd(const int epfd) { this->_epfd = epfd; }
 
 
 /* ****************  CLASS METHODS **************** */
-
-void	Server::determinism()
-{
-	std::cout << _SALMON "Creating new baby_socket" _END << std::endl;
-	serverProcess();
-}
 
 void	Server::buildSocket( void ) {
 	this->ling.l_onoff = 1;
@@ -268,5 +265,11 @@ void Server::serverProcess() {
 	if (_request_index < MAX_REQUEST)
 	_requests[_request_index++] = current;
 	_baby_index++;
+}
+
+void	Server::determinism()
+{
+	std::cout << _SALMON "Creating new baby_socket" _END << std::endl;
+	serverProcess();
 }
 

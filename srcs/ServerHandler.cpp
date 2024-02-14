@@ -132,6 +132,8 @@ void ServerHandler::checkForWhitelist(void)
 	whitelist.insert("server");
 	whitelist.insert("}");
 
+
+
 	for (std::vector<std::string>:: iterator i = this->_tokens.begin(); i != this->_tokens.end() -1; ++i)
 	{
 		if (delimiters.find(*i) != std::string::npos)
@@ -204,11 +206,11 @@ void	signalHandler(int signum)
 	(void)signum;
 }
 
-void	ServerHandler::processHandler()
+
+void	ServerHandler::handleServers()
 {
+	this->_epfd = epoll_create(1);
 	addMasterSockets();
-
-
 
 	int readyz;
 	signal(SIGINT, signalHandler);
@@ -225,10 +227,4 @@ void	ServerHandler::processHandler()
 		else
 			std::cout << "No events :(" << std::endl;
 	}
-}
-
-void	ServerHandler::handleServers()
-{
-	this->_epfd = epoll_create(1);
-	processHandler();
 }

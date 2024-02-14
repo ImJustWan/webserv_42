@@ -40,7 +40,6 @@ protected:
 	std::string		_body; // response
 
 	std::string		_status;
-	std::map<uint16_t, std::string>		_errors;
 
 
 };

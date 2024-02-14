@@ -43,7 +43,6 @@ int const &	Request::getEventSocket(void) const { return (this->_event_socket); 
 std::string	const & Request::getRequest(void) const { return (this->_request); }
 std::string	const & Request::getMethod(void) const { return (this->_method); }
 std::string const & Request::getResource(void) const { return ( this->_resource ); }
-std::map<uint16_t, std::string>	const & Request::getErrors(void) const { return this->_errors; }
 
 
 /* ****************  SETTERS **************** */
@@ -65,37 +64,35 @@ size_t Request::getContentLength( size_t const & found ) const
 	return ( content_length );
 }
 
-/* POST METHOD  */
+// std::string		Request::extractToken( char *searched, size_t & found )
+// {
+// 	std::string	token;
+// 	const size_t	pos 	= _request.find(searched, found);
+// 	const size_t	length 	= _request.find("\n", pos) - pos - std::strlen(searched);
 
-std::string		Request::extractToken( char *searched, size_t & found )
-{
-	std::string	token;
-	const size_t	pos 	= _request.find(searched, found);
-	const size_t	length 	= _request.find("\n", pos) - pos - std::strlen(searched);
+// 	token = _request.substr(pos + std::strlen(searched), length);
+// 	found = _request.find(token, found) + length;
 
-	token = _request.substr(pos + std::strlen(searched), length);
-	found = _request.find(token, found) + length;
+// 	return ( token );
+// }
 
-	return ( token );
-}
+// std::string	Request::getKey(size_t & found )
+// {
+// 	return ( extractToken((char *)"name=", found) );
+// }
 
-std::string	Request::getKey(size_t & found )
-{
-	return ( extractToken((char *)"name=", found) );
-}
+// std::string	Request::getValue(size_t & found, std::string const & queryKey)
+// {
+// 	std::string	value;
+// 	size_t		lenght;
 
-std::string	Request::getValue(size_t & found, std::string const & queryKey)
-{
-	std::string	value;
-	size_t		lenght;
+// 	found += 3;
+// 	lenght = _request.find(queryKey, found) - found - 3;
+// 	value = _request.substr(found, lenght);
+// 	found = _request.find(value, found) + lenght;
 
-	found += 3;
-	lenght = _request.find(queryKey, found) - found - 3;
-	value = _request.substr(found, lenght);
-	found = _request.find(value, found) + lenght;
-
-	return ( value );
-}
+// 	return ( value );
+// }
 
 void	Request::setMethods( )
 {
@@ -122,28 +119,28 @@ void	Request::setMethods( )
 	_methods = this->_current_server->getMethods();
 }
 
-void	Request::fillMap( void )
-{
-	// std::string		queryKey;
-	// size_t			found = 0;
-	// std::string		key;
-	// std::string		value;
+// void	Request::fillMap( void )
+// {
+// 	// std::string		queryKey;
+// 	// size_t			found = 0;
+// 	// std::string		key;
+// 	// std::string		value;
 
-	// queryKey = extractToken((char *)"boundary=", found);
-	// found = _request.find(queryKey);
-	// while ( found != std::string::npos )
-	// {
-	// 	key		= getKey(found);
-	// 	value	= getValue(found, queryKey);
-	// 	_post_map[key] = value;
-	// 	found = _request.find(queryKey, found);
-	// }
+// 	// queryKey = extractToken((char *)"boundary=", found);
+// 	// found = _request.find(queryKey);
+// 	// while ( found != std::string::npos )
+// 	// {
+// 	// 	key		= getKey(found);
+// 	// 	value	= getValue(found, queryKey);
+// 	// 	_post_map[key] = value;
+// 	// 	found = _request.find(queryKey, found);
+// 	// }
 
-	// for ( std::map<std::string, std::string>::iterator it = _post_map.begin(); it != _post_map.end(); it++ ) {
-	// 	std::cout	<< "key   : " << it->first << std::endl
-	// 				<< "value : " << it->second	 << std::endl;
-	// }
-}
+// 	// for ( std::map<std::string, std::string>::iterator it = _post_map.begin(); it != _post_map.end(); it++ ) {
+// 	// 	std::cout	<< "key   : " << it->first << std::endl
+// 	// 				<< "value : " << it->second	 << std::endl;
+// 	// }
+// }
 
 static void	bytesConcat(std::string & s1, char *s2, int size)
 {
