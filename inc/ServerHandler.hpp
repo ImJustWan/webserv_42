@@ -10,8 +10,7 @@
 
 class Server;
 
-class	ServerHandler
-{
+class	ServerHandler {
 public:
 
 	ServerHandler();

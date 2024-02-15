@@ -4,6 +4,8 @@
 
 extern sig_atomic_t signal_received;
 
+/*****************  CANONICAL FORM *****************/
+
 ServerHandler::ServerHandler()
 {
 	constructorExtension(DEFAULT_CONF);

@@ -1,6 +1,7 @@
 #include "Response.hpp"
 #include <filesystem>
 
+/*****************  CANONICAL FORM *****************/
 
 Response::Response() {
 	_valread = 1;
@@ -20,14 +21,22 @@ Response::~Response() {
 
 }
 
-Response::Response ( const Response& cpy ) : Request(cpy) {
-	*this = cpy;
+Response::Response(Response const & src) : Request(src) {
+	*this = src;
 }
 
-Response& Response::operator= ( const Response& cpy ) {
-	(void)cpy;
+Response& Response::operator=(const Response& cpy) {
+	if (this == &cpy)
+		return (*this);
+	Response::operator=(cpy);
+	this->_header = cpy._header;
+	this->_body = cpy._body;
+	this->_status = cpy._status;
 	return *this;
 }
+
+
+/*****************  CLASS METHODS *****************/
 
 void	Response::buildHeader( std::ifstream & file, unsigned int const & status_code )
 {

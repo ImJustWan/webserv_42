@@ -39,8 +39,8 @@ public:
 
 	Request( void );
 	~Request();
-	Request ( const Request& cpy );
-	Request& operator= ( const Request& cpy );
+	Request(const Request& src);
+	Request& operator=(const Request& cpy);
 
 	/* GETTERS */
 	int const &				getEpfd() const;
@@ -97,8 +97,6 @@ protected:
 	bool				_finished;
 	size_t				_readBytes;
 	int					_methods;
-	static std::map<std::string, std::string>	_post_map;
-	std::map<uint16_t, std::string>		_errors;
 
 };
 

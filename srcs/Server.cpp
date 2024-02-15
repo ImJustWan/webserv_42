@@ -1,17 +1,7 @@
 #include "Server.hpp"
 
-void Server::configurationMap(void)
-{
-	this->_configMap["listen"] = &Server::setListen;
-	this->_configMap["methods"] = &Server::setMethods;
-	this->_configMap["root"] = &Server::setRoot;
-	this->_configMap["index"] = &Server::setIndex;
-	this->_configMap["client_max_body_size"] = &Server::setClientMaxBodySize;
-	this->_configMap["server_name"] = &Server::setServerNames;
-	this->_configMap["location"] = &Server::setLocations;
-	this->_configMap["error_page"] = &Server::setErrors;
-	this->_configMap["autoindex"] = &Server::setAutoindex;
-}
+/*****************  CANONICAL FORM *****************/
+
 
 Server::Server(std::vector<std::string> &tokens, int id) :   _serverID(id), _listen(0), _autoindex(true), _methods(0), _clientMaxBodySize(1000000), _master_socket(-1), _baby_index(0), _request_index(0)
 {
@@ -28,6 +18,70 @@ Server::Server(std::vector<std::string> &tokens, int id) :   _serverID(id), _lis
 			directiveIsolation(";", tokens, configIt, i);
 	}
 	checkMinimumConf();
+}
+
+Server::~Server()
+{
+	for (std::map<std::string, Location *>::iterator i = this->_locations.begin(); i != this->_locations.end(); ++i)
+		delete i->second;
+	if (this->_master_socket != -1)
+		close(this->_master_socket);
+	for (int i = 0; i < _request_index; ++i) {
+		if (_requests[i] != NULL)
+			delete _requests[i];
+	}
+}
+
+
+Server::Server ( const Server& src ) : IEvent(src) {
+	*this = src;
+}
+
+Server& Server::operator= ( const Server& cpy ) {
+	if (this == &cpy)
+		return (*this);
+	this->_serverID = cpy._serverID;
+	this->_listen = cpy._listen;
+	this->_root = cpy._root;
+	this->_index = cpy._index;
+	this->_autoindex = cpy._autoindex;
+	this->_methods = cpy._methods;
+	this->_clientMaxBodySize = cpy._clientMaxBodySize;
+	this->_serverNames = cpy._serverNames;
+	this->_locations = cpy._locations;
+	this->_errors = cpy._errors;
+	this->_serverHandler = cpy._serverHandler;
+	this->_epfd = cpy._epfd;
+	this->_port = cpy._port;
+	this->_master_socket = cpy._master_socket;
+	this->_baby_index = cpy._baby_index;
+	this->_request_index = cpy._request_index;
+	this->_baby_socket[MAX_BBY_SOCKET] = cpy._baby_socket[MAX_BBY_SOCKET];
+	this->client_socket[MAX_CLIENTS] = cpy.client_socket[MAX_CLIENTS];
+	this->addrlen = cpy.addrlen;
+	this->address = cpy.address;
+	this->ling = cpy.ling;
+	this->message = cpy.message;
+	this->_timeout = cpy._timeout;
+	this->_requests[MAX_REQUEST] = cpy._requests[MAX_REQUEST];
+
+	return *this;
+}
+
+
+/*****************  CLASS METHODS *****************/
+
+void Server::configurationMap(void)
+{
+	this->_configMap["listen"] = &Server::setListen;
+	this->_configMap["methods"] = &Server::setMethods;
+	this->_configMap["root"] = &Server::setRoot;
+	this->_configMap["index"] = &Server::setIndex;
+	this->_configMap["client_max_body_size"] = &Server::setClientMaxBodySize;
+	this->_configMap["server_name"] = &Server::setServerNames;
+	this->_configMap["location"] = &Server::setLocations;
+	this->_configMap["error_page"] = &Server::setErrors;
+	this->_configMap["autoindex"] = &Server::setAutoindex;
 }
 
 void Server::directiveIsolation(std::string delim, std::vector<std::string> &tokens,
@@ -48,6 +102,7 @@ std::vector<std::string>::iterator i)
 	(this->*configIt->second)(directive);
 }
 
+
 void Server::checkMinimumConf(void)
 {
 	if (this->_listen == 0)
@@ -61,18 +116,6 @@ void Server::checkMinimumConf(void)
 	if(((infile.rdstate() | std::ifstream::goodbit) != 0) || infile.peek() == EOF)
 		throw InvalidConfig(INVALCONF "Invalid root or index file");
 	infile.close();
-}
-
-Server::~Server()
-{
-	for (std::map<std::string, Location *>::iterator i = this->_locations.begin(); i != this->_locations.end(); ++i)
-		delete i->second;
-	if (this->_master_socket != -1)
-		close(this->_master_socket);
-	for (int i = 0; i < _request_index; ++i) {
-		if (_requests[i] != NULL)
-			delete _requests[i];
-	}
 }
 
 /* ****************  GETTERS **************** */
@@ -206,7 +249,6 @@ void Server::setBabySocket(int * sockets) {
 	for (int i = 0; i < MAX_BBY_SOCKET; ++i)
 		this->_baby_socket[i] = sockets[i];
 }
-
 
 void Server::setServerHandler(ServerHandler *serverHandler) { this->_serverHandler = serverHandler; }
 void Server::setMasterSocket(int masterSocket) { this->_master_socket = masterSocket; }
