@@ -81,26 +81,16 @@ bool	Response::requestLineCheck( void )
 {
 	std::ifstream	file(this->_resource.c_str(), std::ios::binary);
 
-	// size_t extension = _resource.find_last_of('.');
-	// std::string ext;
-
-	if (_resource.size() == 0)
+	if (access(_resource.c_str(), R_OK))
+		responseError(403);
+	else if (_resource.size() == 0)
 		responseError(404);
 	else if (!file.is_open())
 		responseError(404);
-	else if ( access(_resource.c_str(), R_OK) )
-		responseError(403);
-	else if (_request.find("HTTP/1.1") == std::string::npos)
-		responseError(505);
-	// else if (extension != std::string::npos) {
-	// 	ext = _resource.substr(extension);
-	// 	if (this->getCurrentServer()->getServerHandler()->getMimeMap().find(ext) == this->getCurrentServer()->getServerHandler()->getMimeMap().end())
-	// 		responseError(501);
-	// }
-	// else if (extension == std::string::npos)
-	// 	responseError(501);
 	else if (!extensionCheck())
 		responseError(501);
+	else if (_request.find("HTTP/1.1") == std::string::npos)
+		responseError(505);
 	else
 	{
 		// std::cout << _EMERALD "We're good : " << _resource << _END << std::endl;
@@ -139,11 +129,12 @@ void	Response::responseError( const unsigned int & status_code )
 	_header += "\r\n";
 	_header += "Connection: Keep-Alive\r\n";
 	_header += "\r\n";
-	this->_body = "Resource not found. The requested resource does not exist.";
+	this->_body = "Resource not found. The requested resource does not exist.\n";
+	_header += this->_body;
 	if (send(this->_event_socket, this->_header.c_str(), this->_header.size(), 0) < 0)
 		std::cout << _RED _BOLD "responseError: SEND HEADER" _END << std::endl;
-	if (send(this->_event_socket,  this->_body.c_str(), this->_body.size(), 0) < 0)
-		std::cout << _RED _BOLD "responseError: SEND BUFFER" _END << std::endl;
+	// if (send(this->_event_socket,  this->_body.c_str(), this->_body.size(), 0) < 0)
+	// 	std::cout << _RED _BOLD "responseError: SEND BUFFER" _END << std::endl;
 }
 
 void	Response::executeMethod()
