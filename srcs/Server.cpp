@@ -93,7 +93,7 @@ int const & Server::getMasterSocket(void) const { return this->_master_socket; }
 int const * Server::getBabySocket(void) const { return this->_baby_socket; }
 int const & Server::getBabySocket(size_t idx) const { return this->_baby_socket[idx]; }
 long long int const & Server::getTimeout(void) const { return this->_timeout; }
-
+ServerHandler * Server::getServerHandler(void) const { return this->_serverHandler; }
 
 /* ****************  PARSING SETTERS **************** */
 
@@ -198,6 +198,7 @@ void Server::setErrors(std::vector<std::string> errors)
 	this->_errors[code] = errors[2];
 }
 
+
 /* **************** EXEC SETTERS **************** */
 
 
@@ -206,6 +207,8 @@ void Server::setBabySocket(int * sockets) {
 		this->_baby_socket[i] = sockets[i];
 }
 
+
+void Server::setServerHandler(ServerHandler *serverHandler) { this->_serverHandler = serverHandler; }
 void Server::setMasterSocket(int masterSocket) { this->_master_socket = masterSocket; }
 void Server::setBabySocket(int idx, int socket) { this->_baby_socket[idx] = socket; }
 void Server::setTimeout(long long int timeout) { this->_timeout = timeout; }

@@ -15,6 +15,7 @@
 
 class Request;
 class Location;
+class ServerHandler;
 
 class Server : public IEvent
 {
@@ -40,6 +41,7 @@ public:
 	int const * 								getBabySocket(void) const;
 	int const & 								getBabySocket(size_t idx) const;
 	long long int const & 						getTimeout(void) const;
+	ServerHandler *								getServerHandler(void) const;
 
 	/* SETTERS */
 	void	setListen(std::vector<std::string>);
@@ -58,6 +60,7 @@ public:
 	void	setBabySocket(int * sockets);
 	void	setBabySocket(int idx, int socket);
 	void	setTimeout(long long int timeout);
+	void	setServerHandler(ServerHandler *serverHandler);
 
 	/* METHODS */
 	void	buildSocket( void );
@@ -116,6 +119,8 @@ private:
 		ss >> value;
 		return value;
 	}
+
+	ServerHandler						*_serverHandler;
 
 	const unsigned  int					_serverID;
 	uint16_t							_listen;

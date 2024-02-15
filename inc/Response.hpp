@@ -31,6 +31,7 @@ public:
 	void				responseError( const unsigned int & status_code );
 	bool				accessCheck();
 	bool				requestLineCheck();
+	bool				extensionCheck();
 
 	/* Status code  */
 	std::map<unsigned int, std::string>	_status_code;

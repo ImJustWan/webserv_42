@@ -51,7 +51,7 @@ public:
 	std::string	const &		getMethod() const;
 	size_t					getContentLength(size_t const & found ) const;
 	std::map<uint16_t, std::string>	const & 	getErrors(void) const;
-
+	Server*					getCurrentServer() const;
 
 	/* SETTERS */
 	void					setEpfd( const int epfd );

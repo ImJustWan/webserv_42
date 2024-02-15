@@ -43,6 +43,7 @@ int const &	Request::getEventSocket(void) const { return (this->_event_socket); 
 std::string	const & Request::getRequest(void) const { return (this->_request); }
 std::string	const & Request::getMethod(void) const { return (this->_method); }
 std::string const & Request::getResource(void) const { return ( this->_resource ); }
+Server* Request::getCurrentServer(void) const { return ( this->_current_server ); }
 
 
 /* ****************  SETTERS **************** */
@@ -54,7 +55,6 @@ void	Request::setSocketState( bool state ) { this->_socketState = state; }
 void	Request::setCurrentServer( Server *current ) { this->_current_server = current; }
 void	Request::setResource( std::string resource ) { this->_resource = resource; }
 void	Request::setRequest( std::string request ) { this->_request = request; }
-
 
 size_t Request::getContentLength( size_t const & found ) const
 {
@@ -250,7 +250,10 @@ void	Request::buildResponse()
 		initResponse(_response);
 
 		if ( _response->requestLineCheck() ) // accessCheck() handles its own errors
+		{
 			_response->executeMethod();
+		}
+	
 	}
 	else
 	{

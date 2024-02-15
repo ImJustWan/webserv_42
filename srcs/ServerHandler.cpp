@@ -15,8 +15,94 @@ ServerHandler::ServerHandler(std::string const & filename)
 }
 
 
+
+void	ServerHandler::createMimeMap()
+{
+	_mimeMap[".aac"] = "audio/aac";
+	_mimeMap[".abw"] = "application/x-abiword";
+	_mimeMap[".arc"] = "application/x-freearc";
+	_mimeMap[".avif"] = "image/avif";
+	_mimeMap[".avi"] = "video/x-msvideo";
+	_mimeMap[".azw"] = "application/vnd.amazon.ebook";
+	_mimeMap[".bin"] = "application/octet-stream";
+	_mimeMap[".bmp"] = "image/bmp";
+	_mimeMap[".bz"] = "application/x-bzip";
+	_mimeMap[".bz2"] = "application/x-bzip2";
+	_mimeMap[".cda"] = "application/x-cdf";
+	_mimeMap[".csh"] = "application/x-csh";
+	_mimeMap[".css"] = "text/css";
+	_mimeMap[".csv"] = "text/csv";
+	_mimeMap[".doc"] = "application/msword";
+	_mimeMap[".docx"] = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+	_mimeMap[".eot"] = "application/vnd.ms-fontobject";
+	_mimeMap[".epub"] = "application/epub+zip";
+	_mimeMap[".gz"] = "application/gzip";
+	_mimeMap[".gif"] = "image/gif";
+	_mimeMap[".html"] = "text/html";
+	_mimeMap[".htm"] = "text/html";
+	_mimeMap[".ico"] = "image/vnd.microsoft.icon";
+	_mimeMap[".ics"] = "text/calendar";
+	_mimeMap[".jar"] = "application/java-archive";
+	_mimeMap[".jpg"] = "image/jpeg";
+	_mimeMap[".jpeg"] = "image/jpeg";
+	_mimeMap[".js"] = "text/javascript";
+	_mimeMap[".json"] = "application/json";
+	_mimeMap[".jsonld"] = "application/ld+json";
+	_mimeMap[".midi"] = "audio/x-midi";
+	_mimeMap[".midi"] = "audio/midi";
+	_mimeMap[".mid"] = "audio/x-midi";
+	_mimeMap[".mid"] = "audio/midi";
+	_mimeMap[".mjs"] = "text/javascript";
+	_mimeMap[".mp3"] = "audio/mpeg";
+	_mimeMap[".mp4"] = "video/mp4";
+	_mimeMap[".mpeg"] = "video/mpeg";
+	_mimeMap[".mpkg"] = "application/vnd.apple.installer+xml";
+	_mimeMap[".odp"] = "application/vnd.oasis.opendocument.presentation";
+	_mimeMap[".ods"] = "application/vnd.oasis.opendocument.spreadsheet";
+	_mimeMap[".odt"] = "application/vnd.oasis.opendocument.text";
+	_mimeMap[".oga"] = "audio/ogg";
+	_mimeMap[".ogv"] = "video/ogg";
+	_mimeMap[".ogx"] = "application/ogg";
+	_mimeMap[".opus"] = "audio/opus";
+	_mimeMap[".otf"] = "font/otf";
+	_mimeMap[".png"] = "image/png";
+	_mimeMap[".pdf"] = "application/pdf";
+	_mimeMap[".php"] = "application/x-httpd-php";
+	_mimeMap[".ppt"] = "application/vnd.ms-powerpoint";
+	_mimeMap[".pptx"] = "application/vnd.openxmlformats-officedocument.presentationml.presentation";
+	_mimeMap[".rar"] = "application/vnd.rar";
+	_mimeMap[".rtf"] = "application/rtf";
+	_mimeMap[".sh"] = "application/x-sh";
+	_mimeMap[".svg"] = "image/svg+xml";
+	_mimeMap[".tar"] = "application/x-tar";
+	_mimeMap[".tiff"] = "image/tiff";
+	_mimeMap[".tif"] = "image/tiff";
+	_mimeMap[".ts"] = "video/mp2t";
+	_mimeMap[".ttf"] = "font/ttf";
+	_mimeMap[".txt"] = "text/plain";
+	_mimeMap[".vsd"] = "application/vnd.visio";
+	_mimeMap[".wav"] = "audio/wav";
+	_mimeMap[".weba"] = "audio/webm";
+	_mimeMap[".webm"] = "video/webm";
+	_mimeMap[".webp"] = "image/webp";
+	_mimeMap[".woff"] = "font/woff";
+	_mimeMap[".woff2"] = "font/woff2";
+	_mimeMap[".xhtml"] = "application/xhtml+xml";
+	_mimeMap[".xls"] = "application/vnd.ms-excel";
+	_mimeMap[".xlsx"] = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+	_mimeMap[".xml"] = "application/xml";
+	_mimeMap[".xul"] = "application/vnd.mozilla.xul+xml";
+	_mimeMap[".zip"] = "application/zip";
+	_mimeMap[".3gp"] = "video/3gpp";
+	_mimeMap[".3g2"] = "video/3gpp2";
+	_mimeMap[".7z"] = "application/x-7z-compressed";
+}
+
+std::map<std::string, std::string> const & ServerHandler::getMimeMap(void) const { return this->_mimeMap; }
+
 void	ServerHandler::constructorExtension(std::string const & filename)
 {
+	createMimeMap();
 	fileChecker(filename);
 	lexer(filename);
 	checkBrackets(this->_tokens);
@@ -26,6 +112,7 @@ void	ServerHandler::constructorExtension(std::string const & filename)
 	this->_servers.resize(serverData.size());
 	for (size_t i = 0; i < serverData.size(); ++i) {
 		this->_servers[i] = new Server(serverData[i], i + 1);
+		this->_servers[i]->setServerHandler(this);
 	}
 	if (this->_servers.size() == 0)
 		throw InvalidConfFileException();
