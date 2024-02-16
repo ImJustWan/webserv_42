@@ -13,13 +13,14 @@
 <body>
 	<div class="header_wrapper">
 		<header>
-			<h1><strong>Webserv</strong></h1>
+			<h1><strong><a href="index.html">Webserv</a></strong></h1>
 		</header>
 		<nav>
 			<ul>
 				<a href="index.html">Home</a>
-				<a href="./forms/love_form/index.html">Form</a>
-				<a href="./forms/upload_form/index.html">Upload</a>
+				<a href="./forms/love_form/index.html">Love test</a>
+				<a href="./forms/upload_form/index.html">Upload form</a>
+				<a href="./forms/kill_form/index.html">Delete form</a>
 			</ul>
 		</nav>
 	</div>
@@ -56,7 +57,7 @@
 				<ul class="img__wrap" ><img src="./images/jpg/mrony.jpg" alt="Marie">
 					<p class="img__description"> </p></ul></a>
 					<p><a href="https://profile.intra.42.fr/users/mrony" target="_blank"><strong>Marie</strong></a></p>
-					<p>Overall project architecture, Configuration file, Parsing, html-CSS content</p>
+					<p>Overall project architecture,<br>Configuration file, Parsing,<br>html-CSS content, CGI</p>
 				</div>
 				<div class="box">
 					<a href="http://profile.intra.42.fr/users/tgibier" target="_blank">
@@ -76,13 +77,18 @@
 					Additionally, we needed to familiarize ourselves with <strong>server configuration</strong>. Drawing inspiration from Nginx, we structured our configuration file and standards accordingly.
 					In terms of implementing <strong>CGI</strong>, we opted to create both a form and a file uploader to enhance functionality.
 				</p>
-				<p>This website offers you the ability to accomplish two things:<br>filling out a form and uploading a file.<br>Give it a try!</p>
-				<div class="struct-wrapper-cta"><a class="struct-cta cta-struct" href="form/index.html" target="_blank">
-						<img src="./images/png/icons8-checklist-96.png" alt="form">Fill up a form</a>
+				<p>This website offers you the ability to accomplish three things:<br>filling out a love compatibility test, uploading and deleting a file.<br>Give it a try!</p>
+				<div class="struct-wrapper-cta">
+					<a class="struct-cta cta-struct" href="./forms/love_form/index.html">
+						<img src="./images/png/heart.png" alt="form">Take the love test</a>
 				</div>
 				<div class="struct-wrapper-cta">
-					<a class="struct-cta cta-struct" href="upload/index.html" target="_blank">
-						<img src="./images/png/icons8-upload-96.png" alt="upload">Upload a file</a>
+					<a class="struct-cta cta-struct" href="./forms/upload_form/index.html">
+						<img src="./images/png/upload.png" alt="upload">Upload a file</a>
+				</div>
+				<div class="struct-wrapper-cta">
+					<a class="struct-cta cta-struct" href="forms/kill_form/index.html">
+						<img src="./images/png/delete.png" alt="form">Delete a file</a>
 				</div>
 		</section>
 	</main>
