@@ -1,4 +1,7 @@
 #include "Response.hpp"
+#include <filesystem>
+
+/*****************  CANONICAL FORM *****************/
 
 Response::Response() {
 	_valread = 1;
@@ -7,6 +10,7 @@ Response::Response() {
 	_status_code[404] = "Not found";
 	_status_code[405] = "Method Not Allowed";
 	_status_code[413] = "Payload Too Large";
+	_status_code[415] = "Unsupported Media Type";
 	_status_code[500] = "Internal Server Error";
 	_status_code[501] = "Not Implemented";
 	_status_code[504] = "Gateway Timeout";
@@ -17,14 +21,22 @@ Response::~Response() {
 
 }
 
-Response::Response ( const Response& cpy ) : Request(cpy) {
-	*this = cpy;
+Response::Response(Response const & src) : Request(src) {
+	*this = src;
 }
 
-Response& Response::operator= ( const Response& cpy ) {
-	(void)cpy;
+Response& Response::operator=(const Response& cpy) {
+	if (this == &cpy)
+		return (*this);
+	Response::operator=(cpy);
+	this->_header = cpy._header;
+	this->_body = cpy._body;
+	this->_status = cpy._status;
 	return *this;
 }
+
+
+/*****************  CLASS METHODS *****************/
 
 void	Response::buildHeader( std::ifstream & file, unsigned int const & status_code )
 {
@@ -59,18 +71,41 @@ void	Response::setAttributes()
 	_resource.erase(0, 1);
 }
 
+bool	Response::extensionCheck()
+{
+	size_t extension = _resource.find_last_of('.');
+	std::string ext;
+
+	if (extension != std::string::npos) {
+		ext = _resource.substr(extension);
+		if (this->getCurrentServer()->getServerHandler()->getMimeMap().find(ext) == this->getCurrentServer()->getServerHandler()->getMimeMap().end())
+			return ( false );
+	}
+	else if (extension == std::string::npos)
+		return ( false );
+	return ( true );
+}
+
 bool	Response::requestLineCheck( void )
 {
 	std::ifstream	file(this->_resource.c_str(), std::ios::binary);
 
-	if (_resource.size() == 0 || !file.is_open())
-		responseError(404);
-	else if ( access(_resource.c_str(), R_OK) )
+	if (access(_resource.c_str(), R_OK))
 		responseError(403);
+	else if (_resource.size() == 0)
+		responseError(404);
+	else if (!file.is_open())
+		responseError(404);
+	else if (!extensionCheck())
+		responseError(501);
 	else if (_request.find("HTTP/1.1") == std::string::npos)
 		responseError(505);
 	else
+	{
+		// std::cout << _EMERALD "We're good : " << _resource << _END << std::endl;
 		return ( true );
+	}
+	// std::cout << _SALMON "We're NOT good : " << _resource << _END << std::endl;
 	return ( false );
 }
 
@@ -80,6 +115,7 @@ bool	Response::requestLineCheck( void )
 void	Response::responseError( const unsigned int & status_code )
 {
 	this->setValread(0);
+	std::cout << _RED _BOLD "Response Error for : " << status_code <<  _END << std::endl;
 	// std::map<uint16_t, std::string>::const_iterator it = this->_current_server->getErrors().find(status_code);
 	// if (it != this->_current_server->getErrors().end())
 	// {
@@ -102,11 +138,12 @@ void	Response::responseError( const unsigned int & status_code )
 	_header += "\r\n";
 	_header += "Connection: Keep-Alive\r\n";
 	_header += "\r\n";
-	this->_body = "Resource not found. The requested resource does not exist.";
+	this->_body = "Resource not found. The requested resource does not exist.\n";
+	_header += this->_body;
 	if (send(this->_event_socket, this->_header.c_str(), this->_header.size(), 0) < 0)
 		std::cout << _RED _BOLD "responseError: SEND HEADER" _END << std::endl;
-	if (send(this->_event_socket,  this->_body.c_str(), this->_body.size(), 0) < 0)
-		std::cout << _RED _BOLD "responseError: SEND BUFFER" _END << std::endl;
+	// if (send(this->_event_socket,  this->_body.c_str(), this->_body.size(), 0) < 0)
+	// 	std::cout << _RED _BOLD "responseError: SEND BUFFER" _END << std::endl;
 }
 
 void	Response::executeMethod()

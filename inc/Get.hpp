@@ -8,12 +8,15 @@ public:
 
 	Get( void );
 	~Get();
+
 	void executeMethod();
 
-private:
-	Get ( const Get& cpy );
-	Get& operator= ( const Get& cpy );
-	void	sendResponse();
 
+private:
+
+	Get(const Get& src);
+	Get& operator=(const Get& cpy);
+
+	void	sendResponse();
 
 };

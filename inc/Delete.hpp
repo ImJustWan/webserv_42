@@ -8,12 +8,17 @@ public:
 
 	Delete( void );
 	~Delete();
+
 	void	executeMethod();
-	void	sendResponse();
+
 
 private:
-	Delete ( const Delete& cpy );
-	Delete& operator= ( const Delete& cpy );
+
+	Delete(const Delete& src);
+	Delete& operator=(const Delete& cpy);
+
 	void	buildHeader();
+	void	sendResponse();
+	void	deleteResource();
 
 };
