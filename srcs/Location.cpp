@@ -13,7 +13,7 @@ void Location::configurationMap(void)
 }
 
 
-Location::Location(std::vector<std::string> &tokens) : _autoindex(true), _methods(0)
+Location::Location(std::vector<std::string> &tokens, Server * currentServer) : _autoindex(true), _methods(0), _currentServer(currentServer)
 {
 	configurationMap();
 	for (std::vector<std::string>::iterator i = tokens.begin(); i != tokens.end(); ++i) {
@@ -58,7 +58,9 @@ void Location::setDirectory(std::vector<std::string> location) {
 void Location::setRoot(std::vector<std::string> root) {
 	std::string	data;
 	data = dataExtractor<std::string>(root[1]);
-	std::ifstream test(data.c_str());
+	std::string rootPath = this->_currentServer->getRoot() + data;
+	std::cout << rootPath << std::endl;
+	std::ifstream test(rootPath.c_str());
 	if (!test)
 		throw InvalidConfig(INVALLOC "Root Directive");
 	test.close();

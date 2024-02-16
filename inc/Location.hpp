@@ -12,11 +12,12 @@
 
 # define INVALLOC "Invalid Location: "
 
+class Server;
 
 class Location {
 
 public:
-	Location(std::vector<std::string> &tokens);
+	Location(std::vector<std::string> &tokens, Server *);
 	~Location();
 
 	/* GETTERS */
@@ -75,10 +76,14 @@ private:
 	int				_methods;
 	std::string		_fileExt;
 	std::string		_cgiPath;
+	Server *		_currentServer;
 
 	std::map<std::string, void(Location::*)(const std::vector<std::string>)> _configMap;
 
 };
+
+# include "Server.hpp"
+
 
 inline std::ostream & operator<<(std::ostream & o, Location const & rhs)
 {

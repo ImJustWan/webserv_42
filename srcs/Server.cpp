@@ -225,7 +225,7 @@ void Server::setLocations(std::vector<std::string> locations)
 	}
 	try
 	{
-		Location	* newLocation = new Location(locations);
+		Location	* newLocation = new Location(locations, this);
 		this->_locations[locations[1]] = newLocation;
 		if (newLocation->getMethods() == 0)
 			newLocation->setMethods(this->_methods);
