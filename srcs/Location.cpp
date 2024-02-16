@@ -84,6 +84,13 @@ void Location::setMethods(std::vector<std::string> methods) {
 	}
 }
 
+void Location::setMethods(int methods) {
+	
+	if (methods < 0 || methods > 7)
+		throw InvalidConfig(INVALCONF "Unknown method");
+	this->_methods = methods;
+}
+
 void Location::setIndex(std::vector<std::string> index) {
 	std::string	data;
 	data = dataExtractor<std::string>(index[1]);

@@ -33,6 +33,7 @@ public:
 	void setDirectory(std::vector<std::string>);
 	void setRoot(std::vector<std::string>);
 	void setMethods(std::vector<std::string>);
+	void setMethods(int methods);
 	void setIndex(std::vector<std::string>);
 	void setFileExt(std::vector<std::string>);
 	void setCgiPath(std::vector<std::string>);

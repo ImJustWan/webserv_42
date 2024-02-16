@@ -217,7 +217,6 @@ void Server::setServerNames(std::vector<std::string> serverNames)
 
 void Server::setLocations(std::vector<std::string> locations)
 {
-
 	if (this->_locations.find(locations[1]) != this->_locations.end()){
 		for (std::map<std::string, Location *>::iterator i = this->_locations.begin(); i != this->_locations.end(); ++i) {
 			delete i->second;
@@ -228,6 +227,8 @@ void Server::setLocations(std::vector<std::string> locations)
 	{
 		Location	* newLocation = new Location(locations);
 		this->_locations[locations[1]] = newLocation;
+		if (newLocation->getMethods() == 0)
+			newLocation->setMethods(this->_methods);
 	}
 	catch(const std::exception& e)
 	{
@@ -236,7 +237,6 @@ void Server::setLocations(std::vector<std::string> locations)
 			delete i->second;
 		throw InvalidConfig(INVALCONF "error in location parsing");
 	}
-	
 }
 
 void Server::setErrors(std::vector<std::string> errors)
