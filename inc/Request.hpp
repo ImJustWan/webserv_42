@@ -92,6 +92,8 @@ protected:
 	Location*			_location;
 	int					_epfd;
 	int					_event_socket;
+	std::string			_index;
+	std::string			_root;
 	std::string			_request;
 	std::string			_method;
 	std::string			_resource;

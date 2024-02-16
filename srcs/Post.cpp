@@ -77,7 +77,7 @@ void Post::writeFile() {
 
 	if (tmpStart != std::string::npos && dataEnd != std::string::npos) {
 		std::string imageData = _request.substr(dataStart);
-		std::string path = this->_current_server->getRoot() + "/" + _filename;
+		std::string path = this->getRoot() + "/" + _filename;
 		std::ofstream newFile(path.c_str());
 		newFile.write(imageData.c_str(), imageData.size());
 		newFile.close();

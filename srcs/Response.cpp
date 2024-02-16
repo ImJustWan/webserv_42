@@ -38,6 +38,9 @@ Response& Response::operator=(const Response& cpy) {
 
 /*****************  CLASS METHODS *****************/
 
+std::string const & Response::getRoot(void) const { return this->_root; }
+
+
 void	Response::buildHeader( std::ifstream & file, unsigned int const & status_code )
 {
 	file.seekg(0, std::ios::end);

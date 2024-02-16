@@ -9,6 +9,8 @@ public:
 
 	Response();
 	~Response();
+	
+	std::string const & 						getRoot(void) const;
 
 	void			setAttributes();
 	void			responseError( const unsigned int & status_code );

@@ -95,11 +95,25 @@ void	Request::setMethods( )
 		if (locations.find(resource) != locations.end())
 		{
 			_methods = locations[resource]->getMethods();
+			if (locations[resource]->getRoot() != "")
+				_root = locations[resource]->getRoot();
+			else
+				_root = this->_current_server->getRoot();
+
+			if (locations[resource]->getIndex() != "")
+				_index = locations[resource]->getIndex();
+			else
+				_index = this->_current_server->getIndex();
 			return ;
 		}
 		resource.resize(resource.size() - 1);
 	}
 	_methods = this->_current_server->getMethods();
+	_root = this->_current_server->getRoot();
+	_index = this->_current_server->getIndex();
+	// std::cout << "Methods : " << this->_current_server->getMethods() << std::endl;
+	// std::cout << "Root : " << this->_current_server->getRoot() << std::endl;
+	// std::cout << "Index : " << this->_current_server->getIndex() << std::endl;
 }
 
 static void	bytesConcat(std::string & s1, char *s2, int size)
@@ -145,7 +159,8 @@ void	Request::setAttributes()
 
 	iss >> _method >> _resource;
 	// std::cout << "Method is now : " << _method << std::endl;
-	// std::cout << "Resource is now : " << _resource << std::endl;
+	// std::cout << _RIVIERA "Resource is now : " << _resource << _END << std::endl;
+	// std::cout << _RIVIERA "Root is  : " << this->_current_server->getRoot() << _END << std::endl;
 	// set the methods for the current resource according to location or server
 	setMethods();
 	_resource.erase(0, 1);
