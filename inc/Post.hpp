@@ -19,11 +19,15 @@ private:
 	Post(const Post& src);
 	Post& operator=(const Post& cpy);
 
+	std::string	_filename;
+	std::string	_boundary;
+	std::string	_data;
+
+	void		startUpload();
 	void		writeFile();
 	void		buildHeader();
 	void		sendResponse();
-	std::string extractBoundary();
-
+	void		extractBoundary();
 
 };
 

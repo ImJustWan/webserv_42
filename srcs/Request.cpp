@@ -117,7 +117,8 @@ static void	bytesConcat(std::string & s1, char *s2, int size)
 void Request::setRequest() {
 	char buffer[4096] = "";
 
-	_valread = read(this->_event_socket, buffer, sizeof(buffer) - 1);
+	// _valread = read(this->_event_socket, buffer, sizeof(buffer) - 1);
+	_valread = recv(this->_event_socket, buffer, sizeof(buffer) - 1, 0);
 	_readBytes += _valread;
 	bytesConcat(_request, buffer, _valread);
 

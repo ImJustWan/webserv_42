@@ -45,62 +45,45 @@ void	Post::sendResponse()
 
 }
 
-std::string Post::extractBoundary() {
-	std::string boundary = "";
-	std::string boundaryPrefix = "boundary=";
+void Post::extractBoundary() {
+	_boundary = "";
+	std::string boundaryStart = "boundary=";
 
-	size_t boundaryPos = _request.find(boundaryPrefix);
-	// boundaryPos += boundaryPrefix.length();
+	size_t boundaryPos = _request.find(boundaryStart);
 	size_t boundaryEnd = _request.find("\r\n", boundaryPos);
 
-	boundaryPos += boundaryPrefix.length();
-	boundary = _request.substr(boundaryPos, boundaryEnd - boundaryPos);
-
-	// Remove any leading or trailing whitespace or separators
-	boundary.erase(std::remove_if(boundary.begin(), boundary.end(), ::isspace), boundary.end());
-	boundary.erase(std::remove(boundary.begin(), boundary.end(), ';'), boundary.end());
-	// std::cout << "_request: \n" << _request << std::endl;
-	// std::cout << "\nBOUNDARY: \n" << boundary << std::endl;
-	return (boundary);
+	boundaryPos += boundaryStart.length();
+	_boundary = _request.substr(boundaryPos, boundaryEnd - boundaryPos);
 }
 
 void Post::writeFile() {
-	// Extract the boundary from the request
-	std::string boundary = extractBoundary();
 
-	if (boundary.empty()) {
+	extractBoundary();
+
+	if (_boundary.empty()) {
 		std::cerr << "Error: Could not extract boundary." << std::endl;
 		return;
 	}
 
-	size_t boundaryStart = _request.find(boundary);
-	// Find the start and end positions after the boundary
-	size_t dataStart = _request.find("\r\n\r\n", boundaryStart) + 4;
-	size_t dataEnd = _request.rfind(boundary);
-
-	if (dataStart != std::string::npos && dataEnd != std::string::npos) {
-		// std::cout << "DATA START: " << dataStart << std::endl;
+	size_t dataStart = _request.find(_boundary);
+	size_t tmpStart = _request.find("\r\n\r\n", dataStart + _boundary.size()) + 4;
+	size_t dataEnd = _request.rfind(_boundary);
 	
-		// Extract the binary data without the boundary at the end
-		size_t filenameStart = _request.find("filename=\"") + 10;
-		size_t filenameEnd = _request.find("\"", filenameStart);
-		std::string filename = _request.substr(filenameStart, filenameEnd - filenameStart);
+	dataStart = _request.find("\r\n\r\n", tmpStart) + 4;
+	
+	size_t filenameStart = _request.find("filename=\"") + 10;
+	size_t filenameEnd = _request.find("\"", filenameStart);
+	_filename = _request.substr(filenameStart, filenameEnd - filenameStart);
 
+	if (tmpStart != std::string::npos && dataEnd != std::string::npos) {
 		std::string imageData = _request.substr(dataStart);
-		// std::cout << "IMAGE DATA SIZE : " << imageData.size() << std::endl;
-		// std::cout << "_request\n\n" << _request << std::endl;
-
-		// Write the binary data to a file
-		std::string path = this->_current_server->getRoot() + "/" + filename;
-		std::ofstream newFile(path.c_str(), std::ios::binary);
-		// std::cout << "IMAGE DATA: \n\n" << imageData << std::endl;
+		std::string path = this->_current_server->getRoot() + "/" + _filename;
+		std::ofstream newFile(path.c_str());
 		newFile.write(imageData.c_str(), imageData.size());
 		newFile.close();
-
-		// Debug messages
-		std::cout << "File created: " << path << std::endl;
-	} else {
-		std::cerr << "Error: Could not find boundary positions." << std::endl;
+	}
+	else {
+		std::cerr << "Error: Could not find file's content" << std::endl;
 	}
 }
 
