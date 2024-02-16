@@ -7,14 +7,9 @@ volatile sig_atomic_t signal_received = false;
 int main(int ac, char **av)
 {
 	try {
-		if (ac == 1)
+		if (ac == 1 || ac == 2)
 		{
-			ServerHandler	launcher;
-			launcher.handleServers();
-		}
-		else if (ac == 2)
-		{
-			ServerHandler	launcher(static_cast<std::string>(av[1]));
+			 ServerHandler launcher(ac == 2 ? static_cast<std::string>(av[1]) : DEFAULT_CONF);
 			launcher.handleServers();
 		}
 		else

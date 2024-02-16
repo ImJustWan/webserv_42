@@ -5,7 +5,7 @@
 # include "Delete.hpp"
 # include "CGI.hpp"
 
-std::map<std::string, std::string> Request::_post_map;
+/*****************  CANONICAL FORM *****************/
 
 Request::Request() {
 	_epfd = 0;
@@ -25,12 +25,25 @@ Request::~Request() {
 		delete _response;
 }
 
-Request::Request ( const Request& cpy ) : IEvent(cpy) {
-	*this = cpy;
+Request::Request ( const Request& src ) : IEvent(src) {
+	*this = src;
 }
 
 Request& Request::operator= ( const Request& cpy ) {
-	(void)cpy;
+	if (this == &cpy)
+		return (*this);
+	this->_socketState = cpy._socketState;
+	this->_current_server = cpy._current_server;
+	this->_response = cpy._response;
+	this->_epfd = cpy._epfd;
+	this->_event_socket = cpy._event_socket;
+	this->_request = cpy._request;
+	this->_method = cpy._method;
+	this->_resource = cpy._resource;
+	this->_valread = cpy._valread;
+	this->_finished = cpy._finished;
+	this->_readBytes = cpy._readBytes;
+	this->_methods = cpy._methods;
 	return *this;
 }
 
@@ -43,6 +56,7 @@ int const &	Request::getEventSocket(void) const { return (this->_event_socket); 
 std::string	const & Request::getRequest(void) const { return (this->_request); }
 std::string	const & Request::getMethod(void) const { return (this->_method); }
 std::string const & Request::getResource(void) const { return ( this->_resource ); }
+Server* Request::getCurrentServer(void) const { return ( this->_current_server ); }
 
 
 /* ****************  SETTERS **************** */
@@ -55,7 +69,6 @@ void	Request::setCurrentServer( Server *current ) { this->_current_server = curr
 void	Request::setResource( std::string resource ) { this->_resource = resource; }
 void	Request::setRequest( std::string request ) { this->_request = request; }
 
-
 size_t Request::getContentLength( size_t const & found ) const
 {
 	const size_t	length = _request.find("\n", found) - found;
@@ -63,36 +76,6 @@ size_t Request::getContentLength( size_t const & found ) const
 
 	return ( content_length );
 }
-
-// std::string		Request::extractToken( char *searched, size_t & found )
-// {
-// 	std::string	token;
-// 	const size_t	pos 	= _request.find(searched, found);
-// 	const size_t	length 	= _request.find("\n", pos) - pos - std::strlen(searched);
-
-// 	token = _request.substr(pos + std::strlen(searched), length);
-// 	found = _request.find(token, found) + length;
-
-// 	return ( token );
-// }
-
-// std::string	Request::getKey(size_t & found )
-// {
-// 	return ( extractToken((char *)"name=", found) );
-// }
-
-// std::string	Request::getValue(size_t & found, std::string const & queryKey)
-// {
-// 	std::string	value;
-// 	size_t		lenght;
-
-// 	found += 3;
-// 	lenght = _request.find(queryKey, found) - found - 3;
-// 	value = _request.substr(found, lenght);
-// 	found = _request.find(value, found) + lenght;
-
-// 	return ( value );
-// }
 
 void	Request::setMethods( )
 {
@@ -119,29 +102,6 @@ void	Request::setMethods( )
 	_methods = this->_current_server->getMethods();
 }
 
-// void	Request::fillMap( void )
-// {
-// 	// std::string		queryKey;
-// 	// size_t			found = 0;
-// 	// std::string		key;
-// 	// std::string		value;
-
-// 	// queryKey = extractToken((char *)"boundary=", found);
-// 	// found = _request.find(queryKey);
-// 	// while ( found != std::string::npos )
-// 	// {
-// 	// 	key		= getKey(found);
-// 	// 	value	= getValue(found, queryKey);
-// 	// 	_post_map[key] = value;
-// 	// 	found = _request.find(queryKey, found);
-// 	// }
-
-// 	// for ( std::map<std::string, std::string>::iterator it = _post_map.begin(); it != _post_map.end(); it++ ) {
-// 	// 	std::cout	<< "key   : " << it->first << std::endl
-// 	// 				<< "value : " << it->second	 << std::endl;
-// 	// }
-// }
-
 static void	bytesConcat(std::string & s1, char *s2, int size)
 {
 	int	j = 0;
@@ -161,12 +121,10 @@ void Request::setRequest() {
 	_readBytes += _valread;
 	bytesConcat(_request, buffer, _valread);
 
-	// Check for header end
 	size_t headerEnd = _request.find("\r\n\r\n");
 	if (headerEnd != std::string::npos)
 		_finished = true;
 
-	// If it's a POST request, check if all chunks are received
 	size_t found = _request.find("Content-Length:");
 	size_t content_length = (found != std::string::npos) ? getContentLength(found + 1 + std::strlen("Content-Length:")) : _valread;
 
@@ -187,13 +145,14 @@ void	Request::setAttributes()
 	iss >> _method >> _resource;
 	// std::cout << "Method is now : " << _method << std::endl;
 	// std::cout << "Resource is now : " << _resource << std::endl;
+	// set the methods for the current resource according to location or server
 	setMethods();
 	_resource.erase(0, 1);
 
 }
 
 
-/* ****************  CLASS METHODS **************** */
+/*****************  CLASS METHODS *****************/
 
 Response*	Request::newGet() {
 	return ( new Get() );
@@ -249,8 +208,11 @@ void	Request::buildResponse()
 	{
 		initResponse(_response);
 
-		if ( _response->requestLineCheck() ) // accessCheck() handles its own errors
+		if ( _response->requestLineCheck() )
+		{
 			_response->executeMethod();
+		}
+	
 	}
 	else
 	{

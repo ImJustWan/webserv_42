@@ -1,6 +1,7 @@
 #pragma once
 
 # include "webserv.hpp"
+# include "Location.hpp"
 # include "Request.hpp"
 
 # define MAX_CLIENTS 30
@@ -15,11 +16,12 @@
 
 class Request;
 class Location;
+class ServerHandler;
 
-class Server : public IEvent
-{
+class Server : public IEvent {
 
 public:
+
 	Server(std::vector<std::string> &tokens, int id);
 	~Server();
 
@@ -40,6 +42,7 @@ public:
 	int const * 								getBabySocket(void) const;
 	int const & 								getBabySocket(size_t idx) const;
 	long long int const & 						getTimeout(void) const;
+	ServerHandler *								getServerHandler(void) const;
 
 	/* SETTERS */
 	void	setListen(std::vector<std::string>);
@@ -58,12 +61,12 @@ public:
 	void	setBabySocket(int * sockets);
 	void	setBabySocket(int idx, int socket);
 	void	setTimeout(long long int timeout);
+	void	setServerHandler(ServerHandler *serverHandler);
 
 	/* METHODS */
 	void	buildSocket( void );
-	void	initRequest( Request* request );
 	void	determinism();
-	void	serverProcess();
+	
 
 	/* EXCEPTIONS */
 	class InvalidConfig : public std::exception {
@@ -98,15 +101,19 @@ public:
 private:
 
 	Server();
-	Server(Server const &src);
-	Server & operator=(Server const & src);
+
+	Server(const Server& src);
+	Server& operator=(const Server& cpy);
 
 	void configurationMap(void);
 	void directiveIsolation(std::string delim, std::vector<std::string> &tokens,
-	std::map<std::string, void (Server::*)(std::vector<std::string>)>::iterator configIt,
-	std::vector<std::string>::iterator i);
+		std::map<std::string, void (Server::*)(std::vector<std::string>)>::iterator configIt,
+		std::vector<std::string>::iterator i);
 	void checkMinimumConf(void);
 	void checkForWhitelist(std::vector<std::string> &directive);
+
+	void	serverProcess();
+	void	initRequest( Request* request );
 
 	template <typename T>
 	T dataExtractor(std::string const &src)
@@ -117,7 +124,8 @@ private:
 		return value;
 	}
 
-	const unsigned  int					_serverID;
+
+	unsigned  int						_serverID;
 	uint16_t							_listen;
 	std::string							_root;
 	std::string							_index;
@@ -130,6 +138,7 @@ private:
 
 	std::map<std::string, void(Server::*)(const std::vector<std::string>)> _configMap;
 
+	ServerHandler				*_serverHandler;
 	int							_epfd;
 	int							_port;
 	int							_master_socket;
@@ -146,7 +155,6 @@ private:
 
 };
 
-# include "Location.hpp"
 
 inline std::ostream & operator<<(std::ostream & o, Server const & rhs)
 {

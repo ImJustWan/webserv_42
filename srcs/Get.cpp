@@ -1,16 +1,26 @@
 #include "Get.hpp"
 
+/*****************  CANONICAL FORM *****************/
+
 Get::Get() {
-	// std::cout << _ITALIC "Get Constructor called" _END << std::endl;
 }
 
 Get::~Get() {
 }
 
-Get& Get::operator= ( const Get& cpy ) {
-	(void)cpy;
+Get::Get(Get const & src) : Response(src) {
+	*this = src;
+}
+
+Get& Get::operator=(const Get& cpy) {
+	if (this == &cpy)
+		return (*this);
+	Response::operator=(cpy);
 	return *this;
 }
+
+
+/*****************  CLASS METHODS *****************/
 
 void	Get::sendResponse()
 {
@@ -34,6 +44,7 @@ void	Get::sendResponse()
 void	Get::executeMethod()
 {
 	// std::cout << _LILAC _BOLD "EXECUTE Get" _END << std::endl;
+	
 	this->sendResponse();
 }
 

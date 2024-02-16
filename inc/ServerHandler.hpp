@@ -10,8 +10,7 @@
 
 class Server;
 
-class	ServerHandler
-{
+class	ServerHandler {
 public:
 
 	ServerHandler();
@@ -21,6 +20,7 @@ public:
 	void	handleServers();
 	void	addMasterSockets();
 
+	std::map<std::string, std::string> const & getMimeMap(void) const;
 	std::vector<Server *> const & getServers(void)const;		// returns the vector containing servers;
 	Server * operator[](size_t id); 							// returns a reference to the requested server;
 
@@ -45,11 +45,12 @@ public:
 	};
 
 private:
-	struct epoll_event				_readyList[30];
-	std::vector<Server *>			_servers;
-	int								_epfd;
+	struct epoll_event							_readyList[30];
+	std::vector<Server *>						_servers;
+	int											_epfd;
 
-	std::vector<std::string>		_tokens;
+	std::vector<std::string>					_tokens;
+	std::map<std::string, std::string>			_mimeMap;
 
 	void constructorExtension(std::string const & filename);	// factorisation of the steps to build a ServerHandler Object with and without parameter.
 	void lexer(std::string const &file);						// converts std::string to vector<std::string> --> function called by constructor;
@@ -61,5 +62,6 @@ private:
 
 	ServerHandler(ServerHandler const &src);
 	ServerHandler & operator=(ServerHandler const &src);
+	void		createMimeMap();		// creates a map of mime types;
 
 };
