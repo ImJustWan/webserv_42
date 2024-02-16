@@ -82,12 +82,14 @@ public:
 	std::string	getValue(size_t & found, std::string const & queryKey);
 	std::string	extractToken( char *searched, size_t & found );
 	void		fillMap();
+	std::string	getFilePath();
 
 protected:
 
 	bool				_socketState;
 	Server*				_current_server;
 	Response*			_response;
+	Location*			_location;
 	int					_epfd;
 	int					_event_socket;
 	std::string			_request;

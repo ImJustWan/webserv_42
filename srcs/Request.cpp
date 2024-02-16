@@ -195,6 +195,7 @@ void	Request::buildResponse()
 			if ( !(map_methods[i].method & _methods))
 			{
 				_response = new Response;
+				std::cout << "Method : " << _method << " not allowed by " << _methods  << std::endl;
 				_response->setEventSocket(this->_event_socket);
 				_response->responseError(405);
 				break ;

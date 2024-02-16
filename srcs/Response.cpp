@@ -90,10 +90,10 @@ bool	Response::requestLineCheck( void )
 {
 	std::ifstream	file(this->_resource.c_str(), std::ios::binary);
 
-	if (access(_resource.c_str(), R_OK))
-		responseError(403);
-	else if (_resource.size() == 0)
+	if (_resource.size() == 0)
 		responseError(404);
+	else if (access(_resource.c_str(), R_OK))
+		responseError(403);
 	else if (!file.is_open())
 		responseError(404);
 	else if (!extensionCheck())
