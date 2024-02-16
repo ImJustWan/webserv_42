@@ -19,7 +19,7 @@ int main(int ac, char **av)
 		}
 	}
 	catch (std::exception &e){
-		std::cout << "Error: " << e.what() << std::endl;
+		std::cout << _RED _BOLD "Error: " _END << e.what() << std::endl;
 	}
 	return 0;
 }

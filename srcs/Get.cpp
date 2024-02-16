@@ -27,7 +27,9 @@ void	Get::sendResponse()
 	std::ifstream	file(Response::_resource.c_str(), std::ios::binary);
 	char			buffer[4096];
 
+	std::cout << "build get response" << std::endl;
 	buildHeader(file, 200);
+
 	if (send(this->_event_socket, this->_header.c_str(), this->_header.size(), 0) < 0)
 		std::cout << _RED _BOLD "Error: SEND HEADER" _END << std::endl;
 

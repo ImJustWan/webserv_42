@@ -79,8 +79,8 @@ wf : CXXFLAGS = -Wall
 
 gmk:
 		@if [ -d mk ];then echo ok;else mkdir mk;fi
-		find ./srcs/ -name '*.cpp' | sed 's/^/SRC += /' > mk/srcs.mk
-		find ./inc/ -name '*.hpp' | sed 's/^/INC += /' > mk/inc.mk
+		@find ./srcs/ -name '*.cpp' | sed 's/^/SRC += /' > mk/srcs.mk
+		@find ./inc/ -name '*.hpp' | sed 's/^/INC += /' > mk/inc.mk
 
 .PHONY : all clean fclean re wf
 

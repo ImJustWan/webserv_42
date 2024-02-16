@@ -64,7 +64,6 @@ Server::~Server()
 // 	this->message = cpy.message;
 // 	this->_timeout = cpy._timeout;
 // 	this->_requests[MAX_REQUEST] = cpy._requests[MAX_REQUEST];
-
 // 	return *this;
 // }
 
@@ -225,8 +224,19 @@ void Server::setLocations(std::vector<std::string> locations)
 		}
 		throw InvalidConfig(INVALCONF "Duplicate Location Directive");
 	}
-	Location	* newLocation = new Location(locations);
-	this->_locations[locations[1]] = newLocation;
+	try
+	{
+		Location	* newLocation = new Location(locations);
+		this->_locations[locations[1]] = newLocation;
+	}
+	catch(const std::exception& e)
+	{
+		std::cout << e.what() << std::endl;
+		for (std::map<std::string, Location *>::iterator i = this->_locations.begin(); i != this->_locations.end(); ++i)
+			delete i->second;
+		throw InvalidConfig(INVALCONF "error in location parsing");
+	}
+	
 }
 
 void Server::setErrors(std::vector<std::string> errors)

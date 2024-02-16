@@ -1,6 +1,7 @@
 #pragma once
 
 # include "Request.hpp"
+# include "error.hpp"
 
 
 class Response : public Request {
@@ -11,7 +12,8 @@ public:
 	~Response();
 
 	void			setAttributes();
-	void			responseError( const unsigned int & status_code );
+	void			responseError( const uint16_t & status_code );
+	void			errorPageBuilder(const uint16_t & status_code);
 	bool			requestLineCheck();
 
 	virtual void	executeMethod();
@@ -22,8 +24,9 @@ protected:
 	Response(const Response& cpy);
 	Response& operator=(const Response& cpy);
 
-	void			buildHeader( std::ifstream & file, unsigned int const & status_code );
+	void			buildHeader( std::ifstream & file, uint16_t const & status_code );
 	void			sendResponse();
+
 
 	std::string		_header;
 	std::string		_body;

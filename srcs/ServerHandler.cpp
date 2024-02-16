@@ -116,8 +116,8 @@ void	ServerHandler::constructorExtension(std::string const & filename)
 	}
 	if (this->_servers.size() == 0)
 		throw InvalidConfFileException();
-	// for (size_t i = 0; i < this->_servers.size(); ++i)
-	// 	std::cout << *(this->_servers[i]);
+	for (size_t i = 0; i < this->_servers.size(); ++i)
+		std::cout << *(this->_servers[i]);
 }
 
 ServerHandler::~ServerHandler()
@@ -184,6 +184,8 @@ void ServerHandler::lexer(std::string const &file)
 			}
 		}
 	}
+	if (this->_tokens.size() == 0)
+		throw InvalidConfFileException();
 }
 
 void ServerHandler::checkBrackets(std::vector<std::string> &rawData)
@@ -284,7 +286,6 @@ void	ServerHandler::addMasterSockets()
 		current->setEpfd(this->_epfd);
 		if (epoll_ctl(this->_epfd, EPOLL_CTL_ADD, current->getMasterSocket(), &interestList) == -1)
 			std::cout << "MASTER epoll error" << std::endl;
-
 	}
 }
 

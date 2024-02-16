@@ -66,14 +66,8 @@ void Location::setRoot(std::vector<std::string> root) {
 }
 
 
- 	/* TO CORRECT :
-	Location {
-		methods deny all;
-	}
-	
-	*/
-
 void Location::setMethods(std::vector<std::string> methods) {
+	
 	std::string methodsID[5] = {"", "GET", "POST", "", "DELETE"};
 	for(std::vector<std::string>::iterator i = methods.begin() + 1; i!= methods.end(); ++i)
 	{
@@ -83,8 +77,10 @@ void Location::setMethods(std::vector<std::string> methods) {
 				this->_methods |= j;
 				break ;
 			}
-		if (j == 5)
+		if (j == 5){
+			
 			throw InvalidConfig(INVALCONF "Unknown method");
+		}
 	}
 }
 

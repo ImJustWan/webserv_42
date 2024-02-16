@@ -144,7 +144,7 @@ void	Request::setAttributes()
 
 	iss >> _method >> _resource;
 	// std::cout << "Method is now : " << _method << std::endl;
-	// std::cout << "Resource is now : " << _resource << std::endl;
+	std::cout << "Resource is now : " << _resource << std::endl;
 	// set the methods for the current resource according to location or server
 	setMethods();
 	_resource.erase(0, 1);
@@ -195,7 +195,7 @@ void	Request::buildResponse()
 			if ( !(map_methods[i].method & _methods))
 			{
 				_response = new Response;
-				_response->setEventSocket(this->_event_socket);
+				initResponse(_response);
 				_response->responseError(405);
 				break ;
 			}
