@@ -3,7 +3,7 @@
 /*****************  CANONICAL FORM *****************/
 
 
-Server::Server(std::vector<std::string> &tokens, int id) :   _serverID(id), _listen(0), _autoindex(true), _methods(0), _clientMaxBodySize(1000000), _master_socket(-1), _baby_index(0), _request_index(0)
+Server::Server(std::vector<std::string> &tokens, int id) : _serverID(id), _listen(0), _autoindex(true), _methods(0), _clientMaxBodySize(1000000), _master_socket(-1), _baby_index(0), _request_index(0)
 {
 	configurationMap();
 	for (std::vector<std::string>::iterator i = tokens.begin(); i != tokens.end(); ++i) {
@@ -33,40 +33,40 @@ Server::~Server()
 }
 
 
-Server::Server ( const Server& src ) : IEvent(src) {
-	*this = src;
-}
+// Server::Server ( const Server& src ) : IEvent(src) {
+// 	*this = src;
+// }
 
-Server& Server::operator= ( const Server& cpy ) {
-	if (this == &cpy)
-		return (*this);
-	this->_serverID = cpy._serverID;
-	this->_listen = cpy._listen;
-	this->_root = cpy._root;
-	this->_index = cpy._index;
-	this->_autoindex = cpy._autoindex;
-	this->_methods = cpy._methods;
-	this->_clientMaxBodySize = cpy._clientMaxBodySize;
-	this->_serverNames = cpy._serverNames;
-	this->_locations = cpy._locations;
-	this->_errors = cpy._errors;
-	this->_serverHandler = cpy._serverHandler;
-	this->_epfd = cpy._epfd;
-	this->_port = cpy._port;
-	this->_master_socket = cpy._master_socket;
-	this->_baby_index = cpy._baby_index;
-	this->_request_index = cpy._request_index;
-	this->_baby_socket[MAX_BBY_SOCKET] = cpy._baby_socket[MAX_BBY_SOCKET];
-	this->client_socket[MAX_CLIENTS] = cpy.client_socket[MAX_CLIENTS];
-	this->addrlen = cpy.addrlen;
-	this->address = cpy.address;
-	this->ling = cpy.ling;
-	this->message = cpy.message;
-	this->_timeout = cpy._timeout;
-	this->_requests[MAX_REQUEST] = cpy._requests[MAX_REQUEST];
+// Server& Server::operator= ( const Server& cpy ) {
+// 	if (this == &cpy)
+// 		return (*this);
+// 	this->_serverID = cpy._serverID;
+// 	this->_listen = cpy._listen;
+// 	this->_root = cpy._root;
+// 	this->_index = cpy._index;
+// 	this->_autoindex = cpy._autoindex;
+// 	this->_methods = cpy._methods;
+// 	this->_clientMaxBodySize = cpy._clientMaxBodySize;
+// 	this->_serverNames = cpy._serverNames;
+// 	this->_locations = cpy._locations;
+// 	this->_errors = cpy._errors;
+// 	this->_serverHandler = cpy._serverHandler;
+// 	this->_epfd = cpy._epfd;
+// 	this->_port = cpy._port;
+// 	this->_master_socket = cpy._master_socket;
+// 	this->_baby_index = cpy._baby_index;
+// 	this->_request_index = cpy._request_index;
+// 	this->_baby_socket[MAX_BBY_SOCKET] = cpy._baby_socket[MAX_BBY_SOCKET];
+// 	this->client_socket[MAX_CLIENTS] = cpy.client_socket[MAX_CLIENTS];
+// 	this->addrlen = cpy.addrlen;
+// 	this->address = cpy.address;
+// 	this->ling = cpy.ling;
+// 	this->message = cpy.message;
+// 	this->_timeout = cpy._timeout;
+// 	this->_requests[MAX_REQUEST] = cpy._requests[MAX_REQUEST];
 
-	return *this;
-}
+// 	return *this;
+// }
 
 
 /*****************  CLASS METHODS *****************/

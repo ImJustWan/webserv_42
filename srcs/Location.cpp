@@ -47,6 +47,7 @@ std::string const & Location::getAlias(void) const { return this->_alias; }
 
 
 /* ****************  SETTERS **************** */
+
 void Location::setDirectory(std::vector<std::string> location) {
 	if (location.size() != 2)
 		throw InvalidConfig(INVALLOC "Location Directive");

@@ -16,7 +16,6 @@ ServerHandler::ServerHandler(std::string const & filename)
 	constructorExtension(filename);
 }
 
-
 void	ServerHandler::createMimeMap()
 {
 	_mimeMap[".aac"] = "audio/aac";

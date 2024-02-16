@@ -7,7 +7,7 @@
 NAME		= webserv
 
 CXX			= c++
-CXXFLAGS	= -Wall -Wextra -Werror -std=c++98 -g3
+CXXFLAGS	= -Wall -Wextra -Werror -std=c++98 -g -MMD
 
 HEAD		=	-I ./inc/
 
@@ -35,6 +35,7 @@ OBJ_PATH	= obj/
 
 OBJ_NAMES		=	$(SRC:.cpp=.o)
 OBJ				=	$(addprefix $(OBJ_PATH)/, $(OBJ_NAMES))
+DEPS			=	${OBJ:.o=.d}
 
 # --------- Compiling ---------------------------------------------------------------
 
@@ -82,3 +83,5 @@ gmk:
 		find ./inc/ -name '*.hpp' | sed 's/^/INC += /' > mk/inc.mk
 
 .PHONY : all clean fclean re wf
+
+-include $(DEPS)
