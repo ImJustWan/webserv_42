@@ -56,6 +56,8 @@ void Post::extractBoundary() {
 	_boundary = _request.substr(boundaryPos, boundaryEnd - boundaryPos);
 }
 
+/* Remove boundary at the end of file, no just empty line*/
+
 void Post::writeFile() {
 
 	extractBoundary();
@@ -77,10 +79,12 @@ void Post::writeFile() {
 
 	if (tmpStart != std::string::npos && dataEnd != std::string::npos) {
 		std::string imageData = _request.substr(dataStart);
-		std::string path = this->getRoot() + "/" + _filename;
+		std::string path = this->getCurrentServer()->getRoot() + "/" + _filename;
 		std::ofstream newFile(path.c_str());
+		// std::cout << "Request " << _request << std::endl;
 		newFile.write(imageData.c_str(), imageData.size());
 		newFile.close();
+		std::cerr << "File created at " << path << std::endl;
 	}
 	else {
 		std::cerr << "Error: Could not find file's content" << std::endl;

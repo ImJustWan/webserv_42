@@ -16,6 +16,7 @@ Request::Request() {
 	_valread = 0;
 	_socketState = READ_STATE;
 	_response = NULL;
+	_location = NULL;
 	_finished = false;
 	_readBytes = 0;
 }
@@ -53,19 +54,27 @@ Request& Request::operator= ( const Request& cpy ) {
 int const &	Request::getEpfd(void) const { return (this->_epfd); }
 int const &	Request::getValread(void) const { return (this->_valread); }
 int const &	Request::getEventSocket(void) const { return (this->_event_socket); }
+int const &	Request::getMethods(void) const { return (this->_methods); }
 std::string	const & Request::getRequest(void) const { return (this->_request); }
 std::string	const & Request::getMethod(void) const { return (this->_method); }
 std::string const & Request::getResource(void) const { return ( this->_resource ); }
 Server* Request::getCurrentServer(void) const { return ( this->_current_server ); }
+Location* Request::getLocation() const { return ( this->_location ); }
+std::string const & Request::getIndex(void) const { return ( this->_index ); }
+std::string const & Request::getRoot(void) const { return ( this->_root ); }
 
 
 /* ****************  SETTERS **************** */
 
 void	Request::setEpfd( const int epfd ) { this->_epfd = epfd; }
+void	Request::setMethods( const int methods ) { this->_methods = methods; }
 void	Request::setEventSocket( const int socket ) { this->_event_socket = socket; }
 void	Request::setValread( const int valread ) { this->_valread = valread; }
 void	Request::setSocketState( bool state ) { this->_socketState = state; }
 void	Request::setCurrentServer( Server *current ) { this->_current_server = current; }
+void	Request::setLocation( Location *location ) { this->_location = location; }
+void	Request::setRoot( std::string root ) { this->_root = root; }
+void	Request::setIndex( std::string index ) { this->_index = index; }
 void	Request::setResource( std::string resource ) { this->_resource = resource; }
 void	Request::setRequest( std::string request ) { this->_request = request; }
 
@@ -77,7 +86,7 @@ size_t Request::getContentLength( size_t const & found ) const
 	return ( content_length );
 }
 
-void	Request::setMethods( )
+void	Request::findLocation()
 {
 	std::map<std::string, Location *>	locations = this->_current_server->getLocations();
 	
@@ -85,8 +94,8 @@ void	Request::setMethods( )
 	std::string 			root = this->_current_server->getRoot();
 	
 	root = root.substr(1);
-	if (resource.substr(0, root.size()) == root)
-		resource = resource.substr(root.size());
+	// if (resource.substr(0, root.size()) == root)
+	// 	resource = resource.substr(root.size());
 	
 	size_t					size = resource.size();
 
@@ -94,26 +103,12 @@ void	Request::setMethods( )
 	{
 		if (locations.find(resource) != locations.end())
 		{
-			_methods = locations[resource]->getMethods();
-			if (locations[resource]->getRoot() != "")
-				_root = locations[resource]->getRoot();
-			else
-				_root = this->_current_server->getRoot();
-
-			if (locations[resource]->getIndex() != "")
-				_index = locations[resource]->getIndex();
-			else
-				_index = this->_current_server->getIndex();
+			this->setLocation(locations[resource]);
 			return ;
 		}
 		resource.resize(resource.size() - 1);
 	}
-	_methods = this->_current_server->getMethods();
-	_root = this->_current_server->getRoot();
-	_index = this->_current_server->getIndex();
-	// std::cout << "Methods : " << this->_current_server->getMethods() << std::endl;
-	// std::cout << "Root : " << this->_current_server->getRoot() << std::endl;
-	// std::cout << "Index : " << this->_current_server->getIndex() << std::endl;
+	this->setLocation(NULL);
 }
 
 static void	bytesConcat(std::string & s1, char *s2, int size)
@@ -131,7 +126,6 @@ static void	bytesConcat(std::string & s1, char *s2, int size)
 void Request::setRequest() {
 	char buffer[4096] = "";
 
-	// _valread = read(this->_event_socket, buffer, sizeof(buffer) - 1);
 	_valread = recv(this->_event_socket, buffer, sizeof(buffer) - 1, 0);
 	_readBytes += _valread;
 	bytesConcat(_request, buffer, _valread);
@@ -153,17 +147,32 @@ void Request::setRequest() {
 	}
 }
 
+void	Request::setMethodsRootIndex()
+{
+	if (this->getLocation() != NULL)
+		_methods = this->getLocation()->getMethods();
+	else
+		_methods = this->getCurrentServer()->getMethods();
+	if (this->getLocation() != NULL && this->getLocation()->getRoot() != "")
+		_root = this->getLocation()->getRoot();
+	else
+		_root = this->getCurrentServer()->getRoot();
+	if (this->getLocation() != NULL &&  this->getLocation()->getIndex() != "")
+		_index = this->getLocation()->getIndex();
+	else
+		_index = this->getCurrentServer()->getIndex();
+}
+
 void	Request::setAttributes()
 {
 	std::istringstream	iss(Request::_request);
 
 	iss >> _method >> _resource;
-	// std::cout << "Method is now : " << _method << std::endl;
-	// std::cout << _RIVIERA "Resource is now : " << _resource << _END << std::endl;
-	// std::cout << _RIVIERA "Root is  : " << this->_current_server->getRoot() << _END << std::endl;
+	// std::cout << _RIVIERA "Resource is : " << _resource << _END << std::endl;
+
 	// set the methods for the current resource according to location or server
-	setMethods();
-	_resource.erase(0, 1);
+	findLocation();
+	setMethodsRootIndex();
 
 }
 
@@ -186,9 +195,14 @@ void	Request::initResponse( Response* response )
 {
 	response->setEventSocket(this->_event_socket);
 	response->setRequest(this->_request);
+	response->setCurrentRequest(this);
 	response->setResource(this->_resource);
 	response->setEpfd(this->_epfd);
 	response->setCurrentServer(this->_current_server);
+	response->setLocation(this->_location);
+	response->setRoot(this->_root);
+	response->setIndex(this->_index);
+	response->setMethods(this->_methods);
 }
 
 void	Request::buildResponse()
@@ -224,12 +238,7 @@ void	Request::buildResponse()
 	if (_response)
 	{
 		initResponse(_response);
-
-		if ( _response->requestLineCheck() )
-		{
-			_response->executeMethod();
-		}
-	
+		_response->executeMethod();	
 	}
 	else
 	{

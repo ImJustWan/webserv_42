@@ -10,11 +10,15 @@ public:
 	Response();
 	~Response();
 	
-	std::string const & 						getRoot(void) const;
+	Location *				getLocation(void) const;
+	Request *				getCurrentRequest(void) const;
+
+	void			setCurrentRequest( Request *current );
 
 	void			setAttributes();
 	void			responseError( const unsigned int & status_code );
 	bool			requestLineCheck();
+	void			trimSlash();
 
 	virtual void	executeMethod();
 
@@ -36,7 +40,7 @@ private :
 
 
 	bool			extensionCheck();
-
+	Request *		_currentRequest;
 	std::map<unsigned int, std::string>	_status_code;
 
 };

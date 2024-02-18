@@ -46,12 +46,16 @@ public:
 	int const &				getEpfd() const;
 	int const &				getValread() const;
 	int const &				getEventSocket() const;
+	int const &				getMethods() const;
 	std::string	const &		getRequest() const;
+	std::string	const &		getIndex() const;
+	std::string	const &		getRoot() const;
 	std::string	const &		getResource() const;
 	std::string	const &		getMethod() const;
 	size_t					getContentLength(size_t const & found ) const;
 	std::map<uint16_t, std::string>	const & 	getErrors(void) const;
 	Server*					getCurrentServer() const;
+	Location*				getLocation() const;
 
 	/* SETTERS */
 	void					setEpfd( const int epfd );
@@ -60,10 +64,16 @@ public:
 	void					setSocketState( bool state );
 	void					setChunksEnd( bool state );
 	void					setCurrentServer( Server *current );
+	void					setLocation( Location *location );
 	void					setResource( std::string resource );
 	void					setRequest( std::string request );
+	void					setRoot( std::string root );
+	void					setIndex( std::string index );
+	void					setMethods( const int methods );
+
 	void					setRequest();
-	void					setMethods();
+	void					findLocation();
+	void					setMethodsRootIndex();
 
 	/* METHODS */
 

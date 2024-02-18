@@ -18,5 +18,6 @@ private:
 	Get& operator=(const Get& cpy);
 
 	void	sendResponse();
+	bool	checkResource();
 
 };
