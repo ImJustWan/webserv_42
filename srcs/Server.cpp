@@ -2,6 +2,8 @@
 
 /*****************  CANONICAL FORM *****************/
 
+/*****************  CANONICAL FORM *****************/
+
 
 Server::Server(std::vector<std::string> &tokens, int id) : _serverID(id), _listen(0), _autoindex(true), _methods(0), _clientMaxBodySize(1000000), _master_socket(-1), _baby_index(0), _request_index(0)
 {
@@ -100,6 +102,7 @@ std::vector<std::string>::iterator i)
 		directive.push_back(*i);
 	(this->*configIt->second)(directive);
 }
+
 
 
 void Server::checkMinimumConf(void)
@@ -250,6 +253,7 @@ void Server::setErrors(std::vector<std::string> errors)
 		throw InvalidConfig(INVALCONF "Errors page file extension");
 	this->_errors[code] = errors[2];
 }
+
 
 
 /* **************** EXEC SETTERS **************** */

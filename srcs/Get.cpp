@@ -27,9 +27,7 @@ void	Get::sendResponse()
 	std::ifstream	file(Response::_resource.c_str(), std::ios::binary);
 	char			buffer[4096];
 
-	std::cout << "build get response" << std::endl;
 	buildHeader(file, 200);
-
 	if (send(this->_event_socket, this->_header.c_str(), this->_header.size(), 0) < 0)
 		std::cout << _RED _BOLD "Error: SEND HEADER" _END << std::endl;
 
@@ -43,10 +41,46 @@ void	Get::sendResponse()
 	file.close();
 }
 
+
+bool	Get::checkResource()
+{
+	struct stat	buffer;
+
+	// std::cout << _EMERALD "Resource is : " << _resource << _END << std::endl;
+	this->trimSlash();
+	_resource = _root + _resource;
+	// std::cout << _EMERALD "Resource is now : " << _resource << _END << std::endl;
+
+	if (stat(_resource.c_str(), &buffer))
+		return (responseError(404), false);
+	if (S_ISREG(buffer.st_mode))
+		return true;
+	if (S_ISDIR(buffer.st_mode) && this->_location != NULL)
+	{
+		std::cout << "Resource is a directory" << std::endl;
+		if (this->getIndex() == "")
+			return (responseError(403), false);
+		// else if (this->getIndex() == "autoindex")
+		// 	return (responseError(501), false);
+		else if (stat((_resource + "/" + this->getIndex()).c_str(), &buffer))
+			return (false);
+		else if (S_ISREG(buffer.st_mode))
+		{
+			_resource += "/" + this->getIndex();
+			return true;
+		}
+		else
+			return (false);
+	}
+	return true;
+}
+
+
 void	Get::executeMethod()
 {
 	// std::cout << _LILAC _BOLD "EXECUTE Get" _END << std::endl;
 	
-	this->sendResponse();
+	// std::cout << "Resource is : " << _resource << std::endl;
+	if (checkResource() && requestLineCheck())
+		this->sendResponse();
 }
-

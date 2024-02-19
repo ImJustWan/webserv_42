@@ -45,17 +45,56 @@ void	Post::sendResponse()
 
 }
 
-void	Post::writeFile()
-{
-		std::string path = this->_current_server->getRoot() + "/OUTPUUUUT";
+void Post::extractBoundary() {
+	_boundary = "";
+	std::string boundaryStart = "boundary=";
+
+	size_t boundaryPos = _request.find(boundaryStart);
+	size_t boundaryEnd = _request.find("\r\n", boundaryPos);
+
+	boundaryPos += boundaryStart.length();
+	_boundary = _request.substr(boundaryPos, boundaryEnd - boundaryPos);
+}
+
+/* Remove boundary at the end of file, no just empty line*/
+
+void Post::writeFile() {
+
+	extractBoundary();
+
+	if (_boundary.empty()) {
+		std::cerr << "Error: Could not extract boundary." << std::endl;
+		return;
+	}
+
+	size_t dataStart = _request.find(_boundary);
+	size_t tmpStart = _request.find("\r\n\r\n", dataStart + _boundary.size()) + 4;
+	size_t dataEnd = _request.rfind(_boundary);
+	
+	dataStart = _request.find("\r\n\r\n", tmpStart) + 4;
+	
+	size_t filenameStart = _request.find("filename=\"") + 10;
+	size_t filenameEnd = _request.find("\"", filenameStart);
+	_filename = _request.substr(filenameStart, filenameEnd - filenameStart);
+
+	if (tmpStart != std::string::npos && dataEnd != std::string::npos) {
+		std::string imageData = _request.substr(dataStart);
+		std::string path = this->getCurrentServer()->getRoot() + "/" + _filename;
 		std::ofstream newFile(path.c_str());
-		newFile.write(_request.c_str(), _request.size());
+		// std::cout << _PINK "Request " << _request << _END <<  std::endl;
+		newFile.write(imageData.c_str(), imageData.size());
 		newFile.close();
+		std::cerr << "File created at " << path << std::endl;
+	}
+	else {
+		std::cerr << "Error: Could not find file's content" << std::endl;
+	}
 }
 
 void	Post::executeMethod()
 {
 	// std::cout << _LILAC _BOLD "EXECUTE Get" _END << std::endl;
+
 
 	writeFile();
 	this->sendResponse();

@@ -16,6 +16,8 @@ ServerHandler::ServerHandler(std::string const & filename)
 	constructorExtension(filename);
 }
 
+std::map<std::string, std::string> const & ServerHandler::getMimeMap(void) const { return this->_mimeMap; }
+
 void	ServerHandler::createMimeMap()
 {
 	_mimeMap[".aac"] = "audio/aac";
@@ -98,8 +100,6 @@ void	ServerHandler::createMimeMap()
 	_mimeMap[".7z"] = "application/x-7z-compressed";
 }
 
-std::map<std::string, std::string> const & ServerHandler::getMimeMap(void) const { return this->_mimeMap; }
-
 void	ServerHandler::constructorExtension(std::string const & filename)
 {
 	createMimeMap();
@@ -116,8 +116,8 @@ void	ServerHandler::constructorExtension(std::string const & filename)
 	}
 	if (this->_servers.size() == 0)
 		throw InvalidConfFileException();
-	for (size_t i = 0; i < this->_servers.size(); ++i)
-		std::cout << *(this->_servers[i]);
+	// for (size_t i = 0; i < this->_servers.size(); ++i)
+	// 	std::cout << *(this->_servers[i]);
 }
 
 ServerHandler::~ServerHandler()

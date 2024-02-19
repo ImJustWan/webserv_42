@@ -1,6 +1,8 @@
 #pragma once
 
 # include "Response.hpp"
+# define MAX_FILE_SIZE 10 * 1024 * 1024 // 1MB
+
 
 class Post : public Response {
 
@@ -17,9 +19,15 @@ private:
 	Post(const Post& src);
 	Post& operator=(const Post& cpy);
 
+	std::string	_filename;
+	std::string	_boundary;
+	std::string	_data;
+
+	void		startUpload();
 	void		writeFile();
 	void		buildHeader();
 	void		sendResponse();
+	void		extractBoundary();
 
 };
 

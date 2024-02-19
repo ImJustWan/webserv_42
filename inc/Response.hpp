@@ -10,11 +10,17 @@ public:
 
 	Response();
 	~Response();
+	
+	Location *				getLocation(void) const;
+	Request *				getCurrentRequest(void) const;
+
+	void			setCurrentRequest( Request *current );
 
 	void			setAttributes();
 	void			responseError( const uint16_t & status_code );
 	void			errorPageBuilder(const uint16_t & status_code);
 	bool			requestLineCheck();
+	void			trimSlash();
 
 	virtual void	executeMethod();
 
@@ -24,9 +30,8 @@ protected:
 	Response(const Response& cpy);
 	Response& operator=(const Response& cpy);
 
-	void			buildHeader( std::ifstream & file, uint16_t const & status_code );
+	void			buildHeader( std::ifstream & file, unsigned int const & status_code );
 	void			sendResponse();
-
 
 	std::string		_header;
 	std::string		_body;
@@ -37,7 +42,7 @@ private :
 
 
 	bool			extensionCheck();
-
+	Request *		_currentRequest;
 	std::map<unsigned int, std::string>	_status_code;
 
 };

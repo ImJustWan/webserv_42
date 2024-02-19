@@ -16,8 +16,10 @@ Request::Request() {
 	_valread = 0;
 	_socketState = READ_STATE;
 	_response = NULL;
+	_location = NULL;
 	_finished = false;
 	_readBytes = 0;
+	_contentLength = 0;
 }
 
 Request::~Request() {
@@ -53,23 +55,31 @@ Request& Request::operator= ( const Request& cpy ) {
 int const &	Request::getEpfd(void) const { return (this->_epfd); }
 int const &	Request::getValread(void) const { return (this->_valread); }
 int const &	Request::getEventSocket(void) const { return (this->_event_socket); }
+int const &	Request::getMethods(void) const { return (this->_methods); }
 std::string	const & Request::getRequest(void) const { return (this->_request); }
 std::string	const & Request::getMethod(void) const { return (this->_method); }
 std::string const & Request::getResource(void) const { return ( this->_resource ); }
 Server* Request::getCurrentServer(void) const { return ( this->_current_server ); }
+Location* Request::getLocation() const { return ( this->_location ); }
+std::string const & Request::getIndex(void) const { return ( this->_index ); }
+std::string const & Request::getRoot(void) const { return ( this->_root ); }
 
 
 /* ****************  SETTERS **************** */
 
 void	Request::setEpfd( const int epfd ) { this->_epfd = epfd; }
+void	Request::setMethods( const int methods ) { this->_methods = methods; }
 void	Request::setEventSocket( const int socket ) { this->_event_socket = socket; }
 void	Request::setValread( const int valread ) { this->_valread = valread; }
 void	Request::setSocketState( bool state ) { this->_socketState = state; }
 void	Request::setCurrentServer( Server *current ) { this->_current_server = current; }
+void	Request::setLocation( Location *location ) { this->_location = location; }
+void	Request::setRoot( std::string root ) { this->_root = root; }
+void	Request::setIndex( std::string index ) { this->_index = index; }
 void	Request::setResource( std::string resource ) { this->_resource = resource; }
 void	Request::setRequest( std::string request ) { this->_request = request; }
 
-size_t Request::getContentLength( size_t const & found ) const
+size_t Request::findContentLength( size_t const & found ) const
 {
 	const size_t	length = _request.find("\n", found) - found;
 	const size_t	content_length = std::atoi(_request.substr(found, length).c_str());
@@ -77,7 +87,7 @@ size_t Request::getContentLength( size_t const & found ) const
 	return ( content_length );
 }
 
-void	Request::setMethods( )
+void	Request::findLocation()
 {
 	std::map<std::string, Location *>	locations = this->_current_server->getLocations();
 	
@@ -85,8 +95,8 @@ void	Request::setMethods( )
 	std::string 			root = this->_current_server->getRoot();
 	
 	root = root.substr(1);
-	if (resource.substr(0, root.size()) == root)
-		resource = resource.substr(root.size());
+	// if (resource.substr(0, root.size()) == root)
+	// 	resource = resource.substr(root.size());
 	
 	size_t					size = resource.size();
 
@@ -94,12 +104,12 @@ void	Request::setMethods( )
 	{
 		if (locations.find(resource) != locations.end())
 		{
-			_methods = locations[resource]->getMethods();
+			this->setLocation(locations[resource]);
 			return ;
 		}
 		resource.resize(resource.size() - 1);
 	}
-	_methods = this->_current_server->getMethods();
+	this->setLocation(NULL);
 }
 
 static void	bytesConcat(std::string & s1, char *s2, int size)
@@ -117,7 +127,7 @@ static void	bytesConcat(std::string & s1, char *s2, int size)
 void Request::setRequest() {
 	char buffer[4096] = "";
 
-	_valread = read(this->_event_socket, buffer, sizeof(buffer) - 1);
+	_valread = recv(this->_event_socket, buffer, sizeof(buffer) - 1, 0);
 	_readBytes += _valread;
 	bytesConcat(_request, buffer, _valread);
 
@@ -126,9 +136,10 @@ void Request::setRequest() {
 		_finished = true;
 
 	size_t found = _request.find("Content-Length:");
-	size_t content_length = (found != std::string::npos) ? getContentLength(found + 1 + std::strlen("Content-Length:")) : _valread;
+	_contentLength = (found != std::string::npos) ? findContentLength(found + 1 + std::strlen("Content-Length:")) : _valread;
+	// std::cout << _LILAC "Content-Length: " << _contentLength << _END << std::endl;
 
-	if (_readBytes < content_length)
+	if (_readBytes < _contentLength)
 		_finished = false;
 	else
 	{
@@ -138,16 +149,32 @@ void Request::setRequest() {
 	}
 }
 
+void	Request::setMethodsRootIndex()
+{
+	if (this->getLocation() != NULL)
+		this->setMethods(this->getLocation()->getMethods());
+	else
+		this->setMethods(this->getCurrentServer()->getMethods());
+	if (this->getLocation() != NULL && this->getLocation()->getRoot() != "")
+		this->setRoot(this->getLocation()->getRoot());
+	else
+		this->setRoot(this->getCurrentServer()->getRoot());
+	if (this->getLocation() != NULL &&  this->getLocation()->getIndex() != "")
+		this->setIndex(this->getLocation()->getIndex());
+	else
+		this->setIndex(this->getCurrentServer()->getIndex());
+}
+
 void	Request::setAttributes()
 {
 	std::istringstream	iss(Request::_request);
 
 	iss >> _method >> _resource;
-	// std::cout << "Method is now : " << _method << std::endl;
-	std::cout << "Resource is now : " << _resource << std::endl;
+	// std::cout << _RIVIERA "Resource is : " << _resource << _END << std::endl;
+
 	// set the methods for the current resource according to location or server
-	setMethods();
-	_resource.erase(0, 1);
+	findLocation();
+	setMethodsRootIndex();
 
 }
 
@@ -170,10 +197,29 @@ void	Request::initResponse( Response* response )
 {
 	response->setEventSocket(this->_event_socket);
 	response->setRequest(this->_request);
+	response->setCurrentRequest(this);
 	response->setResource(this->_resource);
 	response->setEpfd(this->_epfd);
 	response->setCurrentServer(this->_current_server);
+	response->setLocation(this->_location);
+	response->setRoot(this->_root);
+	response->setIndex(this->_index);
+	response->setMethods(this->_methods);
 }
+
+void	Request::buildResponse( const uint16_t & status_code )
+{
+	if (_response)
+		_response->responseError(status_code);
+	else
+	{
+		_response = new Response;
+		initResponse(_response);
+		_response->responseError(status_code);
+		setValread(0);
+	}
+}
+
 
 void	Request::buildResponse()
 {
@@ -183,6 +229,11 @@ void	Request::buildResponse()
 		_response = NULL;
 	}
 
+	if (_contentLength > _current_server->getClientMaxBodySize())
+	{
+		buildResponse(413);
+		return ;
+	}
 	map_method	map_methods[N_METHODS + 1] = {
 		{GET, "GET", &Request::newGet},
 		{POST, "POST", &Request::newPost},
@@ -195,7 +246,8 @@ void	Request::buildResponse()
 			if ( !(map_methods[i].method & _methods))
 			{
 				_response = new Response;
-				initResponse(_response);
+				std::cout << "Method : " << _method << " not allowed by " << _methods  << std::endl;
+				_response->setEventSocket(this->_event_socket);
 				_response->responseError(405);
 				break ;
 			}
@@ -207,18 +259,15 @@ void	Request::buildResponse()
 	if (_response)
 	{
 		initResponse(_response);
-
-		if ( _response->requestLineCheck() )
-		{
-			_response->executeMethod();
-		}
-	
+		_response->executeMethod();	
 	}
 	else
 	{
 		_response = new Response;
 		initResponse(_response);
-		_response->responseError(400);
+		std::cout << "Method : " << _method << std::endl;
+		if (_response->getValread() != 0)
+			_response->responseError(400);
 	}
 	if (_response->getValread() == 0)
 		_valread = 0;
@@ -237,7 +286,7 @@ void	Request::determinism()
 		this->setAttributes();
 		// std::cout << _PINK "Request : " << _request << _END << std::endl;
 		// std::cout << _PINK "Resource : " << _resource << _END << std::endl;
-		if (_finished == true)
+		if (_finished == true || _contentLength > _current_server->getClientMaxBodySize() || _valread == 0)
 		{
 			_socketState = WRITE_STATE;
 			modifiedList.events = EPOLLOUT;

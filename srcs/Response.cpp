@@ -38,7 +38,13 @@ Response& Response::operator=(const Response& cpy) {
 
 /*****************  CLASS METHODS *****************/
 
-void	Response::buildHeader( std::ifstream & file, uint16_t const & status_code )
+
+Location *Response::getLocation(void) const { return this->_location; }
+Request	*Response::getCurrentRequest(void) const { return this->_currentRequest; }
+void	Response::setCurrentRequest( Request *current ) { this->_currentRequest = current; }
+
+
+void	Response::buildHeader( std::ifstream & file, unsigned int const & status_code )
 {
 	file.seekg(0, std::ios::end);
 	int file_size = file.tellg();
@@ -51,9 +57,8 @@ void	Response::buildHeader( std::ifstream & file, uint16_t const & status_code )
 	status_code_str << status_code;
 
 	// Prepare HTTP response headers
-	this->_header += "HTTP/1.1 ";
-	this->_header += status_code_str.str();
-	this->_header += " ";
+	this->_header = "HTTP/1.1 ";
+	this->_header += status_code;
 	this->_header +=  _status_code[status_code];
 	this->_header += "\r\n";
 	this->_header += "Content-Length: ";
@@ -72,7 +77,7 @@ void	Response::setAttributes()
 	std::string			method;
 
 	iss >> _method >> _resource; 
-	_resource.erase(0, 1);
+	// _resource.erase(0, 1);
 }
 
 bool	Response::extensionCheck()
@@ -90,20 +95,38 @@ bool	Response::extensionCheck()
 	return ( true );
 }
 
+void	Response::trimSlash()
+{
+	size_t	index;
+
+	if (!(_resource.empty()) && ((index = _resource.find_first_not_of("/")) != _resource.npos))
+	{
+		if ((index = _resource.find_last_not_of("/")) != _resource.npos)
+			_resource.erase(index + 1);
+	}
+	else
+		_resource = "/";
+}
+
 bool	Response::requestLineCheck( void )
 {
 	std::ifstream	file(this->_resource.c_str(), std::ios::binary);
 
-	if (!file.is_open())
-		responseError(404);
-	else if (_resource.size() == 0)
+	if (_resource.size() == 0)
 		responseError(404);
 	else if (access(_resource.c_str(), R_OK))
+	{
+		std::cout << "Can't access " << _resource << std::endl;
 		responseError(403);
-	else if (!extensionCheck())
-		responseError(501);
+	}
+	else if (!file.is_open())
+		responseError(404);
 	else if (_request.find("HTTP/1.1") == std::string::npos)
 		responseError(505);
+	else if (_resource.find("/..") != std::string::npos || _resource.find("../") != std::string::npos)
+		responseError(403);
+	// else if (!extensionCheck())
+	// 	responseError(501);
 	else
 	{
 		// std::cout << _EMERALD "We're good : " << _resource << _END << std::endl;
@@ -113,6 +136,8 @@ bool	Response::requestLineCheck( void )
 	return ( false );
 }
 
+// Is there error_map and corresponding error
+// Header for errors with macros fixed content of error_page
 
 void	Response::errorPageBuilder(const uint16_t & status_code)
 {
