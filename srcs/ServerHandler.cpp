@@ -276,16 +276,27 @@ std::vector<std::vector<std::string > > ServerHandler::ServerInfo(std::vector<st
 void	ServerHandler::addMasterSockets()
 {
 	struct epoll_event interestList;
+	std::map<int, Server *> serverMap;
 
 	interestList.events = EPOLLIN;
 	for (std::vector<Server *>::iterator it	= this->_servers.begin(); it < this->_servers.end(); it++)
 	{
 		Server *current = *it;
-		current->buildSocket();
-		interestList.data.ptr = current;
 		current->setEpfd(this->_epfd);
-		if (epoll_ctl(this->_epfd, EPOLL_CTL_ADD, current->getMasterSocket(), &interestList) == -1)
-			std::cout << "MASTER epoll error" << std::endl;
+		if (serverMap.find(current->getListen()) == serverMap.end())
+		{
+			current->buildSocket();
+			serverMap[current->getListen()] = current;
+			std::cout << "New Server on port " << current->getListen() << std::endl;
+			interestList.data.ptr = current;
+			if (epoll_ctl(this->_epfd, EPOLL_CTL_ADD, current->getMasterSocket(), &interestList) == -1)
+				std::cout << "MASTER epoll error" << std::endl;
+		}
+		else
+		{
+			current->setMasterSocket(serverMap[current->getListen()]->getMasterSocket());
+			std::cout << "Server already exists on port " << current->getListen() << std::endl;
+		}
 	}
 }
 

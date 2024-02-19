@@ -58,7 +58,8 @@ void	Response::buildHeader( std::ifstream & file, unsigned int const & status_co
 
 	// Prepare HTTP response headers
 	this->_header = "HTTP/1.1 ";
-	this->_header += status_code;
+	this->_header += status_code_str.str();
+	this->_header += " ";
 	this->_header +=  _status_code[status_code];
 	this->_header += "\r\n";
 	this->_header += "Content-Length: ";

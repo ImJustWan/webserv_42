@@ -56,8 +56,6 @@ void Post::extractBoundary() {
 	_boundary = _request.substr(boundaryPos, boundaryEnd - boundaryPos);
 }
 
-/* Remove boundary at the end of file, no just empty line*/
-
 void Post::writeFile() {
 
 	extractBoundary();
@@ -76,6 +74,8 @@ void Post::writeFile() {
 	size_t filenameStart = _request.find("filename=\"") + 10;
 	size_t filenameEnd = _request.find("\"", filenameStart);
 	_filename = _request.substr(filenameStart, filenameEnd - filenameStart);
+
+	/* UPLOAD PATH MUST BE upload_path if it exists */
 
 	if (tmpStart != std::string::npos && dataEnd != std::string::npos) {
 		std::string imageData = _request.substr(dataStart);

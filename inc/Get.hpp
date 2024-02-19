@@ -17,6 +17,7 @@ private:
 	Get(const Get& src);
 	Get& operator=(const Get& cpy);
 
+	void	getAutoIndex();
 	void	sendResponse();
 	bool	checkResource();
 
