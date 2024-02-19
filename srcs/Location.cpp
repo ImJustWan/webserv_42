@@ -9,7 +9,7 @@ void Location::configurationMap(void)
 	this->_configMap["file_ext"] = &Location::setFileExt;
 	this->_configMap["cgi_path"] = &Location::setCgiPath;
 	this->_configMap["autoindex"] = &Location::setAutoindex;
-	this->_configMap["alias"] = &Location::setAlias;
+	this->_configMap["upload_path"] = &Location::setUploadPath;
 }
 
 
@@ -29,10 +29,37 @@ Location::Location(std::vector<std::string> &tokens, Server * currentServer) : _
 			(this->*configIt->second)(directive);
 		}
 	}
+	checkMinimumConf();
 }
 
 Location::~Location() {}
 
+void Location::checkMinimumConf(void)
+{
+	// fill root directory if empty
+	if (this->_root.size() == 0)
+		this->_root = _currentServer->getRoot();
+	// or test the new root validity
+	else {
+		std::ifstream testRoot(this->_root.c_str());
+		if (!testRoot)
+			throw InvalidConfig(INVALLOC "Location Root Directive: ");
+		testRoot.close();
+	}
+	// test directory path
+	std::string	dirpath = this->_root + this->_directory;
+	std::ifstream testDir(dirpath.c_str());
+	if (!testDir)
+		throw InvalidConfig(INVALLOC "Location Directory Directive");
+	testDir.close();
+	
+	// test upload_path (if filed)
+	std::string	Uppath = this->_root + this->_UploadPath;
+	std::ifstream testUp(Uppath.c_str());
+	if (!testUp)
+		throw InvalidConfig(INVALLOC "Location Upload Directive");
+	testUp.close();
+}
 
 /* ****************  GETTERS **************** */
 
@@ -43,8 +70,7 @@ std::string const & Location::getIndex(void) const { return this->_index; }
 std::string const & Location::getFileExt(void) const { return this->_fileExt; }
 std::string const & Location::getCgiPath(void) const { return this->_cgiPath; }
 bool const & Location::getAutoindex(void) const { return this->_autoindex; }
-std::string const & Location::getAlias(void) const { return this->_alias; }
-
+std::string const & Location::getUploadPath(void) const { return this->_UploadPath; }
 
 /* ****************  SETTERS **************** */
 
@@ -58,15 +84,8 @@ void Location::setDirectory(std::vector<std::string> location) {
 void Location::setRoot(std::vector<std::string> root) {
 	std::string	data;
 	data = dataExtractor<std::string>(root[1]);
-	std::string rootPath = this->_currentServer->getRoot() + data;
-	std::cout << rootPath << std::endl;
-	std::ifstream test(rootPath.c_str());
-	if (!test)
-		throw InvalidConfig(INVALLOC "Root Directive");
-	test.close();
 	this->_root = data;
 }
-
 
 void Location::setMethods(std::vector<std::string> methods) {
 	
@@ -122,8 +141,11 @@ void Location::setAutoindex(std::vector<std::string> autoindex) {
 		throw InvalidConfig(INVALLOC "Autoindex Directive");
 }
 
-void Location::setAlias(std::vector<std::string> alias) {
-	if (alias.size() != 2)
-		throw InvalidConfig(INVALLOC "Alias Directive");
-	this->_alias = alias[1];
+void Location::setUploadPath(std::vector<std::string> UploadPath)
+{
+	if (UploadPath.size() != 2)
+		throw InvalidConfig(INVALLOC "Upload Path Directive");
+	std::string	data;
+	data = dataExtractor<std::string>(UploadPath[1]);
+	this->_UploadPath = data;
 }

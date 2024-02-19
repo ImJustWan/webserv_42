@@ -247,7 +247,7 @@ void	Request::buildResponse()
 			{
 				_response = new Response;
 				std::cout << "Method : " << _method << " not allowed by " << _methods  << std::endl;
-				_response->setEventSocket(this->_event_socket);
+				initResponse(_response);
 				_response->responseError(405);
 				break ;
 			}

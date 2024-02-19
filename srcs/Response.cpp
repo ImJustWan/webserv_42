@@ -58,7 +58,8 @@ void	Response::buildHeader( std::ifstream & file, unsigned int const & status_co
 
 	// Prepare HTTP response headers
 	this->_header = "HTTP/1.1 ";
-	this->_header += status_code;
+	this->_header += status_code_str.str();
+	this->_header += " ";
 	this->_header +=  _status_code[status_code];
 	this->_header += "\r\n";
 	this->_header += "Content-Length: ";
@@ -112,6 +113,7 @@ bool	Response::requestLineCheck( void )
 {
 	std::ifstream	file(this->_resource.c_str(), std::ios::binary);
 
+	std::cout << this->_resource << std::endl;
 	if (_resource.size() == 0)
 		responseError(404);
 	else if (access(_resource.c_str(), R_OK))

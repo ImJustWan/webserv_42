@@ -116,8 +116,8 @@ void	ServerHandler::constructorExtension(std::string const & filename)
 	}
 	if (this->_servers.size() == 0)
 		throw InvalidConfFileException();
-	// for (size_t i = 0; i < this->_servers.size(); ++i)
-	// 	std::cout << *(this->_servers[i]);
+	for (size_t i = 0; i < this->_servers.size(); ++i)
+		std::cout << *(this->_servers[i]);
 }
 
 ServerHandler::~ServerHandler()
@@ -220,6 +220,7 @@ void ServerHandler::checkForWhitelist(void)
 	whitelist.insert("autoindex");
 	whitelist.insert("alias");
 	whitelist.insert("server");
+	whitelist.insert("upload_path");
 	whitelist.insert("}");
 
 
@@ -231,7 +232,7 @@ void ServerHandler::checkForWhitelist(void)
 			std::set<std::string>::iterator whitelistIT = whitelist.find(*(i + 1));
 			if (whitelistIT == whitelist.end())
 			{
-				std::cout << "❯❯❯ " _BOLD _RED "Invalid Directive" _END " [" << *i << " " << *(i + 1) << "]" << std::endl;
+				std::cout << "❯❯❯ " _BOLD _RED "Invalid Directive" _END " [" << *i << ", " << *(i + 1) << "]" << std::endl;
 				throw InvalidDirectiveException();
 			}
 		}

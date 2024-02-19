@@ -110,6 +110,7 @@ private:
 		std::map<std::string, void (Server::*)(std::vector<std::string>)>::iterator configIt,
 		std::vector<std::string>::iterator i);
 	void checkMinimumConf(void);
+	void earlyDeath(void);
 	void checkForWhitelist(std::vector<std::string> &directive);
 
 	void	serverProcess();
@@ -178,6 +179,7 @@ inline std::ostream & operator<<(std::ostream & o, Server const & rhs)
 		o << "\t\t\t" << i->first << "\t" << i->second << "\n";
 	o << std::endl;
 	for (std::map<std::string, Location *>::iterator i = locations.begin(); i != locations.end(); ++i) {
+		o << "----------------------------------------------------\n";
 		o << *(i->second);
 	}
 	o << "+··················································+\n" << std::endl;

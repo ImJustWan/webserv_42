@@ -34,42 +34,6 @@ Server::~Server()
 	}
 }
 
-
-// Server::Server ( const Server& src ) : IEvent(src) {
-// 	*this = src;
-// }
-
-// Server& Server::operator= ( const Server& cpy ) {
-// 	if (this == &cpy)
-// 		return (*this);
-// 	this->_serverID = cpy._serverID;
-// 	this->_listen = cpy._listen;
-// 	this->_root = cpy._root;
-// 	this->_index = cpy._index;
-// 	this->_autoindex = cpy._autoindex;
-// 	this->_methods = cpy._methods;
-// 	this->_clientMaxBodySize = cpy._clientMaxBodySize;
-// 	this->_serverNames = cpy._serverNames;
-// 	this->_locations = cpy._locations;
-// 	this->_errors = cpy._errors;
-// 	this->_serverHandler = cpy._serverHandler;
-// 	this->_epfd = cpy._epfd;
-// 	this->_port = cpy._port;
-// 	this->_master_socket = cpy._master_socket;
-// 	this->_baby_index = cpy._baby_index;
-// 	this->_request_index = cpy._request_index;
-// 	this->_baby_socket[MAX_BBY_SOCKET] = cpy._baby_socket[MAX_BBY_SOCKET];
-// 	this->client_socket[MAX_CLIENTS] = cpy.client_socket[MAX_CLIENTS];
-// 	this->addrlen = cpy.addrlen;
-// 	this->address = cpy.address;
-// 	this->ling = cpy.ling;
-// 	this->message = cpy.message;
-// 	this->_timeout = cpy._timeout;
-// 	this->_requests[MAX_REQUEST] = cpy._requests[MAX_REQUEST];
-// 	return *this;
-// }
-
-
 /*****************  CLASS METHODS *****************/
 
 void Server::configurationMap(void)
@@ -103,20 +67,32 @@ std::vector<std::string>::iterator i)
 	(this->*configIt->second)(directive);
 }
 
-
+void Server::earlyDeath(void)
+{
+	for (std::map<std::string, Location *>::iterator i = this->_locations.begin(); i != this->_locations.end(); ++i)
+		delete i->second;
+}
 
 void Server::checkMinimumConf(void)
 {
-	if (this->_listen == 0)
+	if (this->_listen == 0){
+		earlyDeath();
 		throw InvalidConfig(INVALCONF "Incomplete configuration");
-	if (this->_root.empty())
+	}
+	if (this->_root.empty()){
+		earlyDeath();
 		throw InvalidConfig(INVALCONF "Missing root folder");
-	if (this->_index.empty())
+	}
+	if (this->_index.empty()){
+		earlyDeath();
 		throw InvalidConfig(INVALCONF "Missing index file");
+	}
 	std::string	file = this->_root + "/" + this->_index;
 	std::ifstream	infile(file.c_str());
-	if(((infile.rdstate() | std::ifstream::goodbit) != 0) || infile.peek() == EOF)
+	if(((infile.rdstate() | std::ifstream::goodbit) != 0) || infile.peek() == EOF){
+		earlyDeath();
 		throw InvalidConfig(INVALCONF "Invalid root or index file");
+	}
 	infile.close();
 }
 
@@ -232,6 +208,7 @@ void Server::setLocations(std::vector<std::string> locations)
 		this->_locations[locations[1]] = newLocation;
 		if (newLocation->getMethods() == 0)
 			newLocation->setMethods(this->_methods);
+		// Root to be inherited from parent if unspecified in location
 	}
 	catch(const std::exception& e)
 	{
@@ -240,6 +217,7 @@ void Server::setLocations(std::vector<std::string> locations)
 			delete i->second;
 		throw InvalidConfig(INVALCONF "error in location parsing");
 	}
+	
 }
 
 void Server::setErrors(std::vector<std::string> errors)
