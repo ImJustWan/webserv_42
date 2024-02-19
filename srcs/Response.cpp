@@ -54,7 +54,7 @@ void	Response::buildHeader( std::ifstream & file, unsigned int const & status_co
 	file_size_str << file_size;
 
 	// Prepare HTTP response headers
-	this->_header += "HTTP/1.1 ";
+	this->_header = "HTTP/1.1 ";
 	this->_header += status_code;
 	this->_header +=  _status_code[status_code];
 	this->_header += "\r\n";
@@ -132,29 +132,70 @@ bool	Response::requestLineCheck( void )
 // Is there error_map and corresponding error
 // Header for errors with macros fixed content of error_page
 
-void	Response::responseError( const unsigned int & status_code )
+void	Response::errorPageBuilder(const uint16_t & status_code)
 {
-	this->setValread(0);
-	std::cout << _RED _BOLD "Response Error for : " << status_code <<  _END << std::endl;
-
 	std::stringstream status_code_str;
 	status_code_str << status_code;
-	_header += "HTTP/1.1 ";
-	_header += status_code_str.str();
-	_header += " ";
-	_header += _status_code[status_code];
-	_header += "\r\n";
-	_header += "Content-Type: text/plain\r\n";
-	_header += "Content-Length: 60";
-	_header += "\r\n";
-	_header += "Connection: Keep-Alive\r\n";
-	_header += "\r\n";
-	this->_body = "Resource not found. The requested resource does not exist.\n";
-	_header += this->_body;
+
+	this->_body += ERRPAGEBODY1;
+	this->_body += status_code_str.str();
+	this->_body += ERRPAGEBODY2;
+	this->_body += status_code_str.str();
+	this->_body += ERRPAGEBODY3;
+	this->_body += _status_code[status_code];
+	this->_body += ERRPAGEBODY4;
+
+	this->_header += "HTTP/1.1 ";
+	this->_header += status_code_str.str();
+	this->_header += " ";
+	this->_header +=  _status_code[status_code];
+	this->_header += "\r\n";
+	this->_header += "Content-Length: ";
+	this->_header += this->_body.size();
+	this->_header += "\r\n";
+	this->_header += "Connection: Keep-Alive\r\n";
+	this->_header += "\r\n";
+
 	if (send(this->_event_socket, this->_header.c_str(), this->_header.size(), 0) < 0)
 		std::cout << _RED _BOLD "responseError: SEND HEADER" _END << std::endl;
-	// if (send(this->_event_socket,  this->_body.c_str(), this->_body.size(), 0) < 0)
-	// 	std::cout << _RED _BOLD "responseError: SEND BUFFER" _END << std::endl;
+	if (send(this->_event_socket,  this->_body.c_str(), this->_body.size(), 0) < 0)
+		std::cout << _RED _BOLD "responseError: SEND BUFFER" _END << std::endl;
+}
+
+
+void	Response::responseError( const uint16_t & status_code )
+{
+	this->setValread(0);
+
+	std::cout << _RED _BOLD "Response Error for : " << status_code <<  _END << std::endl;
+	std::map<uint16_t, std::string>::const_iterator it = this->_current_server->getErrors().find(status_code);
+
+	if (it != this->_current_server->getErrors().end())
+	{
+		char			buffer[4096];
+		std::string		path = this->_current_server->getRoot() + it->second;
+		std::ifstream	error_page(path.c_str(), std::ios::binary);
+		if (!error_page){
+			errorPageBuilder(status_code);
+			return;
+		}
+		buildHeader(error_page, status_code);
+		if (send(this->_event_socket, this->_header.c_str(), this->_header.size(), 0) < 0)
+			std::cout << _RED _BOLD "Error: SEND HEADER" _END << std::endl;
+		while (!error_page.eof())
+		{
+			error_page.read(buffer, 4096);
+			if (send(this->_event_socket, buffer, error_page.gcount(), 0) < 0) {
+				std::cout << _RED _BOLD "Error: SEND BUFFER" _END << std::endl;
+			}
+		}
+		error_page.close();
+	}
+	else
+	{
+		std::cout << _SALMON "NO MATCH, do your thing" _END << std::endl;
+		errorPageBuilder(status_code);
+	}
 }
 
 void	Response::executeMethod()

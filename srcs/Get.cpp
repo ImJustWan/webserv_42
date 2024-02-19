@@ -49,7 +49,7 @@ bool	Get::checkResource()
 	// std::cout << _EMERALD "Resource is : " << _resource << _END << std::endl;
 	this->trimSlash();
 	_resource = _root + _resource;
-	std::cout << _EMERALD "Resource is now : " << _resource << _END << std::endl;
+	// std::cout << _EMERALD "Resource is now : " << _resource << _END << std::endl;
 
 	if (stat(_resource.c_str(), &buffer))
 		return (responseError(404), false);

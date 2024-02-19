@@ -12,10 +12,15 @@ def calculate_compatibility(name1, name2):
 	
 	name1count = sum_ascii(name1)
 	name2count = sum_ascii(name2)
+
 	common_letters_count = len(set(name1) & set(name2))
+
+	longest = max(len(name1), len(name2))
 	
-	max_possible_score = max(len(name1), len(name2))
-	normalized_score = common_letters_count / max_possible_score
+	bigger = max(name1count, name2count)
+	smaller = min(name1count, name2count)
+
+	normalized_score = (common_letters_count/smaller)/(longest/bigger)
 	
 	if {'marie', 'tiffany'} == {name1, name2}:
 		normalized_score = 3.0

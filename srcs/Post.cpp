@@ -81,7 +81,7 @@ void Post::writeFile() {
 		std::string imageData = _request.substr(dataStart);
 		std::string path = this->getCurrentServer()->getRoot() + "/" + _filename;
 		std::ofstream newFile(path.c_str());
-		// std::cout << "Request " << _request << std::endl;
+		// std::cout << _PINK "Request " << _request << _END <<  std::endl;
 		newFile.write(imageData.c_str(), imageData.size());
 		newFile.close();
 		std::cerr << "File created at " << path << std::endl;
@@ -94,6 +94,7 @@ void Post::writeFile() {
 void	Post::executeMethod()
 {
 	// std::cout << _LILAC _BOLD "EXECUTE Get" _END << std::endl;
+
 
 	writeFile();
 	this->sendResponse();

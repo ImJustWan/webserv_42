@@ -1,6 +1,7 @@
 #pragma once
 
 # include "Request.hpp"
+# include "error.hpp"
 
 
 class Response : public Request {
@@ -16,7 +17,8 @@ public:
 	void			setCurrentRequest( Request *current );
 
 	void			setAttributes();
-	void			responseError( const unsigned int & status_code );
+	void			responseError( const uint16_t & status_code );
+	void			errorPageBuilder(const uint16_t & status_code);
 	bool			requestLineCheck();
 	void			trimSlash();
 

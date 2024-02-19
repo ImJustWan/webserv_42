@@ -1,6 +1,7 @@
 INC += ./inc/Post.hpp
 INC += ./inc/Response.hpp
 INC += ./inc/Delete.hpp
+INC += ./inc/error.hpp
 INC += ./inc/Request.hpp
 INC += ./inc/colors.hpp
 INC += ./inc/IEvent.hpp

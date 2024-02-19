@@ -52,7 +52,7 @@ public:
 	std::string	const &		getRoot() const;
 	std::string	const &		getResource() const;
 	std::string	const &		getMethod() const;
-	size_t					getContentLength(size_t const & found ) const;
+	size_t					findContentLength(size_t const & found ) const;
 	std::map<uint16_t, std::string>	const & 	getErrors(void) const;
 	Server*					getCurrentServer() const;
 	Location*				getLocation() const;
@@ -80,6 +80,7 @@ public:
 	void					setAttributes();
 	void					determinism();
 	void					buildResponse();
+	void					buildResponse( const uint16_t & status_code );
 	void					initResponse( Response* response );
 	Response*				newGet();
 	Response*				newPost();
@@ -109,7 +110,8 @@ protected:
 	std::string			_resource;
 	int					_valread;
 	bool				_finished;
-	size_t				_readBytes;
+	long long int		_readBytes;
+	long long int		_contentLength;
 	int					_methods;
 
 };

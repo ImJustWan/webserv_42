@@ -19,6 +19,7 @@ Request::Request() {
 	_location = NULL;
 	_finished = false;
 	_readBytes = 0;
+	_contentLength = 0;
 }
 
 Request::~Request() {
@@ -78,7 +79,7 @@ void	Request::setIndex( std::string index ) { this->_index = index; }
 void	Request::setResource( std::string resource ) { this->_resource = resource; }
 void	Request::setRequest( std::string request ) { this->_request = request; }
 
-size_t Request::getContentLength( size_t const & found ) const
+size_t Request::findContentLength( size_t const & found ) const
 {
 	const size_t	length = _request.find("\n", found) - found;
 	const size_t	content_length = std::atoi(_request.substr(found, length).c_str());
@@ -135,9 +136,10 @@ void Request::setRequest() {
 		_finished = true;
 
 	size_t found = _request.find("Content-Length:");
-	size_t content_length = (found != std::string::npos) ? getContentLength(found + 1 + std::strlen("Content-Length:")) : _valread;
+	_contentLength = (found != std::string::npos) ? findContentLength(found + 1 + std::strlen("Content-Length:")) : _valread;
+	// std::cout << _LILAC "Content-Length: " << _contentLength << _END << std::endl;
 
-	if (_readBytes < content_length)
+	if (_readBytes < _contentLength)
 		_finished = false;
 	else
 	{
@@ -150,17 +152,17 @@ void Request::setRequest() {
 void	Request::setMethodsRootIndex()
 {
 	if (this->getLocation() != NULL)
-		_methods = this->getLocation()->getMethods();
+		this->setMethods(this->getLocation()->getMethods());
 	else
-		_methods = this->getCurrentServer()->getMethods();
+		this->setMethods(this->getCurrentServer()->getMethods());
 	if (this->getLocation() != NULL && this->getLocation()->getRoot() != "")
-		_root = this->getLocation()->getRoot();
+		this->setRoot(this->getLocation()->getRoot());
 	else
-		_root = this->getCurrentServer()->getRoot();
+		this->setRoot(this->getCurrentServer()->getRoot());
 	if (this->getLocation() != NULL &&  this->getLocation()->getIndex() != "")
-		_index = this->getLocation()->getIndex();
+		this->setIndex(this->getLocation()->getIndex());
 	else
-		_index = this->getCurrentServer()->getIndex();
+		this->setIndex(this->getCurrentServer()->getIndex());
 }
 
 void	Request::setAttributes()
@@ -205,6 +207,20 @@ void	Request::initResponse( Response* response )
 	response->setMethods(this->_methods);
 }
 
+void	Request::buildResponse( const uint16_t & status_code )
+{
+	if (_response)
+		_response->responseError(status_code);
+	else
+	{
+		_response = new Response;
+		initResponse(_response);
+		_response->responseError(status_code);
+		setValread(0);
+	}
+}
+
+
 void	Request::buildResponse()
 {
 	if (_response)
@@ -213,6 +229,11 @@ void	Request::buildResponse()
 		_response = NULL;
 	}
 
+	if (_contentLength > _current_server->getClientMaxBodySize())
+	{
+		buildResponse(413);
+		return ;
+	}
 	map_method	map_methods[N_METHODS + 1] = {
 		{GET, "GET", &Request::newGet},
 		{POST, "POST", &Request::newPost},
@@ -244,7 +265,9 @@ void	Request::buildResponse()
 	{
 		_response = new Response;
 		initResponse(_response);
-		_response->responseError(400);
+		std::cout << "Method : " << _method << std::endl;
+		if (_response->getValread() != 0)
+			_response->responseError(400);
 	}
 	if (_response->getValread() == 0)
 		_valread = 0;
@@ -263,7 +286,7 @@ void	Request::determinism()
 		this->setAttributes();
 		// std::cout << _PINK "Request : " << _request << _END << std::endl;
 		// std::cout << _PINK "Resource : " << _resource << _END << std::endl;
-		if (_finished == true)
+		if (_finished == true || _contentLength > _current_server->getClientMaxBodySize() || _valread == 0)
 		{
 			_socketState = WRITE_STATE;
 			modifiedList.events = EPOLLOUT;

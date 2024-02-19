@@ -7,7 +7,7 @@
 ::selection {
 	background: #0000FE ;
 	color:white
-  }
+}
 
 h1 {
 	font-size: 24px;
@@ -39,6 +39,11 @@ p {
 	z-index: 1;
     border-bottom: 2px #000000 solid;
 	box-shadow: rgba(99, 99, 99, 0.2) 0px 2px 8px 0px;
+}
+
+header a {
+	text-decoration: none;
+	color: #000000;
 }
 
 nav {
@@ -135,10 +140,10 @@ nav a {
 
 .the_team {
 	display: grid;
-	margin: 8%;
+	margin: 8cqb 20%;
 	padding: 2%;
 	grid-template-columns: 1fr 1fr ;
-	grid-gap: 8%;
+	grid-gap: 10%;
 	text-align: center;
 }
 
@@ -162,7 +167,7 @@ nav a {
 }
 
 .the_team_header {
-		padding-bottom: 5%;
+		padding-bottom: 0%;
 		grid-column: 1 / 3;
 		grid-row: 1 / 2;
 		text-align: center;
