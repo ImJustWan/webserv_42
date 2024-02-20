@@ -3,13 +3,13 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>LOVE Test</title>
+	<title>Color blind much?</title>
 	<link href="style.css" rel="stylesheet">
 	<link rel="icon" type="image/x-icon" href="favicon.ico">
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 	<link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
-
+	<script type="text/javascript" src="delete_query.js"></script>
 </head>
 	<div class="header_wrapper">
 		<header>
@@ -25,12 +25,29 @@
 		</nav>
 	</div>
 	<main>
-		<!-- <h1>Let's take a selfie</h1>
-		<h2>Upload a picture</h2>
-		<form action="" method="POST" enctype="multipart/form-data">
-			<input type="file" name="picture">
-			<button type="submit">Send</button>
-		</form> -->
+		<h2>Are you color blind?</h2>
+		<h3>In each line, click to remove the color that's different</h3>
+		<div class="to_delete">
+			<img id="1" src="../../images/png/delete/1.png" alt="blue" >
+			<img id="2" src="../../images/png/delete/2.png" alt="otherBlue" onclick="deleteImage('2')">
+			<img id="1" src="../../images/png/delete/1.png" alt="blue" >
+			<img id="1" src="../../images/png/delete/1.png" alt="blue" >
+			<img id="1" src="../../images/png/delete/1.png" alt="blue" >
+		</div>
+		<div class="to_delete">
+			<img id="3" src="../../images/png/delete/3.png" alt="pink" >
+			<img id="3" src="../../images/png/delete/3.png" alt="pink" >
+			<img id="3" src="../../images/png/delete/3.png" alt="pink" >
+			<img id="4" src="../../images/png/delete/4.png" alt="otherPink" onclick="deleteImage('4')">
+			<img id="3" src="../../images/png/delete/3.png" alt="pink" >
+		</div>
+		<div class="to_delete">
+			<img id="5" src="../../images/png/delete/5.png" alt="Green" >
+			<img id="5" src="../../images/png/delete/5.png" alt="Green" >
+			<img id="6" src="../../images/png/delete/6.png" alt="otherGreen" onclick="deleteImage('6')">
+			<img id="5" src="../../images/png/delete/5.png" alt="Green" >
+			<img id="5" src="../../images/png/delete/5.png" alt="Green" >
+		</div>
 	</main>
 	<footer>
 		<div>

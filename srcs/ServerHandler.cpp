@@ -220,6 +220,7 @@ void ServerHandler::checkForWhitelist(void)
 	whitelist.insert("autoindex");
 	whitelist.insert("alias");
 	whitelist.insert("server");
+	whitelist.insert("upload_path");
 	whitelist.insert("}");
 
 
