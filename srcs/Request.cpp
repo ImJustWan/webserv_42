@@ -61,6 +61,7 @@ std::string	const & Request::getMethod(void) const { return (this->_method); }
 std::string const & Request::getResource(void) const { return ( this->_resource ); }
 Server* Request::getCurrentServer(void) const { return ( this->_current_server ); }
 Location* Request::getLocation() const { return ( this->_location ); }
+ServerHandler* Request::getServerHandler() const { return ( this->_serverHandler ); }
 std::string const & Request::getIndex(void) const { return ( this->_index ); }
 std::string const & Request::getRoot(void) const { return ( this->_root ); }
 
@@ -74,6 +75,7 @@ void	Request::setValread( const int valread ) { this->_valread = valread; }
 void	Request::setSocketState( bool state ) { this->_socketState = state; }
 void	Request::setCurrentServer( Server *current ) { this->_current_server = current; }
 void	Request::setLocation( Location *location ) { this->_location = location; }
+void	Request::setServerHandler( ServerHandler *serverHandler ) { this->_serverHandler = serverHandler; }
 void	Request::setRoot( std::string root ) { this->_root = root; }
 void	Request::setIndex( std::string index ) { this->_index = index; }
 void	Request::setResource( std::string resource ) { this->_resource = resource; }
@@ -89,6 +91,13 @@ size_t Request::findContentLength( size_t const & found ) const
 
 void	Request::findLocation()
 {
+	if (this->_current_server == NULL)
+		return ;
+	if (this->_current_server->getLocations().empty())
+	{
+		this->setLocation(NULL);
+		return ;
+	}
 	std::map<std::string, Location *>	locations = this->_current_server->getLocations();
 	
 	std::string				resource = this->getResource();
@@ -155,14 +164,22 @@ void	Request::setMethodsRootIndex()
 		this->setMethods(this->getLocation()->getMethods());
 	else
 		this->setMethods(this->getCurrentServer()->getMethods());
+
 	if (this->getLocation() != NULL && this->getLocation()->getRoot() != "")
 		this->setRoot(this->getLocation()->getRoot());
 	else
 		this->setRoot(this->getCurrentServer()->getRoot());
-	if (this->getLocation() != NULL &&  this->getLocation()->getIndex() != "")
+
+	if (this->getLocation() != NULL && this->getLocation()->getIndex() != "")
 		this->setIndex(this->getLocation()->getIndex());
-	else
+	else if (this->getLocation() != NULL)
+		this->setIndex("");
+	else if (this->getCurrentServer() != NULL)
 		this->setIndex(this->getCurrentServer()->getIndex());
+	/* TO DO :
+		index should depend on server if request is at root, maybe ?
+	*/
+		// this->setIndex(this->getCurrentServer()->getIndex());
 }
 
 void	Request::setAttributes()
@@ -170,14 +187,60 @@ void	Request::setAttributes()
 	std::istringstream	iss(Request::_request);
 
 	iss >> _method >> _resource;
-	// std::cout << _RIVIERA "Resource is : " << _resource << _END << std::endl;
 
-	// set the methods for the current resource according to location or server
+	// std::cout << _RIVIERA "Resource is : " << _resource << _END << std::endl;
+	// std::cout << _PINK "Request : " << _request << _END << std::endl;
+
+	std::string line;
+
+	_listen = 0;
+
+	while (std::getline(iss, line)) {
+		if (line.find("Host:") != std::string::npos) {
+			std::istringstream hostLine(line);
+			hostLine.ignore(256, ':');
+			hostLine >> _host;
+
+			size_t pos = _host.find(':');
+			if (pos != std::string::npos) {
+				std::istringstream portStream(_host.substr(pos + 1));
+				portStream >> _listen;
+				_host = _host.substr(0, pos);
+			}
+			break;
+		}
+	}
+
+	// std::cout << _GOLD "Host is : " << _host << " on port " << _listen << _END << std::endl;
+	for (std::vector<Server *>::const_iterator i = this->getServerHandler()->getServers().begin(); i != this->_serverHandler->getServers().end(); ++i)
+	{
+		if (this->getCurrentServer() != NULL)
+			break ;
+		if ((*i)->getListen() == this->_listen)
+		{
+			for (std::vector<std::string>::const_iterator j = (*i)->getServerNames().begin(); j != (*i)->getServerNames().end(); ++j)
+			{
+				if (*j == _host)
+				{
+					this->setCurrentServer(*i);
+					break ;
+				}
+			}
+		}
+	}
+
+	if (this->getCurrentServer() == NULL)
+	{
+		for (std::vector<Server *>::const_iterator i = this->getServerHandler()->getServers().begin(); i != this->_serverHandler->getServers().end(); ++i)
+			if ((*i)->getListen() == this->_listen) {
+				this->setCurrentServer(*i);
+				break ;
+			}
+	}
+
 	findLocation();
 	setMethodsRootIndex();
-
 }
-
 
 /*****************  CLASS METHODS *****************/
 
@@ -246,7 +309,6 @@ void	Request::buildResponse()
 			if ( !(map_methods[i].method & _methods))
 			{
 				_response = new Response;
-				std::cout << "Method : " << _method << " not allowed by " << _methods  << std::endl;
 				initResponse(_response);
 				_response->responseError(405);
 				break ;

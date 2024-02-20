@@ -282,7 +282,8 @@ void	Server::initRequest( Request* request )
 	request->setSocketState(READ_STATE);
 	request->setEventSocket(this->_baby_socket[_baby_index]);
 	request->setEpfd(this->_epfd);
-	request->setCurrentServer(this);
+	request->setServerHandler(this->_serverHandler);
+	request->setCurrentServer(NULL);
 }
 
 void Server::serverProcess() {

@@ -32,6 +32,7 @@
 
 class	Response;
 class	Server;
+class	ServerHandler;
 
 class Request : public IEvent {
 
@@ -55,6 +56,7 @@ public:
 	size_t					findContentLength(size_t const & found ) const;
 	std::map<uint16_t, std::string>	const & 	getErrors(void) const;
 	Server*					getCurrentServer() const;
+	ServerHandler*			getServerHandler() const;
 	Location*				getLocation() const;
 
 	/* SETTERS */
@@ -65,6 +67,7 @@ public:
 	void					setChunksEnd( bool state );
 	void					setCurrentServer( Server *current );
 	void					setLocation( Location *location );
+	void					setServerHandler( ServerHandler *serverHandler );
 	void					setResource( std::string resource );
 	void					setRequest( std::string request );
 	void					setRoot( std::string root );
@@ -99,6 +102,7 @@ protected:
 
 	bool				_socketState;
 	Server*				_current_server;
+	ServerHandler*		_serverHandler;
 	Response*			_response;
 	Location*			_location;
 	int					_epfd;
@@ -113,6 +117,9 @@ protected:
 	long long int		_readBytes;
 	long long int		_contentLength;
 	int					_methods;
+
+	std::string			_host;
+	int					_listen;
 
 };
 
