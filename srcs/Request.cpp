@@ -176,10 +176,6 @@ void	Request::setMethodsRootIndex()
 		this->setIndex("");
 	else if (this->getCurrentServer() != NULL)
 		this->setIndex(this->getCurrentServer()->getIndex());
-	/* TO DO :
-		index should depend on server if request is at root, maybe ?
-	*/
-		// this->setIndex(this->getCurrentServer()->getIndex());
 }
 
 void	Request::setAttributes()
