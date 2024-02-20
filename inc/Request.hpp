@@ -48,8 +48,10 @@ public:
 	int const &				getValread() const;
 	int const &				getEventSocket() const;
 	int const &				getMethods() const;
+	int const &				getListen() const;
 	std::string	const &		getRequest() const;
 	std::string	const &		getIndex() const;
+	std::string	const &		getHost() const;
 	std::string	const &		getRoot() const;
 	std::string	const &		getResource() const;
 	std::string	const &		getMethod() const;
@@ -72,7 +74,9 @@ public:
 	void					setRequest( std::string request );
 	void					setRoot( std::string root );
 	void					setIndex( std::string index );
+	void					setHost( std::string host );
 	void					setMethods( const int methods );
+	void					setListen( const int listen );
 
 	void					setRequest();
 	void					findLocation();

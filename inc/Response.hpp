@@ -20,7 +20,7 @@ public:
 	void			responseError( const uint16_t & status_code );
 	void			errorPageBuilder(const uint16_t & status_code);
 	bool			requestLineCheck();
-	void			trimSlash();
+	std::string		trimSlash();
 
 	virtual void	executeMethod();
 
