@@ -96,17 +96,23 @@ bool	Response::extensionCheck()
 	return ( true );
 }
 
-void	Response::trimSlash()
+std::string	Response::trimSlash()
 {
-	size_t	index;
+	std::string	buff;
+	bool		endSlash = false;
 
-	if (!(_resource.empty()) && ((index = _resource.find_first_not_of("/")) != _resource.npos))
-	{
-		if ((index = _resource.find_last_not_of("/")) != _resource.npos)
-			_resource.erase(index + 1);
+	for (std::string::size_type i = 0; i < _resource.length(); i++) {
+		if (_resource[i] == '/') {
+			if (!endSlash)
+				buff.push_back(_resource[i]);
+			endSlash = true;
+		}
+		else {
+			endSlash = false;
+			buff.push_back(_resource[i]);
+		}
 	}
-	else
-		_resource = "/";
+	return buff;
 }
 
 bool	Response::requestLineCheck( void )

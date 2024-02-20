@@ -56,6 +56,7 @@ int const &	Request::getEpfd(void) const { return (this->_epfd); }
 int const &	Request::getValread(void) const { return (this->_valread); }
 int const &	Request::getEventSocket(void) const { return (this->_event_socket); }
 int const &	Request::getMethods(void) const { return (this->_methods); }
+int const &	Request::getListen(void) const { return (this->_listen); }
 std::string	const & Request::getRequest(void) const { return (this->_request); }
 std::string	const & Request::getMethod(void) const { return (this->_method); }
 std::string const & Request::getResource(void) const { return ( this->_resource ); }
@@ -63,6 +64,7 @@ Server* Request::getCurrentServer(void) const { return ( this->_current_server )
 Location* Request::getLocation() const { return ( this->_location ); }
 ServerHandler* Request::getServerHandler() const { return ( this->_serverHandler ); }
 std::string const & Request::getIndex(void) const { return ( this->_index ); }
+std::string const & Request::getHost(void) const { return ( this->_host ); }
 std::string const & Request::getRoot(void) const { return ( this->_root ); }
 
 
@@ -70,6 +72,7 @@ std::string const & Request::getRoot(void) const { return ( this->_root ); }
 
 void	Request::setEpfd( const int epfd ) { this->_epfd = epfd; }
 void	Request::setMethods( const int methods ) { this->_methods = methods; }
+void	Request::setListen( const int listen ) { this->_listen = listen; }
 void	Request::setEventSocket( const int socket ) { this->_event_socket = socket; }
 void	Request::setValread( const int valread ) { this->_valread = valread; }
 void	Request::setSocketState( bool state ) { this->_socketState = state; }
@@ -78,6 +81,7 @@ void	Request::setLocation( Location *location ) { this->_location = location; }
 void	Request::setServerHandler( ServerHandler *serverHandler ) { this->_serverHandler = serverHandler; }
 void	Request::setRoot( std::string root ) { this->_root = root; }
 void	Request::setIndex( std::string index ) { this->_index = index; }
+void	Request::setHost( std::string host ) { this->_host = host; }
 void	Request::setResource( std::string resource ) { this->_resource = resource; }
 void	Request::setRequest( std::string request ) { this->_request = request; }
 
@@ -264,6 +268,8 @@ void	Request::initResponse( Response* response )
 	response->setRoot(this->_root);
 	response->setIndex(this->_index);
 	response->setMethods(this->_methods);
+	response->setHost(this->_host);
+	response->setListen(this->_listen);
 }
 
 void	Request::buildResponse( const uint16_t & status_code )
@@ -343,7 +349,7 @@ void	Request::determinism()
 		this->setRequest();
 		this->setAttributes();
 		// std::cout << _PINK "Request : " << _request << _END << std::endl;
-		// std::cout << _PINK "Resource : " << _resource << _END << std::endl;
+		std::cout << _PINK "Resource : " << _resource << _END << std::endl;
 		if (_finished == true || _contentLength > _current_server->getClientMaxBodySize() || _valread == 0)
 		{
 			_socketState = WRITE_STATE;

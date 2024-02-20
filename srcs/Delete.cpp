@@ -63,9 +63,10 @@ void	Delete::deleteResource()
 
 void	Delete::executeMethod()
 {
-	this->trimSlash();
-	_resource = _root + _resource;
 	// std::cout << _LILAC _BOLD "EXECUTE Delete" _END << std::endl;
+	std::string path = this->trimSlash();
+	_resource = _root + path;
+	std::cout << _EMERALD "Resource is : " << _resource << _END << std::endl;
 	if (requestLineCheck())
 		this->deleteResource();
 }

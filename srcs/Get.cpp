@@ -25,50 +25,62 @@ Get& Get::operator=(const Get& cpy) {
 /*****************  CLASS METHODS *****************/
 
 
+std::string	getLink(std::string const &dirEntry, std::string const &dirName, std::string const &host, int port) {
+
+	std::ostringstream linkStream;
+	linkStream << "http://" << host << ":" << port << dirName << dirEntry;
+
+	std::string link = linkStream.str();
+
+	std::stringstream ss;
+	ss << "\t\t<p><a href=\"" << link << "\">" << dirEntry << "</a></p>\n";
+
+	std::cout << _GOLD << "Link is : " << ss.str() << _END << std::endl;
+	return ss.str();
+}
+
+std::string	getPage(const char *path, std::string const &host, int port) {
+
+	std::cout << "Path is : " << path << std::endl;
+	std::string dirName(path);
+	DIR *dir = opendir(path);
+	std::string page =	"<!DOCTYPE html>\n<html>\n<head>\n<title>" + dirName + "</title>\n</head>\n<body>\n<h1>INDEX</h1>\n<p>\n";
+
+	if (dir == NULL) {
+		std::cerr << _RED << "Error: could not open [" << path << "]" << _END << std::endl;
+		return "";
+	}
+	if (dirName[0] != '/')
+		dirName = "/" + dirName;
+	for (struct dirent *dirEntry = readdir(dir); dirEntry; dirEntry = readdir(dir)) {
+		if (dirEntry->d_name[0] == '.' )
+			continue;
+		page += getLink(std::string(dirEntry->d_name), dirName, host, port);
+	}
+	page +="</p>\n</body>\n</html>\n";
+	closedir(dir);
+	return page;
+}
+	
 void Get::getAutoIndex()
 {
-	std::cout << "Autoindex is ON BABYYYYY" << std::endl;
+	// std::cout << "Autoindex is ON BABYYYYY" << std::endl;
 
-	DIR *dir;
-
-	struct dirent *ent;
-	struct stat buffer;
-	if ((dir = opendir(_resource.c_str())) != NULL)
-	{
-		this->_header = "HTTP/1.1 200 OK\r\n";
-		this->_header += "Content-Type: text/html\r\n\r\n";
-
-		this->_header += "<html>\r\n<head>\r\n<title>Index of /forms/</title>\r\n</head>\r\n";
-		this->_header += "<body>\r\n<h1>Index of /forms/</h1>\r\n<hr>\r\n<pre>\r\n";
-		this->_header += "<a href=\"../\">../</a>\r\n<a href=\"kill_form/\">kill_form/</a>\r\n";
-		this->_header += "<a href=\"love_form/\">love_form/</a>\r\n";
-		this->_header += "<a href=\"upload_form/\">upload_form/</a>\r\n</pre>\r\n<hr>\r\n</body>\r\n</html>\r\n";
-		while ((ent = readdir(dir)) != NULL)
-		{
-			/* TO DO :
-				fix looping ! 
-				fix redir to avoid concatenating path
-			*/
-			std::cout << "looping" << std::endl;
-			std::string		fileName(ent->d_name);
-			if (stat((_resource + "/" + fileName).c_str(), &buffer))
-			{
-				std::cerr << "stat failed on " << _resource + "/" + fileName << std::endl;
-				responseError(500);
-			}
-		}
-
-		closedir(dir);
-
-		this->_header += "</ul></body></html>\n";
-		if (send(this->_event_socket, this->_header.c_str(), this->_header.size(), 0) < 0)
-			std::cout << _RED _BOLD "Error: SEND HEADER" _END << std::endl;
-	}
-	else
-	{
-		std::cerr << "Error opening directory: " << _resource << std::endl;
-	}
+	this->_body = getPage(_resource.c_str(), _host, _listen);
+	
+	std::ostringstream file_size_str;
+	file_size_str << _body.size();
+	
+	this->_header = "HTTP/1.1 200  OK\r\n";
+	this->_header += "Content-Type: text/html\r\n";
+	this->_header += "Content-Length: ";
+	this->_header += file_size_str.str();
+	this->_header += "\r\n\r\n";
+	this->_header += this->_body;
+	if (send(this->_event_socket, this->_header.c_str(), this->_header.size(), 0) < 0)
+		std::cout << _RED _BOLD "Error: SEND HEADER" _END << std::endl;
 }
+
 
 void	Get::sendResponse()
 {
@@ -95,7 +107,7 @@ bool	Get::checkResource()
 	struct stat	buffer;
 
 	// std::cout << _EMERALD "Resource is : " << _resource << _END << std::endl;
-	this->trimSlash();
+	_resource = this->trimSlash();
 	_resource = _root + _resource;
 	// std::cout << _EMERALD "Resource is now : " << _resource << _END << std::endl;
 
@@ -129,7 +141,7 @@ bool	Get::checkResource()
 		}
 		else if (S_ISREG(buffer.st_mode))
 		{
-			std::cout << "okok ta mere "  << this->getIndex() << std::endl;
+			// std::cout << "okok ta mere "  << this->getIndex() << std::endl;
 			_resource = _resource + "/" + this->getIndex();
 			std::cout << _EMERALD "Resource is now : " << _resource << _END << std::endl;
 			return (true);
