@@ -4,6 +4,18 @@
 
 volatile sig_atomic_t signal_received = false;
 
+/*
+	TO DO
+		- change Valread name
+		- change writeFile() name
+		- check EVERY read/recv/send return for 0 AND -1
+		- read/recv/send : ONE per epoll event ONLY
+		
+
+	START EVAL GRID CHECK byyyye
+
+*/
+
 int main(int ac, char **av)
 {
 	try {

@@ -392,3 +392,4 @@ void	Request::determinism()
 	else if (epoll_ctl(this->_epfd, EPOLL_CTL_MOD, _event_socket, &modifiedList) == -1)
 		std::cout << "EPOLL error" << std::endl;
 }
+   

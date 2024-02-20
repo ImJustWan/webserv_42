@@ -291,6 +291,7 @@ void Server::serverProcess() {
 	interestList.events = EPOLLIN;
 
 
+	
 	if ((this->_baby_socket[_baby_index] = accept(this->_master_socket, (struct sockaddr *)&address, &addrlen)) < 0)
 		throw SocketLoopError();
 
