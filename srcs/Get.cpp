@@ -28,20 +28,23 @@ Get& Get::operator=(const Get& cpy) {
 std::string	getLink(std::string const &dirEntry, std::string const &dirName, std::string const &host, int port) {
 
 	std::ostringstream linkStream;
-	linkStream << "http://" << host << ":" << port << dirName << dirEntry;
+	linkStream << "http://" << host << ":" << port << dirName;
+
+	// Add a "/" if dirEntry is a directory
+	if (dirEntry[0] != '.')
+		linkStream << (dirEntry[dirEntry.length() - 1] == '/' ? "" : "/") << dirEntry;
 
 	std::string link = linkStream.str();
 
 	std::stringstream ss;
 	ss << "\t\t<p><a href=\"" << link << "\">" << dirEntry << "</a></p>\n";
 
-	std::cout << _GOLD << "Link is : " << ss.str() << _END << std::endl;
+	std::cout << _GOLD "Link is : " << ss.str() << _END << std::endl;
 	return ss.str();
 }
 
 std::string	getPage(const char *path, std::string const &host, int port) {
 
-	std::cout << "Path is : " << path << std::endl;
 	std::string dirName(path);
 	DIR *dir = opendir(path);
 	std::string page =	"<!DOCTYPE html>\n<html>\n<head>\n<title>" + dirName + "</title>\n</head>\n<body>\n<h1>INDEX</h1>\n<p>\n";
@@ -65,6 +68,7 @@ std::string	getPage(const char *path, std::string const &host, int port) {
 void Get::getAutoIndex()
 {
 	// std::cout << "Autoindex is ON BABYYYYY" << std::endl;
+
 
 	this->_body = getPage(_resource.c_str(), _host, _listen);
 	
@@ -106,44 +110,50 @@ bool	Get::checkResource()
 {
 	struct stat	buffer;
 
-	// std::cout << _EMERALD "Resource is : " << _resource << _END << std::endl;
 	_resource = this->trimSlash();
-	_resource = _root + _resource;
-	// std::cout << _EMERALD "Resource is now : " << _resource << _END << std::endl;
+	if (_resource.find(_root) == std::string::npos)
+		_resource = _root + _resource;
 
-	/* TO DO :
-		check content type
-		mim type ? */
+	if (_resource.at(0) == '/')
+		_resource = _resource.substr(1);
+	// std::cout << _EMERALD "Resource is now : " << _resource << _END << std::endl;
 
 	if (stat(_resource.c_str(), &buffer))
 	{
 		std::cout << "stat failed on " << _resource << std::endl;
 		return (responseError(404), false);
 	}
+	
 	if (S_ISREG(buffer.st_mode))
 		return true;
 	if (S_ISDIR(buffer.st_mode))
 	{
-		// std::cout << "Resource is a directory" << std::endl;
+		std::cout << "Resource is a directory" << std::endl;
 		if (this->getIndex() == "")
 		{
 			std::cout << "No index found" << std::endl;
 			// std::cout << _PINK << _request << _END << std::endl;
-			if (this->getLocation() != NULL && this->getLocation()->getAutoindex() == true)
+			if ((this->getLocation() != NULL && this->getLocation()->getAutoindex())
+				|| (this->getLocation() == NULL && this->getCurrentServer()->getAutoindex()))
+			{
+
 				return (getAutoIndex(), false);
+			}	
 			else
+			{
+
 				return (responseError(403), false);
+			}
 		}
 		else if (stat((_resource + "/" + this->getIndex()).c_str(), &buffer))
 		{
-			std::cout << "second stat failed" << std::endl;
-			return (responseError(500), false);
+			std::cout << "second stat failed for : " << _resource + this->getIndex() << std::endl;
+			return (responseError(404), false);
 		}
 		else if (S_ISREG(buffer.st_mode))
 		{
-			// std::cout << "okok ta mere "  << this->getIndex() << std::endl;
 			_resource = _resource + "/" + this->getIndex();
-			std::cout << _EMERALD "Resource is now : " << _resource << _END << std::endl;
+			std::cout << _FOREST_GREEN "Resource is now : " << _resource << _END << std::endl;
 			return (true);
 		}
 		else

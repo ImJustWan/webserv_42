@@ -105,18 +105,20 @@ void	Request::findLocation()
 	std::map<std::string, Location *>	locations = this->_current_server->getLocations();
 	
 	std::string				resource = this->getResource();
-	std::string 			root = this->_current_server->getRoot();
+	std::string 			root = "/";
 	
-	root = root.substr(1);
-	// if (resource.substr(0, root.size()) == root)
-	// 	resource = resource.substr(root.size());
+	root += this->_current_server->getRoot();
 	
+	if (resource.find(root) == 0)
+		resource.erase(0, root.length());
+
 	size_t					size = resource.size();
 
 	for (size_t i = 0; i < size; i++)
 	{
 		if (locations.find(resource) != locations.end())
 		{
+			// std::cout << _LILAC "Location found : " << resource << _END << std::endl;
 			this->setLocation(locations[resource]);
 			return ;
 		}
@@ -150,8 +152,9 @@ void Request::setRequest() {
 
 	size_t found = _request.find("Content-Length:");
 	_contentLength = (found != std::string::npos) ? findContentLength(found + 1 + std::strlen("Content-Length:")) : _valread;
-	// std::cout << _LILAC "Content-Length: " << _contentLength << _END << std::endl;
 
+	// std::cout << _LILAC "Content-Length: " << _contentLength << _END << std::endl;
+	
 	if (_readBytes < _contentLength)
 		_finished = false;
 	else
@@ -164,6 +167,7 @@ void Request::setRequest() {
 
 void	Request::setMethodsRootIndex()
 {
+
 	if (this->getLocation() != NULL)
 		this->setMethods(this->getLocation()->getMethods());
 	else
@@ -171,15 +175,19 @@ void	Request::setMethodsRootIndex()
 
 	if (this->getLocation() != NULL && this->getLocation()->getRoot() != "")
 		this->setRoot(this->getLocation()->getRoot());
-	else
+	else if (this->getLocation() != NULL)
+		this->setRoot("");
+	else 
 		this->setRoot(this->getCurrentServer()->getRoot());
-
+	
 	if (this->getLocation() != NULL && this->getLocation()->getIndex() != "")
 		this->setIndex(this->getLocation()->getIndex());
 	else if (this->getLocation() != NULL)
 		this->setIndex("");
-	else if (this->getCurrentServer() != NULL)
+	else
 		this->setIndex(this->getCurrentServer()->getIndex());
+	
+	// std::cout << _LILAC "Root is : " << this->getRoot() << _END << std::endl;
 }
 
 void	Request::setAttributes()
@@ -188,13 +196,11 @@ void	Request::setAttributes()
 
 	iss >> _method >> _resource;
 
-	// std::cout << _RIVIERA "Resource is : " << _resource << _END << std::endl;
-	// std::cout << _PINK "Request : " << _request << _END << std::endl;
-
 	std::string line;
 
 	_listen = 0;
 
+	// retrieve host and port
 	while (std::getline(iss, line)) {
 		if (line.find("Host:") != std::string::npos) {
 			std::istringstream hostLine(line);
@@ -210,8 +216,9 @@ void	Request::setAttributes()
 			break;
 		}
 	}
-
 	// std::cout << _GOLD "Host is : " << _host << " on port " << _listen << _END << std::endl;
+
+	// find matching server
 	for (std::vector<Server *>::const_iterator i = this->getServerHandler()->getServers().begin(); i != this->_serverHandler->getServers().end(); ++i)
 	{
 		if (this->getCurrentServer() != NULL)
@@ -229,6 +236,7 @@ void	Request::setAttributes()
 		}
 	}
 
+	// No matching servename found, using first server on the port
 	if (this->getCurrentServer() == NULL)
 	{
 		for (std::vector<Server *>::const_iterator i = this->getServerHandler()->getServers().begin(); i != this->_serverHandler->getServers().end(); ++i)
@@ -349,7 +357,7 @@ void	Request::determinism()
 		this->setRequest();
 		this->setAttributes();
 		// std::cout << _PINK "Request : " << _request << _END << std::endl;
-		std::cout << _PINK "Resource : " << _resource << _END << std::endl;
+		// std::cout << _PINK "Resource : " << _resource << _END << std::endl;
 		if (_finished == true || _contentLength > _current_server->getClientMaxBodySize() || _valread == 0)
 		{
 			_socketState = WRITE_STATE;

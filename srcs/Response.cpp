@@ -98,21 +98,29 @@ bool	Response::extensionCheck()
 
 std::string	Response::trimSlash()
 {
-	std::string	buff;
-	bool		endSlash = false;
+	std::string buff;
+	bool hasNonSlash = false;
 
 	for (std::string::size_type i = 0; i < _resource.length(); i++) {
-		if (_resource[i] == '/') {
-			if (!endSlash)
-				buff.push_back(_resource[i]);
-			endSlash = true;
-		}
-		else {
-			endSlash = false;
-			buff.push_back(_resource[i]);
+		char currentChar = _resource[i];
+
+		if (currentChar == '/') {
+			if (!hasNonSlash) {
+				buff.push_back(currentChar);
+			}
+			hasNonSlash = true;
+		} else {
+			hasNonSlash = false;
+			buff.push_back(currentChar);
 		}
 	}
-	return buff;
+
+	// Remove any trailing slash
+	if (!buff.empty() && buff[buff.length() - 1] == '/') {
+        buff.erase(buff.length() - 1);
+    }
+
+	return buff.empty() ? "/" : buff;
 }
 
 bool	Response::requestLineCheck( void )

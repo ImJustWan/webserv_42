@@ -36,25 +36,28 @@ Location::~Location() {}
 
 void Location::checkMinimumConf(void)
 {
-	// fill root directory if empty
-	if (this->_root.size() == 0)
+	if (this->_root.size() == 0) {
 		this->_root = _currentServer->getRoot();
-	// or test the new root validity
-	else {
+		std::string    dirpath = this->_root + this->_directory;
+		std::ifstream testDir(dirpath.c_str());
+		if (!testDir)
+			throw InvalidConfig(INVALLOC "Location Directory Directive");
+		testDir.close();
+	}
+	else if (this->_root != _currentServer->getRoot()) {
 		std::ifstream testRoot(this->_root.c_str());
 		if (!testRoot)
 			throw InvalidConfig(INVALLOC "Location Root Directive: ");
 		testRoot.close();
+		this->_directory = this->_root + this->_directory;
+		std::ifstream testDir(this->_directory.c_str());
+		if (!testDir)
+			throw InvalidConfig(INVALLOC "Location Directory Directive");
+		testDir.close();
+		this->_directory = '/' + this->_directory;
 	}
-	// test directory path
-	std::string	dirpath = this->_root + this->_directory;
-	std::ifstream testDir(dirpath.c_str());
-	if (!testDir)
-		throw InvalidConfig(INVALLOC "Location Directory Directive");
-	testDir.close();
-	
-	// test upload_path (if filed)
-	std::string	Uppath = this->_root + this->_UploadPath;
+
+	std::string    Uppath = this->_root + this->_UploadPath;
 	std::ifstream testUp(Uppath.c_str());
 	if (!testUp)
 		throw InvalidConfig(INVALLOC "Location Upload Directive");

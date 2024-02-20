@@ -228,10 +228,12 @@ void Server::setLocations(std::vector<std::string> locations)
 	}
 	try
 	{
-		Location	* newLocation = new Location(locations, this);
-		this->_locations[locations[1]] = newLocation;
+		Location    * newLocation = new Location(locations, this);
+		this->_locations[newLocation->getDirectory()] = newLocation;
 		if (newLocation->getMethods() == 0)
 			newLocation->setMethods(this->_methods);
+		
+		// Root to be inherited from parent if unspecified in location
 	}
 	catch(const std::exception& e)
 	{
