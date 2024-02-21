@@ -8,6 +8,9 @@ volatile sig_atomic_t signal_received = false;
 	TO DO
 		- check EVERY read/recv/send return for 0 AND -1
 		- read/recv/send : ONE per epoll event ONLY
+		- implement upload_path
+			fix upload message
+		- FIX SEGFAULT
 */
 
 int main(int ac, char **av)

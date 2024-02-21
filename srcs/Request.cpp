@@ -186,6 +186,9 @@ void	Request::setMethodsRootIndex()
 	else
 		this->setMethods(this->getCurrentServer()->getMethods());
 
+	/* TO DO
+		SEGFAULT ???? 
+		*/
 	if (this->getLocation() != NULL && this->getLocation()->getRoot() != "")
 		this->setRoot(this->getLocation()->getRoot());
 	else if (this->getLocation() != NULL)
@@ -417,10 +420,10 @@ void	Request::determinism()
 	else
 	{
 		std::cout << _AQUAMARINE "SENDING Response on baby_socket " << this->_event_socket << _END << std::endl;
-		if ( isCGI( this->getResource()) ) {
-			CgiHandler	handleCGI(this);
-			_readBytes = 0;
-		}
+		// if ( isCGI( this->getResource()) ) {
+		// 	CgiHandler	handleCGI(this);
+		// 	_readBytes = 0;
+		// }
 		if (_method == "POST" && _finished == true)
 			_readBytes = 0;
 		buildResponse();
