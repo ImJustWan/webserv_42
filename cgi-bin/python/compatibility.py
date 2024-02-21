@@ -1,4 +1,8 @@
 import sys
+import os
+import cgi
+import cgitb
+cgitb.enable()
 
 def sum_ascii(string):
 	total = 0
@@ -30,15 +34,16 @@ def calculate_compatibility(name1, name2):
 	return compatibility_percentage
 
 def main():
-	if len(sys.argv) != 3:
-		print("Usage: python script.py <first_name> <second_name>")
-		return
 	
-	name1 = sys.argv[1]
-	name2 = sys.argv[2]
+	form = cgi.FieldStorage()
+
+	name1 = form.getvalue('nameOne')
+	name2 = form.getvalue('nameTwo')
 	
 	compatibility = calculate_compatibility(name1, name2)
 
+	print("HTTP/1.1 200 OK\n")
+	print("Content-type: text/html\n\n")
 	print("<!DOCTYPE html>")
 	print("<html lang=\"en\">")
 	print("<head>")

@@ -3,7 +3,7 @@
 # include "Get.hpp"
 # include "Post.hpp"
 # include "Delete.hpp"
-# include "CGI.hpp"
+# include "CgiHandler.hpp"
 
 /*****************  CANONICAL FORM *****************/
 
@@ -17,6 +17,7 @@ Request::Request() :
 	_request(""),
 	_method(""),
 	_resource(""),
+	_cgiExt(""),
 	_readBytes(0),
 	_finished(false),
 	_readLength(0),
@@ -357,6 +358,37 @@ void	Request::buildResponse()
 		_readBytes = 0;
 }
 
+bool	Request::isCGI(std::string const & resource)
+{
+	size_t		dot;
+	std::string	fileExt;
+	
+	if (this->_method == "DELETE")
+		return false;
+
+	else if (this->_method == "POST"){
+		dot = resource.rfind('.');
+		if (dot == std::string::npos)
+			return false;
+		fileExt = resource.substr(dot, std::string::npos);
+	}
+
+	else if (this->_method == "GET"){
+		size_t		query;
+		query = resource.rfind('?');
+		fileExt = resource.substr(0, query);
+		dot = fileExt.rfind('.');
+		if (dot == std::string::npos)
+			return false;
+		fileExt = fileExt.substr(dot, std::string::npos);
+	}
+
+	if (this->_location->getFileExt().size() != 0 && this->_location->getFileExt() == fileExt){
+		this->_cgiExt = fileExt;
+		return true;
+	}
+	return false;
+}
 
 void	Request::determinism()
 {
@@ -386,7 +418,7 @@ void	Request::determinism()
 	{
 		std::cout << _AQUAMARINE "SENDING Response on baby_socket " << this->_event_socket << _END << std::endl;
 		if ( isCGI( this->getResource()) ) {
-			execCGIScript( this->getResource(), this->_event_socket);
+			CgiHandler	handleCGI(this);
 			_readBytes = 0;
 		}
 		if (_method == "POST" && _finished == true)

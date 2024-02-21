@@ -18,6 +18,8 @@
 # include <bits/stdc++.h>
 # include "colors.hpp"
 # include "IEvent.hpp"
+# include "CgiHandler.hpp"
+
 
 // # include "Server.hpp"
 # define READ_STATE 0
@@ -103,6 +105,8 @@ protected:
 	std::string				_request;
 	std::string				_method;
 	std::string				_resource;
+	std::string				_cgiExt;
+
 	int						_listen;
 	int						_methods;
 
@@ -119,6 +123,7 @@ private :
 	void					setLocation();
 	void					setMethodsRootIndex();
 
+	bool					isCGI(std::string const & resource);
 	size_t					findContentLength(size_t const & found ) const;
 
 	void					buildResponse();

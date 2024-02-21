@@ -1,4 +1,5 @@
 INC += ./inc/Post.hpp
+INC += ./inc/CgiHandler.hpp
 INC += ./inc/Response.hpp
 INC += ./inc/Delete.hpp
 INC += ./inc/error.hpp
@@ -10,4 +11,3 @@ INC += ./inc/Get.hpp
 INC += ./inc/Location.hpp
 INC += ./inc/webserv.hpp
 INC += ./inc/Server.hpp
-INC += ./inc/CGI.hpp
