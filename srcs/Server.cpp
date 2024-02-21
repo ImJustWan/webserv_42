@@ -290,8 +290,11 @@ void Server::serverProcess() {
 
 	interestList.events = EPOLLIN;
 
-
-	
+	if (this->_baby_index == MAX_BBY_SOCKET)
+	{
+		std::cout << "MAX BABY SOCKET REACHED" << std::endl;
+		return ;
+	}
 	if ((this->_baby_socket[_baby_index] = accept(this->_master_socket, (struct sockaddr *)&address, &addrlen)) < 0)
 		throw SocketLoopError();
 

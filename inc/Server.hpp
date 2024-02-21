@@ -5,7 +5,7 @@
 # include "Request.hpp"
 
 # define MAX_CLIENTS 30
-# define MAX_BBY_SOCKET 3
+# define MAX_BBY_SOCKET 1000
 # define MAX_REQUEST 1000
 
 # define INVALCONF "Invalid Configuration: "

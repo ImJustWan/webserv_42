@@ -127,24 +127,12 @@ void	Request::findLocation()
 	this->setLocation(NULL);
 }
 
-static void	bytesConcat(std::string & s1, char *s2, int size)
-{
-	int	j = 0;
-	int	i = s1.size();
-
-	s1.resize(s1.size() + size);
-	for (; j < size; i++) {
-		s1[i] = s2[j];
-		j++;
-	}
-}
-
 void Request::setRequest() {
 	char buffer[4096] = "";
 
 	_valread = recv(this->_event_socket, buffer, sizeof(buffer) - 1, 0);
 	_readBytes += _valread;
-	bytesConcat(_request, buffer, _valread);
+	_request.append(buffer, _valread);
 
 	size_t headerEnd = _request.find("\r\n\r\n");
 	if (headerEnd != std::string::npos)
