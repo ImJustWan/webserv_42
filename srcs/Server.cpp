@@ -5,7 +5,7 @@
 /*****************  CANONICAL FORM *****************/
 
 
-Server::Server(std::vector<std::string> &tokens, int id) : _serverID(id), _listen(0), _autoindex(true), _methods(0), _clientMaxBodySize(1000000), _master_socket(-1), _baby_index(0), _request_index(0)
+Server::Server(std::vector<std::string> &tokens, int id) : _serverID(id), _listen(0), _autoindex(true), _methods(0), _clientMaxBodySize(1000000), _master_socket(-1),_request_index(0)
 {
 	configurationMap();
 	for (std::vector<std::string>::iterator i = tokens.begin(); i != tokens.end(); ++i) {
@@ -20,6 +20,8 @@ Server::Server(std::vector<std::string> &tokens, int id) : _serverID(id), _liste
 			directiveIsolation(";", tokens, configIt, i);
 	}
 	checkMinimumConf();
+	for (int i = 0; i < MAX_REQUEST; ++i)
+		_requests[i] = NULL;
 }
 
 Server::~Server()
@@ -28,9 +30,13 @@ Server::~Server()
 		delete i->second;
 	if (this->_master_socket != -1)
 		close(this->_master_socket);
-	for (int i = 0; i < _request_index; ++i) {
+	// std::cout << _LILAC "Number of requests: " << _request_index << _END << std::endl;
+	for (int i = 0; i < MAX_REQUEST; ++i) {
 		if (_requests[i] != NULL)
+		{
 			delete _requests[i];
+			_requests[i] = NULL;
+		}
 	}
 }
 
@@ -108,13 +114,15 @@ long long int const & Server::getClientMaxBodySize(void) const { return this->_c
 std::vector<std::string> const & Server::getServerNames(void) const { return this->_serverNames; }
 std::map<std::string, Location *> const & Server::getLocations(void) const { return this->_locations; }
 std::map<uint16_t, std::string>	const & Server::getErrors(void) const { return this->_errors; }
+ServerHandler * Server::getServerHandler(void) const { return this->_serverHandler; }
 
 int const & Server::getEpfd(void) const { return this->_epfd; }
+int const & Server::getReqIndex(void) const { return this->_request_index; }
 int const & Server::getMasterSocket(void) const { return this->_master_socket; }
-int const * Server::getBabySocket(void) const { return this->_baby_socket; }
 int const & Server::getBabySocket(size_t idx) const { return this->_baby_socket[idx]; }
-long long int const & Server::getTimeout(void) const { return this->_timeout; }
-ServerHandler * Server::getServerHandler(void) const { return this->_serverHandler; }
+
+Request * Server::getRequest(int index) { if (index <= this->_request_index) return this->_requests[index]; return NULL; }
+
 
 /* ****************  PARSING SETTERS **************** */
 
@@ -236,17 +244,25 @@ void Server::setErrors(std::vector<std::string> errors)
 /* **************** EXEC SETTERS **************** */
 
 
-void Server::setBabySocket(int * sockets) {
-	for (int i = 0; i < MAX_BBY_SOCKET; ++i)
-		this->_baby_socket[i] = sockets[i];
-}
+// void Server::setBabySocket(int * sockets) {
+// 	for (int i = 0; i < MAX_BBY_SOCKET; ++i)
+// 		this->_baby_socket[i] = sockets[i];
+// }
 
 void Server::setServerHandler(ServerHandler *serverHandler) { this->_serverHandler = serverHandler; }
 void Server::setMasterSocket(int masterSocket) { this->_master_socket = masterSocket; }
-void Server::setBabySocket(int idx, int socket) { this->_baby_socket[idx] = socket; }
-void Server::setTimeout(long long int timeout) { this->_timeout = timeout; }
+// void Server::setBabySocket(int idx, int socket) { this->_baby_socket[idx] = socket; }
 void Server::setEpfd(const int epfd) { this->_epfd = epfd; }
 
+void Server::eraseRequest(int index)
+{
+	if (index < _request_index)
+	{
+		delete _requests[index];
+		_requests[index] = NULL;
+		_request_index--;
+	}
+}
 
 /* ****************  CLASS METHODS **************** */
 
@@ -257,11 +273,9 @@ void	Server::buildSocket( void ) {
 	this->address.sin_addr.s_addr = INADDR_ANY;
 	this->address.sin_port = htons( this->_listen );
 	addrlen = sizeof(address);
-	this->_baby_index = 0;
+	this->_request_index = 0;
 	this->_request_index = 0;
 	memset(address.sin_zero, '\0', sizeof(address.sin_zero));
-	memset(client_socket, 0, sizeof(client_socket));
-
 
 	if ((this->_master_socket = socket(AF_INET, SOCK_STREAM, 0)) == 0)
 		throw SocketError();
@@ -279,38 +293,45 @@ void	Server::buildSocket( void ) {
 void	Server::initRequest( Request* request )
 {
 	request->setSocketState(READ_STATE);
-	request->setEventSocket(this->_baby_socket[_baby_index]);
+	request->setEventSocket(this->_baby_socket[_request_index]);
 	request->setEpfd(this->_epfd);
 	request->setServerHandler(this->_serverHandler);
 	request->setCurrentServer(NULL);
+	request->setLocation(NULL);
+	request->setLastEvent();
 }
 
 void Server::serverProcess() {
 	struct epoll_event interestList;
 
 	interestList.events = EPOLLIN;
+	// std::cout << _FOREST_GREEN "NEW CLIENT CONNECTION" _END << std::endl;
 
-	if (this->_baby_index == MAX_BBY_SOCKET)
-	{
-		std::cout << "MAX BABY SOCKET REACHED" << std::endl;
+	if (this->_request_index == MAX_BBY_SOCKET)
 		return ;
-	}
-	if ((this->_baby_socket[_baby_index] = accept(this->_master_socket, (struct sockaddr *)&address, &addrlen)) < 0)
+	if ((this->_baby_socket[_request_index] = accept(this->_master_socket, (struct sockaddr *)&address, &addrlen)) < 0)
 		throw SocketLoopError();
 
 	Request *current = new Request;
+
 	initRequest( current );
 	interestList.data.ptr = current;
-	if (epoll_ctl(this->_epfd, EPOLL_CTL_ADD, this->_baby_socket[_baby_index], &interestList) == -1)
+	if (epoll_ctl(this->_epfd, EPOLL_CTL_ADD, this->_baby_socket[_request_index], &interestList) == -1)
 		std::cout << "MASTER epoll error" << std::endl;
-	if (_request_index < MAX_REQUEST)
-	_requests[_request_index++] = current;
-	_baby_index++;
+	for (int i = 0; i < MAX_REQUEST; ++i)
+	{
+		if (_requests[i] == NULL)
+		{
+			_requests[i] = current;
+			_request_index++;
+			break ;
+		}
+	}
 }
 
 void	Server::determinism()
 {
-	std::cout << _SALMON "Creating new baby_socket" _END << std::endl;
+	// std::cout << _SALMON "Creating new baby_socket" _END << std::endl;
 	serverProcess();
 }
 
