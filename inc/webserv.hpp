@@ -9,6 +9,7 @@
 # include <stdlib.h>
 # include <exception>		/* Error handling library  */
 # include <sys/stat.h>
+# include <bits/time.h>
 # include <sys/epoll.h>
 # include <sys/types.h>
 # include <sys/socket.h>

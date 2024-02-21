@@ -41,7 +41,8 @@ void	Post::sendResponse()
 
 	this->_header += this->_body;
 	if (send(this->_event_socket,  this->_header.c_str(), this->_header.size(), 0) < 0)
-		std::cout << _RED _BOLD "Error: SEND BUFFER" _END << std::endl;
+		this->getCurrentRequest()->setLastEvent(0);
+		// std::cout << _RED _BOLD "Error: SEND BUFFER" _END << std::endl;
 
 }
 
@@ -56,7 +57,7 @@ void Post::extractBoundary() {
 	_boundary = _request.substr(boundaryPos, boundaryEnd - boundaryPos);
 }
 
-void Post::writeFile() {
+void Post::uploadFile() {
 
 	extractBoundary();
 
@@ -96,6 +97,6 @@ void	Post::executeMethod()
 	// std::cout << _LILAC _BOLD "EXECUTE Get" _END << std::endl;
 
 
-	writeFile();
+	uploadFile();
 	this->sendResponse();
 }

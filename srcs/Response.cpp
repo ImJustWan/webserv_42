@@ -4,7 +4,7 @@
 /*****************  CANONICAL FORM *****************/
 
 Response::Response() {
-	_valread = 1;
+	_readBytes = 1;
 	_status_code[400] = "Bad Request";
 	_status_code[403] = "Forbidden";
 	_status_code[404] = "Not found";
@@ -127,14 +127,10 @@ bool	Response::requestLineCheck( void )
 {
 	std::ifstream	file(this->_resource.c_str(), std::ios::binary);
 
-	// std::cout << this->_resource << std::endl;
 	if (_resource.size() == 0)
 		responseError(404);
 	else if (access(_resource.c_str(), R_OK))
-	{
-		std::cout << "Can't access " << _resource << std::endl;
 		responseError(403);
-	}
 	else if (!file.is_open())
 		responseError(404);
 	else if (_request.find("HTTP/1.1") == std::string::npos)
@@ -144,11 +140,7 @@ bool	Response::requestLineCheck( void )
 	// else if (!extensionCheck())
 	// 	responseError(501);
 	else
-	{
-		// std::cout << _EMERALD "We're good : " << _resource << _END << std::endl;
 		return ( true );
-	}
-	// std::cout << _SALMON "We're NOT good : " << _resource << _END << std::endl;
 	return ( false );
 }
 
@@ -179,16 +171,16 @@ void	Response::errorPageBuilder(const uint16_t & status_code)
 	this->_header += "Connection: Keep-Alive\r\n";
 	this->_header += "\r\n";
 
+	this->_header += this->_body;
 	if (send(this->_event_socket, this->_header.c_str(), this->_header.size(), 0) < 0)
-		std::cout << _RED _BOLD "responseError: SEND HEADER" _END << std::endl;
-	if (send(this->_event_socket,  this->_body.c_str(), this->_body.size(), 0) < 0)
-		std::cout << _RED _BOLD "responseError: SEND BUFFER" _END << std::endl;
+		this->getCurrentRequest()->setLastEvent(0);
+		// std::cout << _RED _BOLD "responseError: SEND HEADER" _END << std::endl;
 }
 
 
 void	Response::responseError( const uint16_t & status_code )
 {
-	this->setValread(0);
+	this->setReadBytes(0);
 
 	std::cout << _RED _BOLD "Response Error for : " << status_code <<  _END << std::endl;
 	std::map<uint16_t, std::string>::const_iterator it = this->_current_server->getErrors().find(status_code);
@@ -204,21 +196,22 @@ void	Response::responseError( const uint16_t & status_code )
 		}
 		buildHeader(error_page, status_code);
 		if (send(this->_event_socket, this->_header.c_str(), this->_header.size(), 0) < 0)
-			std::cout << _RED _BOLD "Error: SEND HEADER" _END << std::endl;
+		{			
+			this->getCurrentRequest()->setLastEvent(0);
+		}
 		while (!error_page.eof())
 		{
 			error_page.read(buffer, 4096);
 			if (send(this->_event_socket, buffer, error_page.gcount(), 0) < 0) {
-				std::cout << _RED _BOLD "Error: SEND BUFFER" _END << std::endl;
+				this->getCurrentRequest()->setLastEvent(0);
+				// std::cout << _RED _BOLD "Error: SEND BUFFER" _END << std::endl;
 			}
 		}
 		error_page.close();
 	}
 	else
-	{
-		std::cout << _SALMON "NO MATCH, do your thing" _END << std::endl;
 		errorPageBuilder(status_code);
-	}
+
 }
 
 void	Response::executeMethod()

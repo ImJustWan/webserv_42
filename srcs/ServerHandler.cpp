@@ -310,7 +310,8 @@ void	signalHandler(int signum)
 
 void	ServerHandler::handleServers()
 {
-	this->_epfd = epoll_create(1);
+	if ((this->_epfd = epoll_create(1)) == -1)
+		throw EpollException();
 	addMasterSockets();
 
 	int readyz;
@@ -318,7 +319,7 @@ void	ServerHandler::handleServers()
 	signal(SIGPIPE, SIG_IGN);
 	while (signal_received == false)
 	{
-		readyz = epoll_wait(this->_epfd, this->_readyList, 100, 10000); // max fds = 1024 so lower
+		readyz = epoll_wait(this->_epfd, this->_readyList, 100, 5000); // max fds = 1024 so lower
 		if (readyz != 0)
 		{
 			for (int i = 0; i < readyz; i++) {
@@ -326,11 +327,15 @@ void	ServerHandler::handleServers()
 			}
 		}
 		else
-		{
-			/* TO DO 
-				implement time out
-				-> check each bby socket on each Server, if t/o, then DIE */
 			std::cout << "No events :(" << std::endl;
+		
+		for (std::vector<Server *>::reverse_iterator it = this->_servers.rbegin(); it != this->_servers.rend(); it++) {
+			for (int i = 0; i < MAX_REQUEST; i++) {
+				// std::cout << "Checking for timeout on request " << i << std::endl;
+				if ((*it)->getRequest(i) != NULL && !(*it)->getRequest(i)->checkTimeout())
+					(*it)->eraseRequest(i);
+			}
 		}
 	}
+	std::cout << _EMERALD _BOLD "Goodbye!" _END << std::endl;
 }

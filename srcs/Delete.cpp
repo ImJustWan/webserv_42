@@ -38,10 +38,8 @@ void	Delete::sendResponse()
 	this->_header += this->_body;
 	
 	if (send(this->_event_socket, this->_header.c_str(), this->_header.size(), 0) < 0)
-		std::cout << _RED _BOLD "Error: SEND HEADER" _END << std::endl;
-	// if (send(this->_event_socket,  this->_body.c_str(), this->_body.size(), 0) < 0)
-	// 	std::cout << _RED _BOLD "Error: SEND BUFFER" _END << std::endl;
-	// std::cout << _PINK "RESPONSE\n" << _header << _body << _END << std::endl;
+		this->getCurrentRequest()->setLastEvent(0);
+	// std::cout << _RED _BOLD "Error: SEND HEADER" _END << std::endl;
 }
 
 void	Delete::deleteResource()
@@ -58,7 +56,7 @@ void	Delete::deleteResource()
 		std::cout << _RED "Failure to delete " << this->getResource() << _END << std::endl;
 		responseError(404);
 	}
-	_valread = 0;
+	_readBytes = 0;
 }
 
 void	Delete::executeMethod()

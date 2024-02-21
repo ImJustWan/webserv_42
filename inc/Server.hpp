@@ -34,15 +34,15 @@ public:
 	bool const & 								getAutoindex(void) const;
 	long long int const & 						getClientMaxBodySize(void) const;
 	std::vector<std::string> const & 			getServerNames(void) const;
-	std::map<std::string, Location *> const & 	getLocations(void) const;
 	std::map<uint16_t, std::string>	const & 	getErrors(void) const;
+	std::map<std::string, Location *> const & 	getLocations(void) const;
 
 	int const & 								getEpfd(void) const;
+	int const & 								getReqIndex(void) const;
 	int const & 								getMasterSocket(void) const;
-	int const * 								getBabySocket(void) const;
 	int const & 								getBabySocket(size_t idx) const;
-	long long int const & 						getTimeout(void) const;
 	ServerHandler *								getServerHandler(void) const;
+	Request *									getRequest(int index);
 
 	/* SETTERS */
 	void	setListen(std::vector<std::string>);
@@ -60,8 +60,8 @@ public:
 	void	setMasterSocket(int masterSocket);
 	void	setBabySocket(int * sockets);
 	void	setBabySocket(int idx, int socket);
-	void	setTimeout(long long int timeout);
 	void	setServerHandler(ServerHandler *serverHandler);
+	void 	eraseRequest(int index);
 
 	/* METHODS */
 	void	buildSocket( void );
@@ -143,7 +143,6 @@ private:
 	int							_epfd;
 	int							_port;
 	int							_master_socket;
-	int							_baby_index;
 	int							_request_index;
 	int							_baby_socket[MAX_BBY_SOCKET];
 	int							client_socket[MAX_CLIENTS];

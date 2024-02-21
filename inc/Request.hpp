@@ -27,6 +27,8 @@
 // # define POST	( 1 << 1 )
 // # define DELETE	( 1 << 2 )
 # define N_METHODS 3
+# define TIMEOUT 4
+
 
 # include "Server.hpp"
 
@@ -44,8 +46,12 @@ public:
 	Request& operator=(const Request& cpy);
 
 	/* GETTERS */
+	ServerHandler*			getServerHandler() const;
+	Server*					getCurrentServer() const;
+	Location*				getLocation() const;
+	Response*				getResponse() const;
 	int const &				getEpfd() const;
-	int const &				getValread() const;
+	int const &				getReadBytes() const;
 	int const &				getEventSocket() const;
 	int const &				getMethods() const;
 	int const &				getListen() const;
@@ -55,75 +61,73 @@ public:
 	std::string	const &		getRoot() const;
 	std::string	const &		getResource() const;
 	std::string	const &		getMethod() const;
-	size_t					findContentLength(size_t const & found ) const;
-	std::map<uint16_t, std::string>	const & 	getErrors(void) const;
-	Server*					getCurrentServer() const;
-	ServerHandler*			getServerHandler() const;
-	Location*				getLocation() const;
 
 	/* SETTERS */
-	void					setEpfd( const int epfd );
-	void					setEventSocket( const int socket );
-	void					setValread( const int valread );
-	void					setSocketState( bool state );
-	void					setChunksEnd( bool state );
+	void					setServerHandler( ServerHandler *serverHandler );
 	void					setCurrentServer( Server *current );
 	void					setLocation( Location *location );
-	void					setServerHandler( ServerHandler *serverHandler );
-	void					setResource( std::string resource );
-	void					setRequest( std::string request );
-	void					setRoot( std::string root );
+	void					setResponse( Response *response );
+	void					setEpfd( const int epfd );
+	void					setEventSocket( const int socket );
+	void					setSocketState( bool state );
 	void					setIndex( std::string index );
-	void					setHost( std::string host );
-	void					setMethods( const int methods );
+	void					setRoot( std::string root );
+	void					setHost( std::string host ); 
+	void					setRequest( std::string request );
+	void					setResource( std::string resource );
 	void					setListen( const int listen );
-
-	void					setRequest();
-	void					findLocation();
-	void					setMethodsRootIndex();
+	void					setMethods( const int methods );
+	void					setReadBytes( const int readbytes );
+	void					setLastEvent( void );
+	void					setLastEvent(long long int time);
 
 	/* METHODS */
 
-	void					setAttributes();
 	void					determinism();
-	void					buildResponse();
-	void					buildResponse( const uint16_t & status_code );
-	void					initResponse( Response* response );
-	Response*				newGet();
-	Response*				newPost();
-	Response*				newDelete();
+	bool					checkTimeout();
 
-	// void					writeFile();
-
-	/* POST  */
-	std::string	getKey(size_t & found);
-	std::string	getValue(size_t & found, std::string const & queryKey);
-	std::string	extractToken( char *searched, size_t & found );
-	void		fillMap();
-	std::string	getFilePath();
 
 protected:
 
-	bool				_socketState;
-	Server*				_current_server;
-	ServerHandler*		_serverHandler;
-	Response*			_response;
-	Location*			_location;
-	int					_epfd;
-	int					_event_socket;
-	std::string			_index;
-	std::string			_root;
-	std::string			_request;
-	std::string			_method;
-	std::string			_resource;
-	int					_valread;
-	bool				_finished;
-	long long int		_readBytes;
-	long long int		_contentLength;
-	int					_methods;
+	ServerHandler*			_serverHandler;
+	Server*					_current_server;
+	Location*				_location;
+	Response*				_response;
 
-	std::string			_host;
-	int					_listen;
+	int						_epfd;
+	int						_event_socket;
+	bool					_socketState;
+	std::string				_index;
+	std::string				_root;
+	std::string				_host;
+	std::string				_request;
+	std::string				_method;
+	std::string				_resource;
+	int						_listen;
+	int						_methods;
+
+	int						_readBytes;
+	bool					_finished;
+	long long int			_readLength;
+	long long int			_contentLength;
+	long long int			_lastEvent;
+
+private :
+
+	void					setRequest();
+	void					setAttributes();
+	void					setLocation();
+	void					setMethodsRootIndex();
+
+	size_t					findContentLength(size_t const & found ) const;
+
+	void					buildResponse();
+	void					buildResponse( const uint16_t & status_code );
+
+	Response*				newGet();
+	Response*				newPost();
+	Response*				newDelete();
+	void					initResponse( Response* response );
 
 };
 

@@ -24,15 +24,9 @@ private:
 	std::string	_data;
 
 	void		startUpload();
-	void		writeFile();
+	void		uploadFile();
 	void		buildHeader();
 	void		sendResponse();
 	void		extractBoundary();
 
 };
-
-	/* OBSOLETE ? */
-	// void		fillMap();
-	// std::string	getKey(size_t & found);
-	// std::string	getValue(size_t & found, std::string const & queryKey);
-	// std::string	extractToken( char *searched, size_t & found );

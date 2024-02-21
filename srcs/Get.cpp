@@ -82,7 +82,10 @@ void Get::getAutoIndex()
 	this->_header += "\r\n\r\n";
 	this->_header += this->_body;
 	if (send(this->_event_socket, this->_header.c_str(), this->_header.size(), 0) < 0)
-		std::cout << _RED _BOLD "Error: SEND HEADER" _END << std::endl;
+	{
+		this->getCurrentRequest()->setLastEvent(0);
+		std::cout << "";
+	}
 }
 
 
@@ -93,13 +96,15 @@ void	Get::sendResponse()
 
 	buildHeader(file, 200);
 	if (send(this->_event_socket, this->_header.c_str(), this->_header.size(), 0) < 0)
-		std::cout << _RED _BOLD "Error: SEND HEADER" _END << std::endl;
+		this->getCurrentRequest()->setLastEvent(0);
+		// std::cout << _RED _BOLD "Error: SEND HEADER" _END << std::endl;
 	while (!file.eof())
 	{
 		file.read(buffer, 4096);
 		// std::cout << "Event socket is : " << this->_event_socket << std::endl;
 		if (send(this->_event_socket, buffer, file.gcount(), 0) < 0) {
-			std::cout << _RED _BOLD "Error: SEND BUFFER" _END << std::endl;
+			// std::cout << _RED _BOLD "Error: SEND BUFFER" _END << std::endl;
+			this->getCurrentRequest()->setLastEvent(0);
 		}
 	}
 	file.close();
@@ -128,7 +133,7 @@ bool	Get::checkResource()
 		return true;
 	if (S_ISDIR(buffer.st_mode))
 	{
-		std::cout << "Resource is a directory" << std::endl;
+		// std::cout << "Resource is a directory" << std::endl;
 		if (this->getIndex() == "")
 		{
 			std::cout << "No index found" << std::endl;
@@ -153,7 +158,7 @@ bool	Get::checkResource()
 		else if (S_ISREG(buffer.st_mode))
 		{
 			_resource = _resource + "/" + this->getIndex();
-			std::cout << _FOREST_GREEN "Resource is now : " << _resource << _END << std::endl;
+			// std::cout << _FOREST_GREEN "Resource is now : " << _resource << _END << std::endl;
 			return (true);
 		}
 		else
