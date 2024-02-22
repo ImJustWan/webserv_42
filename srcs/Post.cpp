@@ -34,13 +34,12 @@ void	Post::buildHeader()
 void	Post::sendResponse()
 {
 	this->buildHeader();
-	if (_finished == true)
-		this->_body = "The request has been completed, file is uploaded. Thanks :)\n";
-	else
-		this->_body = "The request has been accepted for processing. Check back later for results.\n";
-
+	this->_body = "The request has been completed, file is uploaded. Thanks :)\n";
+	this->_response = this->_header + this->_body;
 	this->_header += this->_body;
-	if (send(this->_event_socket,  this->_header.c_str(), this->_header.size(), 0) < 0)
+
+	// if (send(this->getCurrentRequest()->getEventSocket(), this->_header.c_str(), this->_header.size(), 0) < 0)
+	if (send(this->getCurrentRequest()->getEventSocket(), this->_response.c_str(), this->_response.size(), 0) < 0)
 		this->getCurrentRequest()->setLastEvent(0);
 		// std::cout << _RED _BOLD "Error: SEND BUFFER" _END << std::endl;
 
@@ -50,11 +49,11 @@ void Post::extractBoundary() {
 	_boundary = "";
 	std::string boundaryStart = "boundary=";
 
-	size_t boundaryPos = _request.find(boundaryStart);
-	size_t boundaryEnd = _request.find("\r\n", boundaryPos);
+	size_t boundaryPos = this->getCurrentRequest()->getRequest().find(boundaryStart);
+	size_t boundaryEnd = this->getCurrentRequest()->getRequest().find("\r\n", boundaryPos);
 
 	boundaryPos += boundaryStart.length();
-	_boundary = _request.substr(boundaryPos, boundaryEnd - boundaryPos);
+	_boundary = this->getCurrentRequest()->getRequest().substr(boundaryPos, boundaryEnd - boundaryPos);
 }
 
 void Post::uploadFile() {
@@ -66,23 +65,23 @@ void Post::uploadFile() {
 		return;
 	}
 
-	size_t dataStart = _request.find(_boundary);
-	size_t tmpStart = _request.find("\r\n\r\n", dataStart + _boundary.size()) + 4;
-	size_t dataEnd = _request.rfind(_boundary);
+	size_t dataStart = this->getCurrentRequest()->getRequest().find(_boundary);
+	size_t tmpStart = this->getCurrentRequest()->getRequest().find("\r\n\r\n", dataStart + _boundary.size()) + 4;
+	size_t dataEnd = this->getCurrentRequest()->getRequest().rfind(_boundary);
 	
-	dataStart = _request.find("\r\n\r\n", tmpStart) + 4;
+	dataStart = this->getCurrentRequest()->getRequest().find("\r\n\r\n", tmpStart) + 4;
 	
-	size_t filenameStart = _request.find("filename=\"") + 10;
-	size_t filenameEnd = _request.find("\"", filenameStart);
-	_filename = _request.substr(filenameStart, filenameEnd - filenameStart);
+	size_t filenameStart = this->getCurrentRequest()->getRequest().find("filename=\"") + 10;
+	size_t filenameEnd = this->getCurrentRequest()->getRequest().find("\"", filenameStart);
+	_filename = this->getCurrentRequest()->getRequest().substr(filenameStart, filenameEnd - filenameStart);
 
 	/* UPLOAD PATH MUST BE upload_path if it exists */
 
 	if (tmpStart != std::string::npos && dataEnd != std::string::npos) {
-		std::string imageData = _request.substr(dataStart);
-		std::string path = this->getCurrentServer()->getRoot() + "/" + _filename;
+		std::string imageData = this->getCurrentRequest()->getRequest().substr(dataStart);
+		std::string path = this->getCurrentRequest()->getCurrentServer()->getRoot() + "/" + _filename;
 		std::ofstream newFile(path.c_str());
-		// std::cout << _PINK "Request " << _request << _END <<  std::endl;
+		// std::cout << _PINK "Request " << this->getCurrentRequest()->getRequest() << _END <<  std::endl;
 		newFile.write(imageData.c_str(), imageData.size());
 		newFile.close();
 		std::cerr << "File created at " << path << std::endl;
@@ -95,7 +94,6 @@ void Post::uploadFile() {
 void	Post::executeMethod()
 {
 	// std::cout << _LILAC _BOLD "EXECUTE Get" _END << std::endl;
-
 
 	uploadFile();
 	this->sendResponse();

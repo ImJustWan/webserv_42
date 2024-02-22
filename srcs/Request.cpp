@@ -9,8 +9,8 @@
 
 
 Request::Request() : 
-	_location(NULL),
-	_response(NULL),
+	_currentLocation(NULL),
+	_currentResponse(NULL),
 	_epfd(0),
 	_event_socket(0),
 	_socketState(READ_STATE),
@@ -19,14 +19,15 @@ Request::Request() :
 	_resource(""),
 	_cgiExt(""),
 	_readBytes(0),
-	_finished(false),
+	_readFinished(false),
+	_sentFinished(false),
 	_readLength(0),
 	_contentLength(0) {
 }
 
 Request::~Request() {
-	if (_response)
-		delete _response;
+	if (_currentResponse)
+		delete _currentResponse;
 }
 
 Request::Request ( const Request& src ) : IEvent(src) {
@@ -36,18 +37,32 @@ Request::Request ( const Request& src ) : IEvent(src) {
 Request& Request::operator= ( const Request& cpy ) {
 	if (this == &cpy)
 		return (*this);
-	this->_socketState = cpy._socketState;
-	this->_current_server = cpy._current_server;
-	this->_response = cpy._response;
+	this->_currentServerHandler = cpy._currentServerHandler;
+	this->_currentServer = cpy._currentServer;
+	this->_currentLocation = cpy._currentLocation;
+	this->_currentResponse = cpy._currentResponse;
+
 	this->_epfd = cpy._epfd;
 	this->_event_socket = cpy._event_socket;
+	this->_socketState = cpy._socketState;
+
+	this->_index = cpy._index;
+	this->_root = cpy._root;
+	this->_host = cpy._host;
 	this->_request = cpy._request;
 	this->_method = cpy._method;
 	this->_resource = cpy._resource;
-	this->_readBytes = cpy._readBytes;
-	this->_finished = cpy._finished;
-	this->_readLength = cpy._readLength;
+	this->_cgiExt = cpy._cgiExt;
+
 	this->_methods = cpy._methods;
+	this->_listen = cpy._listen;
+
+	this->_readBytes = cpy._readBytes;
+	this->_readFinished = cpy._readFinished;
+	this->_sentFinished = cpy._sentFinished;
+	this->_readLength = cpy._readLength;
+	this->_contentLength = cpy._contentLength;
+	this->_lastEvent = cpy._lastEvent;
 	return *this;
 }
 
@@ -62,10 +77,10 @@ int const &	Request::getListen(void) const { return (this->_listen); }
 std::string	const & Request::getRequest(void) const { return (this->_request); }
 std::string	const & Request::getMethod(void) const { return (this->_method); }
 std::string const & Request::getResource(void) const { return ( this->_resource ); }
-Server* Request::getCurrentServer(void) const { return ( this->_current_server ); }
-Location* Request::getLocation() const { return ( this->_location ); }
-Response* Request::getResponse() const { return ( this->_response ); }
-ServerHandler* Request::getServerHandler() const { return ( this->_serverHandler ); }
+Server* Request::getCurrentServer(void) const { return ( this->_currentServer ); }
+Location* Request::getLocation() const { return ( this->_currentLocation ); }
+Response* Request::getResponse() const { return ( this->_currentResponse ); }
+ServerHandler* Request::getServerHandler() const { return ( this->_currentServerHandler ); }
 std::string const & Request::getIndex(void) const { return ( this->_index ); }
 std::string const & Request::getHost(void) const { return ( this->_host ); }
 std::string const & Request::getRoot(void) const { return ( this->_root ); }
@@ -79,10 +94,10 @@ void	Request::setListen( const int listen ) { this->_listen = listen; }
 void	Request::setEventSocket( const int socket ) { this->_event_socket = socket; }
 void	Request::setReadBytes( const int readbytes ) { this->_readBytes = readbytes; }
 void	Request::setSocketState( bool state ) { this->_socketState = state; }
-void	Request::setCurrentServer( Server *current ) { this->_current_server = current; }
-void	Request::setLocation( Location *location ) { this->_location = location; }
-void	Request::setResponse( Response *response ) { this->_response = response; }
-void	Request::setServerHandler( ServerHandler *serverHandler ) { this->_serverHandler = serverHandler; }
+void	Request::setCurrentServer( Server *current ) { this->_currentServer = current; }
+void	Request::setLocation( Location *location ) { this->_currentLocation = location; }
+void	Request::setResponse( Response *response ) { this->_currentResponse = response; }
+void	Request::setServerHandler( ServerHandler *serverHandler ) { this->_currentServerHandler = serverHandler; }
 void	Request::setRoot( std::string root ) { this->_root = root; }
 void	Request::setIndex( std::string index ) { this->_index = index; }
 void	Request::setHost( std::string host ) { this->_host = host; }
@@ -100,10 +115,10 @@ bool	Request::checkTimeout()
 		std::cout << _ORANGE "Connection closed on " << _event_socket << _END << std::endl;
 		close(this->_event_socket);
 		epoll_ctl(this->_epfd, EPOLL_CTL_DEL, _event_socket, NULL);
-		if (_response != NULL)
+		if (_currentResponse != NULL)
 		{
-			delete _response;
-			_response = NULL;
+			delete _currentResponse;
+			_currentResponse = NULL;
 		}
 		return false;
 	}
@@ -121,16 +136,16 @@ size_t Request::findContentLength( size_t const & found ) const
 
 void	Request::setLocation()
 {
-	if (this->_current_server == NULL)
+	if (this->_currentServer == NULL)
 		return ;
-	if (this->_current_server->getLocations().empty())
+	if (this->_currentServer->getLocations().empty())
 		return ;
-	std::map<std::string, Location *>	locations = this->_current_server->getLocations();
+	std::map<std::string, Location *>	locations = this->_currentServer->getLocations();
 	
 	std::string				resource = this->getResource();
 	std::string 			root = "/";
 	
-	root += this->_current_server->getRoot();
+	root += this->_currentServer->getRoot();
 	
 	if (resource.find(root) == 0)
 		resource.erase(0, root.length());
@@ -155,13 +170,18 @@ void Request::setRequest() {
 
 	_readBytes = recv(this->_event_socket, buffer, sizeof(buffer) - 1, 0);
 	
-	if (_readBytes != -1)
-		_request.append(buffer, _readBytes);
+	if (_readBytes == -1)
+	{
+		this->_lastEvent = 0;
+		return ;
+	}
+
+	_request.append(buffer, _readBytes);
 	_readLength += _readBytes;
 
 	size_t headerEnd = _request.find("\r\n\r\n");
 	if (headerEnd != std::string::npos)
-		_finished = true;
+		_readFinished = true;
 
 	size_t found = _request.find("Content-Length:");
 	_contentLength = (found != std::string::npos) ? findContentLength(found + 1 + std::strlen("Content-Length:")) : _readBytes;
@@ -169,11 +189,11 @@ void Request::setRequest() {
 	// std::cout << _LILAC "Content-Length: " << _contentLength << _END << std::endl;
 	
 	if (_readLength < _contentLength)
-		_finished = false;
+		_readFinished = false;
 	else
 	{
 		if (_method == "POST" || headerEnd != std::string::npos)
-			_finished = true;
+			_readFinished = true;
 		_readLength = 0;
 	}
 }
@@ -183,22 +203,21 @@ void	Request::setMethodsRootIndex()
 
 	if (this->getLocation() != NULL)
 		this->setMethods(this->getLocation()->getMethods());
-	else
+	else if (this->getCurrentServer() != NULL)
 		this->setMethods(this->getCurrentServer()->getMethods());
+	else
+		this->setMethods(0);
 
-	/* TO DO
-		SEGFAULT ???? 
-		*/
 	if (this->getLocation() != NULL && this->getLocation()->getRoot() != "")
 		this->setRoot(this->getLocation()->getRoot());
-	else if (this->getLocation() != NULL)
+	else if (this->getLocation() != NULL || this->getCurrentServer() == NULL)
 		this->setRoot("");
-	else 
+	else
 		this->setRoot(this->getCurrentServer()->getRoot());
-	
+
 	if (this->getLocation() != NULL && this->getLocation()->getIndex() != "")
 		this->setIndex(this->getLocation()->getIndex());
-	else if (this->getLocation() != NULL)
+	else if (this->getLocation() != NULL || this->getCurrentServer() == NULL)
 		this->setIndex("");
 	else
 		this->setIndex(this->getCurrentServer()->getIndex());
@@ -236,7 +255,7 @@ void	Request::setAttributes()
 	// std::cout << _GOLD "Host is : " << _host << " on port " << _listen << _END << std::endl;
 
 	// find matching server
-	for (std::vector<Server *>::const_iterator i = this->getServerHandler()->getServers().begin(); i != this->_serverHandler->getServers().end(); ++i)
+	for (std::vector<Server *>::const_iterator i = this->getServerHandler()->getServers().begin(); i != this->_currentServerHandler->getServers().end(); ++i)
 	{
 		if (this->getCurrentServer() != NULL)
 			break ;
@@ -256,7 +275,7 @@ void	Request::setAttributes()
 	// No matching servername found, using first server on the port
 	if (this->getCurrentServer() == NULL)
 	{
-		for (std::vector<Server *>::const_iterator i = this->getServerHandler()->getServers().begin(); i != this->_serverHandler->getServers().end(); ++i)
+		for (std::vector<Server *>::const_iterator i = this->getServerHandler()->getServers().begin(); i != this->_currentServerHandler->getServers().end(); ++i)
 			if ((*i)->getListen() == this->_listen) {
 				this->setCurrentServer(*i);
 				break ;
@@ -280,31 +299,15 @@ Response*	Request::newDelete() {
 	return ( new Delete() );
 }
 
-void	Request::initResponse( Response* response )
-{
-	response->setEventSocket(this->_event_socket);
-	response->setRequest(this->_request);
-	response->setCurrentRequest(this);
-	response->setResource(this->_resource);
-	response->setEpfd(this->_epfd);
-	response->setCurrentServer(this->_current_server);
-	response->setLocation(this->_location);
-	response->setRoot(this->_root);
-	response->setIndex(this->_index);
-	response->setMethods(this->_methods);
-	response->setHost(this->_host);
-	response->setListen(this->_listen);
-}
-
 void	Request::buildResponse( const uint16_t & status_code )
 {
-	if (_response)
-		_response->responseError(status_code);
+	if (_currentResponse)
+		_currentResponse->responseError(status_code);
 	else
 	{
-		_response = new Response;
-		initResponse(_response);
-		_response->responseError(status_code);
+		_currentResponse = new Response;
+		_currentResponse->setCurrentRequest(this);
+		_currentResponse->responseError(status_code);
 		setReadBytes(0);
 	}
 }
@@ -312,13 +315,13 @@ void	Request::buildResponse( const uint16_t & status_code )
 
 void	Request::buildResponse()
 {
-	if (_response)
+	if (_currentResponse)
 	{
-		delete _response;
-		_response = NULL;
+		delete _currentResponse;
+		_currentResponse = NULL;
 	}
 
-	if (_contentLength > _current_server->getClientMaxBodySize())
+	if (_contentLength > _currentServer->getClientMaxBodySize())
 	{
 		buildResponse(413);
 		return ;
@@ -334,31 +337,29 @@ void	Request::buildResponse()
 		if ( _method == map_methods[i].s_method ) {
 			if ( !(map_methods[i].method & _methods))
 			{
-				_response = new Response;
-				initResponse(_response);
-				_response->responseError(405);
+				_currentResponse = new Response;
+				_currentResponse->setCurrentRequest(this);
+				_currentResponse->responseError(405);
 				break ;
 			}
-			_response = (this->*map_methods[i].newMethod)();
+			_currentResponse = (this->*map_methods[i].newMethod)();
 			break ;
 		}
 	}
 
-	if (_response)
+	if (_currentResponse)
 	{
-		initResponse(_response);
-		_response->executeMethod();	
+		_currentResponse->setCurrentRequest(this);
+		_currentResponse->executeMethod();	
 	}
 	else
 	{
-		_response = new Response;
-		initResponse(_response);
+		_currentResponse = new Response;
+		_currentResponse->setCurrentRequest(this);
 		std::cout << "Method : " << _method << std::endl;
-		if (_response->getReadBytes() != 0)
-			_response->responseError(400);
+		if (this->getReadBytes() != 0)
+			_currentResponse->responseError(400);
 	}
-	if (_response->getReadBytes() == 0)
-		_readBytes = 0;
 }
 
 bool	Request::isCGI(std::string const & resource)
@@ -386,19 +387,32 @@ bool	Request::isCGI(std::string const & resource)
 		fileExt = fileExt.substr(dot, std::string::npos);
 	}
 
-	if (this->_location->getFileExt().size() != 0 && this->_location->getFileExt() == fileExt){
+	if (this->_currentLocation->getFileExt().size() != 0 && this->_currentLocation->getFileExt() == fileExt){
 		this->_cgiExt = fileExt;
 		return true;
 	}
 	return false;
 }
 
-void	Request::determinism()
+void	Request::changeSocketState()
 {
 	struct epoll_event	modifiedList;
 
 	modifiedList.data.ptr = this;
+	if (_socketState == READ_STATE)
+		modifiedList.events = EPOLLIN;
+	else
+		modifiedList.events = EPOLLOUT;
+	if (epoll_ctl(this->_epfd, EPOLL_CTL_MOD, _event_socket, &modifiedList) == -1)
+	{
+		close(this->_event_socket);
+		this->_lastEvent = 0;
+	}
+}
 
+
+void	Request::determinism()
+{
 	this->setLastEvent();
 	if (_socketState == READ_STATE) {
 		std::cout << _CYAN "READING Request on baby_socket " << this->_event_socket << _END << std::endl;
@@ -406,36 +420,31 @@ void	Request::determinism()
 		this->setAttributes();
 		// std::cout << _PINK "Request : " << _request << _END << std::endl;
 		// std::cout << _PINK "Resource : " << _resource << _END << std::endl;
-		if (_finished == true || _contentLength > _current_server->getClientMaxBodySize())
-		{
+		if (_readFinished == true || _contentLength > _currentServer->getClientMaxBodySize())
 			_socketState = WRITE_STATE;
-			modifiedList.events = EPOLLOUT;
-		}
 		else
-		{
 			_socketState = READ_STATE;
-			modifiedList.events = EPOLLIN;
-		}
 	}
 	else
 	{
 		std::cout << _AQUAMARINE "SENDING Response on baby_socket " << this->_event_socket << _END << std::endl;
-		// if ( isCGI( this->getResource()) ) {
-		// 	CgiHandler	handleCGI(this);
-		// 	_readBytes = 0;
-		// }
-		if (_method == "POST" && _finished == true)
+		if ( isCGI( this->getResource()) ) {
+			CgiHandler	handleCGI(this);
+			// build&sendCGI
 			_readBytes = 0;
-		buildResponse();
+		}
+		else
+			buildResponse();
+		if (_method == "POST" && _readFinished == true)
+			_readBytes = 0;
 		_request = "";
 		_socketState = READ_STATE;
-		modifiedList.events = EPOLLIN;
 	}
 
-	if (_readBytes <= 0 || epoll_ctl(this->_epfd, EPOLL_CTL_MOD, _event_socket, &modifiedList) == -1)
+	changeSocketState();
+	if (_readBytes <= 0)
 	{
 		close(this->_event_socket);
 		this->_lastEvent = 0;
-		// std::cout << "EPOLL error" << std::endl;
 	}
 }

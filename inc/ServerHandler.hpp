@@ -49,24 +49,6 @@ public:
 		virtual const char* what() const throw() {return _RED "Epoll create Error" _END;}
 	};
 
-/*
-
-Request::Request() : 
-	_epfd(0),
-	_event_socket(0),
-	_request(""),
-	_method(""),
-	_resource(""),
-	_readBytes(0),
-	_socketState(READ_STATE),
-	_response(NULL),
-	_location(NULL),
-	_finished(false),
-	_readLength(0),
-	_contentLength(0) {
-	// Initialize other members in the member initialization list if needed
-}*/
-
 private:
 	struct epoll_event							_readyList[30];
 	std::vector<Server *>						_servers;

@@ -59,7 +59,7 @@ private:
 	int				_pid;
 	int				_fdGet[2];
 	int				_fdPost[2];
-	std::string		_response;
+	std::string		_currentResponse;
 	std::map<std::string, std::string> _envMap;
 
 };

@@ -35,35 +35,37 @@ void	Delete::buildHeader()
 void	Delete::sendResponse()
 {
 	this->buildHeader();
+	this->_response = this->_header + this->_body;
 	this->_header += this->_body;
-	
-	if (send(this->_event_socket, this->_header.c_str(), this->_header.size(), 0) < 0)
+
+	// if (send(this->getCurrentRequest()->getEventSocket(), this->_header.c_str(), this->_header.size(), 0) < 0)
+	if (send(this->getCurrentRequest()->getEventSocket(), this->_response.c_str(), this->_response.size(), 0) < 0)
 		this->getCurrentRequest()->setLastEvent(0);
 	// std::cout << _RED _BOLD "Error: SEND HEADER" _END << std::endl;
 }
 
 void	Delete::deleteResource()
 {
-	if (remove(this->_resource.c_str()) == 0)
+	if (remove(this->getCurrentRequest()->getResource().c_str()) == 0)
 	{
-		std::cout << _EMERALD "Successfully deleted " << this->getResource() << _END << std::endl;
+		std::cout << _EMERALD "Successfully deleted " << this->getCurrentRequest()->getResource() << _END << std::endl;
 		this->_status = "202 Accepted";
 		this->_body = "Deletion request accepted and will be processed";
 		sendResponse();
 	}
 	else
 	{
-		std::cout << _RED "Failure to delete " << this->getResource() << _END << std::endl;
+		std::cout << _RED "Failure to delete " << this->getCurrentRequest()->getResource() << _END << std::endl;
 		responseError(404);
 	}
-	_readBytes = 0;
+	this->getCurrentRequest()->setReadBytes(0);
 }
 
 void	Delete::executeMethod()
 {
 	// std::cout << _LILAC _BOLD "EXECUTE Delete" _END << std::endl;
 	std::string path = this->trimSlash();
-	_resource = _root + path;
+	this->getCurrentRequest()->setResource(this->getCurrentRequest()->getRoot() + path);
 	if (requestLineCheck())
 		this->deleteResource();
 }

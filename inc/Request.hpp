@@ -91,14 +91,15 @@ public:
 
 protected:
 
-	ServerHandler*			_serverHandler;
-	Server*					_current_server;
-	Location*				_location;
-	Response*				_response;
+	ServerHandler*			_currentServerHandler;
+	Server*					_currentServer;
+	Location*				_currentLocation;
+	Response*				_currentResponse;
 
 	int						_epfd;
 	int						_event_socket;
 	bool					_socketState;
+
 	std::string				_index;
 	std::string				_root;
 	std::string				_host;
@@ -111,7 +112,8 @@ protected:
 	int						_methods;
 
 	int						_readBytes;
-	bool					_finished;
+	bool					_readFinished;
+	bool					_sentFinished;
 	long long int			_readLength;
 	long long int			_contentLength;
 	long long int			_lastEvent;
@@ -122,6 +124,7 @@ private :
 	void					setAttributes();
 	void					setLocation();
 	void					setMethodsRootIndex();
+	void					changeSocketState();
 
 	bool					isCGI(std::string const & resource);
 	size_t					findContentLength(size_t const & found ) const;
@@ -132,7 +135,6 @@ private :
 	Response*				newGet();
 	Response*				newPost();
 	Response*				newDelete();
-	void					initResponse( Response* response );
 
 };
 

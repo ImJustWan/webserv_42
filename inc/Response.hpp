@@ -4,25 +4,23 @@
 # include "error.hpp"
 
 
-class Response : public Request {
+class Response {
 
 public:
 
 	Response();
-	~Response();
+	Response(Request const & src);
+	virtual ~Response();
 	
-	Location *				getLocation(void) const;
 	Request *				getCurrentRequest(void) const;
+	void					setCurrentRequest( Request *current );
 
-	void			setCurrentRequest( Request *current );
+	void					responseError( const uint16_t & status_code );
+	void					errorPageBuilder(const uint16_t & status_code);
+	bool					requestLineCheck();
+	std::string				trimSlash();
 
-	void			setAttributes();
-	void			responseError( const uint16_t & status_code );
-	void			errorPageBuilder(const uint16_t & status_code);
-	bool			requestLineCheck();
-	std::string		trimSlash();
-
-	virtual void	executeMethod();
+	virtual void			executeMethod();
 
 
 protected:
@@ -36,6 +34,7 @@ protected:
 	std::string		_header;
 	std::string		_body;
 	std::string		_status;
+	std::string		_response;
 
 
 private :
