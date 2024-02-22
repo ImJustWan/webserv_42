@@ -252,6 +252,8 @@ void Server::eraseRequest(int index)
 {
 	if (index < _request_index && _requests[index] != NULL)
 	{
+		if (_requests[index]->getReadBytes() <= 0)
+			close(_requests[index]->getEventSocket());
 		delete _requests[index];
 		_requests[index] = NULL;
 		_request_index--;

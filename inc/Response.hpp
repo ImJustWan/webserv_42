@@ -12,6 +12,8 @@ public:
 	Response(Request const & src);
 	virtual ~Response();
 	
+	std::string				getResponse(void) const;
+
 	Request *				getCurrentRequest(void) const;
 	void					setCurrentRequest( Request *current );
 

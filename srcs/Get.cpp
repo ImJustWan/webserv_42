@@ -80,8 +80,8 @@ void Get::getAutoIndex()
 	this->_header += file_size_str.str();
 	this->_header += "\r\n\r\n";
 	this->_response = this->_header + this->_body;
-	if (send(this->getCurrentRequest()->getEventSocket(), this->_response.c_str(), this->_response.size(), 0) < 0)
-		this->getCurrentRequest()->setLastEvent(0);
+
+	this->getCurrentRequest()->setAsReady(true);
 
 }
 

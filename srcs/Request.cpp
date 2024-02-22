@@ -21,6 +21,7 @@ Request::Request() :
 	_readBytes(0),
 	_readFinished(false),
 	_sentFinished(false),
+	_responseReady(false),
 	_readLength(0),
 	_contentLength(0) {
 }
@@ -105,6 +106,7 @@ void	Request::setResource( std::string resource ) { this->_resource = resource; 
 void	Request::setRequest( std::string request ) { this->_request = request; }
 void	Request::setLastEvent( void ) { this->_lastEvent = time(NULL); }
 void 	Request::setLastEvent(long long int time) { this->_lastEvent = time; }
+void	Request::setAsReady(bool state) { this->_responseReady = state; }
 
 
 bool	Request::checkTimeout()
@@ -170,7 +172,7 @@ void Request::setRequest() {
 
 	_readBytes = recv(this->_event_socket, buffer, sizeof(buffer) - 1, 0);
 	
-	if (_readBytes == -1)
+	if (_readBytes == -1) // if 0, handled in determinism
 	{
 		this->_lastEvent = 0;
 		return ;
@@ -383,7 +385,7 @@ bool	Request::isCGI(std::string const & resource)
 		fileExt = fileExt.substr(dot, std::string::npos);
 	}
 
-	if (this->_currentLocation->getFileExt().size() != 0 && this->_currentLocation->getFileExt() == fileExt){
+	if (this->_currentLocation && this->_currentLocation->getFileExt().size() != 0 && this->_currentLocation->getFileExt() == fileExt){
 		this->_cgiExt = fileExt;
 		return true;
 	}
@@ -421,7 +423,7 @@ void	Request::determinism()
 		else
 			_socketState = READ_STATE;
 	}
-	else
+	else if (this->getCurrentServer() != NULL)
 	{
 		std::cout << _AQUAMARINE "SENDING Response on baby_socket " << this->_event_socket << _END << std::endl;
 		if ( isCGI( this->getResource()) ) {
@@ -433,9 +435,18 @@ void	Request::determinism()
 			buildResponse();
 		if (_method == "POST" && _readFinished == true)
 			_readBytes = 0;
+		if (_responseReady == true)
+		{
+			std::cout << _EMERALD "Response is ready" << _END << std::endl;
+			if (send(this->_event_socket, _currentResponse->getResponse().c_str(), _currentResponse->getResponse().size(), 0) < 0)
+				this->_lastEvent = 0;
+		}
 		_request = "";
 		_socketState = READ_STATE;
 	}
+	else
+		this->_lastEvent = 0;
+	
 
 	changeSocketState();
 	if (_readBytes <= 0)

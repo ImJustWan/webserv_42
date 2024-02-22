@@ -37,9 +37,8 @@ void	Post::sendResponse()
 	this->_body = "The request has been completed, file is uploaded. Thanks :)\n";
 	this->_response = this->_header + this->_body;
 	this->_header += this->_body;
-
-	if (send(this->getCurrentRequest()->getEventSocket(), this->_response.c_str(), this->_response.size(), 0) < 0)
-		this->getCurrentRequest()->setLastEvent(0);
+	
+	this->getCurrentRequest()->setAsReady(true);
 
 }
 

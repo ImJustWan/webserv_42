@@ -82,6 +82,7 @@ public:
 	void					setReadBytes( const int readbytes );
 	void					setLastEvent( void );
 	void					setLastEvent(long long int time);
+	void					setAsReady(bool state);
 
 	/* METHODS */
 
@@ -114,6 +115,7 @@ protected:
 	int						_readBytes;
 	bool					_readFinished;
 	bool					_sentFinished;
+	bool					_responseReady;
 	long long int			_readLength;
 	long long int			_contentLength;
 	long long int			_lastEvent;

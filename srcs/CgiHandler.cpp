@@ -135,3 +135,14 @@ void CgiHandler::craftEnv(void)
 	// 			std::cout << _RED _BOLD "Error: SEND BUFFER" _END << std::endl;
 	// 	}
 // }
+
+
+
+/*
+If request == cgi && cgi == NULL
+	create CGI
+if != NULL
+	launch CGI // 
+
+
+*/

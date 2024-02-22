@@ -38,6 +38,7 @@ Response& Response::operator=(const Response& cpy) {
 /*****************  CLASS METHODS *****************/
 
 
+std::string	Response::getResponse(void) const { return this->_response; }
 Request	*Response::getCurrentRequest(void) const { return this->_currentRequest; }
 void	Response::setCurrentRequest( Request *current ) { this->_currentRequest = current; }
 
@@ -154,10 +155,7 @@ void	Response::errorPageBuilder(const uint16_t & status_code)
 	this->_header += "\r\n";
 
 	this->_response = this->_header + this->_body;
-	this->_header += this->_body;
-
-	if (send(this->getCurrentRequest()->getEventSocket(), this->_response.c_str(), this->_response.size(), 0) < 0)
-		this->getCurrentRequest()->setLastEvent(0);
+	this->getCurrentRequest()->setAsReady(true);
 }
 
 
@@ -183,6 +181,8 @@ void	Response::responseError( const uint16_t & status_code )
 			this->getCurrentRequest()->setLastEvent(0);
 			return ;
 		}
+		this->_response = this->_header;
+
 		while (!error_page.eof())
 		{
 			error_page.read(buffer, 4096);
