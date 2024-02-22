@@ -258,9 +258,12 @@ void Server::eraseRequest(int index)
 {
 	if (index < _request_index)
 	{
-		delete _requests[index];
-		_requests[index] = NULL;
-		_request_index--;
+		if (_requests[index] != NULL)
+		{
+			delete _requests[index];
+			_requests[index] = NULL;
+			_request_index--;
+		}
 	}
 }
 

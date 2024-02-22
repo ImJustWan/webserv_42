@@ -11,6 +11,7 @@
 Request::Request() : 
 	_location(NULL),
 	_response(NULL),
+	_currentCGI(NULL),
 	_epfd(0),
 	_event_socket(0),
 	_socketState(READ_STATE),
@@ -21,12 +22,15 @@ Request::Request() :
 	_readBytes(0),
 	_finished(false),
 	_readLength(0),
-	_contentLength(0) {
+	_contentLength(0)
+	{
 }
 
 Request::~Request() {
 	if (_response)
 		delete _response;
+	if (_currentCGI)
+		delete _currentCGI;
 }
 
 Request::Request ( const Request& src ) : IEvent(src) {
@@ -97,9 +101,14 @@ bool	Request::checkTimeout()
 	// std::cout << "Diff is : " << time(NULL) - this->_lastEvent << std::endl;
 	if (time(NULL) - this->_lastEvent > TIMEOUT)
 	{
+
+		// std::cout << this->getResource() << std::endl;
+		// this->setResource("");
+		// this->setRequest("");
+
 		std::cout << _ORANGE "Connection closed on " << _event_socket << _END << std::endl;
-		close(this->_event_socket);
-		epoll_ctl(this->_epfd, EPOLL_CTL_DEL, _event_socket, NULL);
+		// close(this->_event_socket);
+		// epoll_ctl(this->_epfd, EPOLL_CTL_DEL, _event_socket, NULL);
 		if (_response != NULL)
 		{
 			delete _response;
@@ -180,26 +189,30 @@ void Request::setRequest() {
 
 void	Request::setMethodsRootIndex()
 {
-
 	if (this->getLocation() != NULL)
 		this->setMethods(this->getLocation()->getMethods());
-	else
+	else if (this->getCurrentServer() != NULL)
 		this->setMethods(this->getCurrentServer()->getMethods());
+	else
+		this->setMethods(0);
 
 	if (this->getLocation() != NULL && this->getLocation()->getRoot() != "")
 		this->setRoot(this->getLocation()->getRoot());
 	else if (this->getLocation() != NULL)
 		this->setRoot("");
-	else 
+	else if (this->getCurrentServer() != NULL)
 		this->setRoot(this->getCurrentServer()->getRoot());
-	
+	else
+		this->setRoot("");
+
 	if (this->getLocation() != NULL && this->getLocation()->getIndex() != "")
 		this->setIndex(this->getLocation()->getIndex());
 	else if (this->getLocation() != NULL)
 		this->setIndex("");
-	else
+	else if (this->getCurrentServer() != NULL)
 		this->setIndex(this->getCurrentServer()->getIndex());
-	
+	else
+		this->setIndex("");
 	// std::cout << _LILAC "Root is : " << this->getRoot() << _END << std::endl;
 }
 
@@ -402,8 +415,8 @@ void	Request::determinism()
 		this->setRequest();
 		this->setAttributes();
 		// std::cout << _PINK "Request : " << _request << _END << std::endl;
-		// std::cout << _PINK "Resource : " << _resource << _END << std::endl;
-		if (_finished == true || _contentLength > _current_server->getClientMaxBodySize())
+		std::cout << _REV _PINK "Resource : " << _resource << _END << std::endl;
+		if (_finished == true || (_current_server != NULL && _contentLength > _current_server->getClientMaxBodySize()))
 		{
 			_socketState = WRITE_STATE;
 			modifiedList.events = EPOLLOUT;
@@ -418,18 +431,35 @@ void	Request::determinism()
 	{
 		std::cout << _AQUAMARINE "SENDING Response on baby_socket " << this->_event_socket << _END << std::endl;
 		if ( isCGI( this->getResource()) ) {
-			CgiHandler	handleCGI(this);
-			_readBytes = 0;
+			if (this->_currentCGI == NULL){
+				CgiHandler*	handleCGI = new CgiHandler(this);
+				_currentCGI = handleCGI;
+				modifiedList.events = EPOLLOUT;
+				// _readBytes = 0;
+			}
+			else {
+				_currentCGI->execCGI();
+				if (_currentCGI->getCgiStatus() != 4)
+					modifiedList.events = EPOLLIN;
+				else
+					modifiedList.events = EPOLLOUT;
+				// _readBytes = 0;
+			}
 		}
-		if (_method == "POST" && _finished == true)
-			_readBytes = 0;
-		buildResponse();
-		_request = "";
-		_socketState = READ_STATE;
-		modifiedList.events = EPOLLIN;
+		else
+		{
+			buildResponse();
+			if (_method == "POST" && _finished == true)
+				_readBytes = 0;
+			_request = "";
+			_socketState = READ_STATE;
+			modifiedList.events = EPOLLIN;
+		}
 	}
 
-	if (_readBytes <= 0 || epoll_ctl(this->_epfd, EPOLL_CTL_MOD, _event_socket, &modifiedList) == -1)
+	
+	if (_readBytes <= 0 
+	|| epoll_ctl(this->_epfd, EPOLL_CTL_MOD, _event_socket, &modifiedList) == -1)
 	{
 		close(this->_event_socket);
 		this->_lastEvent = 0;

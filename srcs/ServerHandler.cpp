@@ -323,7 +323,8 @@ void	ServerHandler::handleServers()
 		if (readyz != 0)
 		{
 			for (int i = 0; i < readyz; i++) {
-				reinterpret_cast<IEvent *>(this->_readyList[i].data.ptr)->determinism();
+				if (this->_readyList[i].data.ptr != NULL)
+					reinterpret_cast<IEvent *>(this->_readyList[i].data.ptr)->determinism();
 			}
 		}
 		else

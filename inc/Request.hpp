@@ -33,10 +33,12 @@
 
 
 # include "Server.hpp"
+# include "CgiHandler.hpp"
 
 class	Response;
 class	Server;
 class	ServerHandler;
+class	CgiHandler;
 
 class Request : public IEvent {
 
@@ -85,6 +87,8 @@ public:
 
 	/* METHODS */
 
+	void					buildResponse();
+	void					buildResponse( const uint16_t & status_code );
 	void					determinism();
 	bool					checkTimeout();
 
@@ -95,6 +99,7 @@ protected:
 	Server*					_current_server;
 	Location*				_location;
 	Response*				_response;
+	CgiHandler*				_currentCGI;
 
 	int						_epfd;
 	int						_event_socket;
@@ -126,8 +131,6 @@ private :
 	bool					isCGI(std::string const & resource);
 	size_t					findContentLength(size_t const & found ) const;
 
-	void					buildResponse();
-	void					buildResponse( const uint16_t & status_code );
 
 	Response*				newGet();
 	Response*				newPost();

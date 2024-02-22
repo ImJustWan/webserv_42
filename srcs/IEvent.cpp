@@ -1,4 +1,5 @@
 #include "IEvent.hpp"
+#include "webserv.hpp"
 
 IEvent::IEvent() {
 	// std::cout << _ITALIC "IEvent Constructor called" _END << std::endl;
@@ -15,4 +16,3 @@ IEvent::~IEvent() {
 	// std::cout << _ITALIC "IEvent Destructor called" << std::endl;
 	return;
 }
-
