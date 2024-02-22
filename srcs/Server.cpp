@@ -30,7 +30,7 @@ Server::~Server()
 		delete i->second;
 	if (this->_master_socket != -1)
 		close(this->_master_socket);
-	// std::cout << _LILAC "Number of requests: " << _request_index << _END << std::endl;
+
 	for (int i = 0; i < MAX_REQUEST; ++i) {
 		if (_requests[i] != NULL)
 		{
@@ -299,7 +299,6 @@ void Server::serverProcess() {
 	struct epoll_event interestList;
 
 	interestList.events = EPOLLIN;
-	// std::cout << _FOREST_GREEN "NEW CLIENT CONNECTION" _END << std::endl;
 
 	if (this->_request_index == MAX_BBY_SOCKET)
 		return ;

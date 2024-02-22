@@ -54,7 +54,6 @@ void	Response::buildHeader( std::ifstream & file, unsigned int const & status_co
 	std::stringstream status_code_str;
 	status_code_str << status_code;
 
-	// Prepare HTTP response headers
 	this->_header = "HTTP/1.1 ";
 	this->_header += status_code_str.str();
 	this->_header += " ";
@@ -65,8 +64,6 @@ void	Response::buildHeader( std::ifstream & file, unsigned int const & status_co
 	this->_header += "\r\n";
 	this->_header += "Connection: Keep-Alive\r\n";
 	this->_header += "\r\n";
-
-	// this->_header += "Keep-Alive: timeout=5, max=1000" << "\r\n";
 
 }
 
@@ -106,8 +103,8 @@ std::string	Response::trimSlash()
 
 	// Remove any trailing slash
 	if (!buff.empty() && buff[buff.length() - 1] == '/') {
-        buff.erase(buff.length() - 1);
-    }
+		buff.erase(buff.length() - 1);
+	}
 
 	return buff.empty() ? "/" : buff;
 }
@@ -127,15 +124,10 @@ bool	Response::requestLineCheck( void )
 	else if (this->getCurrentRequest()->getResource().find("/..") != std::string::npos
 		|| getCurrentRequest()->getResource().find("../") != std::string::npos)
 		responseError(403);
-	// else if (!extensionCheck())
-	// 	responseError(501);
 	else
 		return ( true );
 	return ( false );
 }
-
-// Is there error_map and corresponding error
-// Header for errors with macros fixed content of error_page
 
 void	Response::errorPageBuilder(const uint16_t & status_code)
 {
@@ -164,10 +156,8 @@ void	Response::errorPageBuilder(const uint16_t & status_code)
 	this->_response = this->_header + this->_body;
 	this->_header += this->_body;
 
-	// if (send(this->getCurrentRequest()->getEventSocket(), this->_header.c_str(), this->_header.size(), 0) < 0)
 	if (send(this->getCurrentRequest()->getEventSocket(), this->_response.c_str(), this->_response.size(), 0) < 0)
 		this->getCurrentRequest()->setLastEvent(0);
-		// std::cout << _RED _BOLD "responseError: SEND HEADER" _END << std::endl;
 }
 
 
@@ -196,10 +186,8 @@ void	Response::responseError( const uint16_t & status_code )
 		while (!error_page.eof())
 		{
 			error_page.read(buffer, 4096);
-			if (send(this->getCurrentRequest()->getEventSocket(), buffer, error_page.gcount(), 0) < 0) {
+			if (send(this->getCurrentRequest()->getEventSocket(), buffer, error_page.gcount(), 0) < 0)
 				this->getCurrentRequest()->setLastEvent(0);
-				// std::cout << _RED _BOLD "Error: SEND BUFFER" _END << std::endl;
-			}
 		}
 		error_page.close();
 	}

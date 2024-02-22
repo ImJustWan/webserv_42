@@ -96,10 +96,8 @@ void	Get::sendResponse()
 	while (!file.eof())
 	{
 		file.read(buffer, 4096);
-		if (send(this->getCurrentRequest()->getEventSocket(), buffer, file.gcount(), 0) < 0) {
+		if (send(this->getCurrentRequest()->getEventSocket(), buffer, file.gcount(), 0) < 0)
 			this->getCurrentRequest()->setLastEvent(0);
-			// std::cout << _RED _BOLD "Error: SEND BUFFER" _END << std::endl;
-		}
 	}
 	file.close();
 }
@@ -116,8 +114,6 @@ bool	Get::checkResource()
 	if (this->getCurrentRequest()->getResource().at(0) == '/')
 		this->getCurrentRequest()->setResource(this->getCurrentRequest()->getResource().substr(1));
 
-	// std::cout << _EMERALD "Resource is now : " << this->getCurrentRequest()->getResource() << _END << std::endl;
-
 	if (stat(this->getCurrentRequest()->getResource().c_str(), &buffer))
 	{
 		std::cout << "stat failed on " << this->getCurrentRequest()->getResource() << std::endl;
@@ -130,7 +126,6 @@ bool	Get::checkResource()
 	{
 		if (this->getCurrentRequest()->getIndex() == "")
 		{
-			// std::cout << "No index found" << std::endl;
 			if ((this->getCurrentRequest()->getLocation() != NULL && this->getCurrentRequest()->getLocation()->getAutoindex())
 				|| (this->getCurrentRequest()->getLocation() == NULL && this->getCurrentRequest()->getCurrentServer()->getAutoindex()))
 				return (getAutoIndex(), false);

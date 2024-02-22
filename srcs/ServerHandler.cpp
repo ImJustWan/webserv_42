@@ -331,7 +331,6 @@ void	ServerHandler::handleServers()
 		
 		for (std::vector<Server *>::reverse_iterator it = this->_servers.rbegin(); it != this->_servers.rend(); it++) {
 			for (int i = 0; i < MAX_REQUEST; i++) {
-				// std::cout << "Checking for timeout on request " << i << std::endl;
 				if ((*it)->getRequest(i) != NULL && !(*it)->getRequest(i)->checkTimeout())
 					(*it)->eraseRequest(i);
 			}

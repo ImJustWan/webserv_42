@@ -185,8 +185,6 @@ void Request::setRequest() {
 
 	size_t found = _request.find("Content-Length:");
 	_contentLength = (found != std::string::npos) ? findContentLength(found + 1 + std::strlen("Content-Length:")) : _readBytes;
-
-	// std::cout << _LILAC "Content-Length: " << _contentLength << _END << std::endl;
 	
 	if (_readLength < _contentLength)
 		_readFinished = false;
@@ -221,8 +219,6 @@ void	Request::setMethodsRootIndex()
 		this->setIndex("");
 	else
 		this->setIndex(this->getCurrentServer()->getIndex());
-	
-	// std::cout << _LILAC "Root is : " << this->getRoot() << _END << std::endl;
 }
 
 void	Request::setAttributes()

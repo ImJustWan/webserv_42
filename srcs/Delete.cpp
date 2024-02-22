@@ -38,10 +38,8 @@ void	Delete::sendResponse()
 	this->_response = this->_header + this->_body;
 	this->_header += this->_body;
 
-	// if (send(this->getCurrentRequest()->getEventSocket(), this->_header.c_str(), this->_header.size(), 0) < 0)
 	if (send(this->getCurrentRequest()->getEventSocket(), this->_response.c_str(), this->_response.size(), 0) < 0)
 		this->getCurrentRequest()->setLastEvent(0);
-	// std::cout << _RED _BOLD "Error: SEND HEADER" _END << std::endl;
 }
 
 void	Delete::deleteResource()
