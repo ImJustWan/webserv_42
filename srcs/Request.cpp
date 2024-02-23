@@ -405,6 +405,8 @@ bool	Request::isCGI(std::string const & resource)
 	return false;
 }
 
+// TODO: split is CGI in two to build an error response in case of un-handled cgi script!
+
 void	Request::determinism()
 {
 	struct epoll_event	modifiedList;
@@ -416,7 +418,7 @@ void	Request::determinism()
 		std::cout << _CYAN "READING Request on baby_socket " << this->_event_socket << _END << std::endl;
 		this->setRequest();
 		this->setAttributes();
-		// std::cout << _PINK "Request : " << _request << _END << std::endl;
+		std::cout << _PINK "Request : " << _request << _END << std::endl;
 		std::cout << _REV _PINK "Resource : " << _resource << _END << std::endl;
 		if (_finished == true || (_current_server != NULL && _contentLength > _current_server->getClientMaxBodySize()))
 		{

@@ -10,19 +10,24 @@
 }
 
 h1 {
-	font-size: 24px;
+	font-size: 1.5em;
 }
 
 h2 {
-	font-size: 20px;
+	font-size: 1.2em;
 }
+
+h3 {
+	font-size: 1em;
+}
+
 
 nav {
 	font-size: 16px;
 }
 
 p {
-	font-size: 16px;
+	font-size: 0.9em;
 }
 
 .header_wrapper {
@@ -138,6 +143,33 @@ nav a {
 		text-decoration: none;
 	}
 
+.CGI {
+	background-color: rgba(0, 0, 0, 0.1);
+	padding: 5%;
+}
+
+.CGI h2 {
+	text-align: center;
+	color: black;
+	font-weight: 700;
+}
+
+.CGI h3 {
+	text-align: center;
+	color: black;
+	font-weight: 300;
+}
+
+.CGIbox {
+	margin: 2%;
+	color: black;
+	text-align: center;
+	display: flex;
+	justify-content: space-around;
+	flex-direction: row;
+	
+}
+
 .the_team {
 	display: grid;
 	margin: 8cqb 20%;
@@ -167,11 +199,11 @@ nav a {
 }
 
 .the_team_header {
-		padding-bottom: 0%;
-		grid-column: 1 / 3;
-		grid-row: 1 / 2;
-		text-align: center;
-		justify-content: center;
+	padding-bottom: 0%;
+	grid-column: 1 / 3;
+	grid-row: 1 / 2;
+	text-align: center;
+	justify-content: center;
 }
 
 .box img {
