@@ -19,6 +19,7 @@
 # include "colors.hpp"
 # include "IEvent.hpp"
 # include "CgiHandler.hpp"
+# include "Server.hpp"
 
 
 // # include "Server.hpp"
@@ -32,11 +33,11 @@
 # define TIMEOUT 4
 
 
-# include "Server.hpp"
 
 class	Response;
 class	Server;
 class	ServerHandler;
+class	CgiHandler;
 
 class Request : public IEvent {
 
@@ -89,6 +90,9 @@ public:
 	void					determinism();
 	bool					checkTimeout();
 
+	void					buildResponse();
+	void					buildResponse( const uint16_t & status_code );
+
 
 protected:
 
@@ -96,6 +100,7 @@ protected:
 	Server*					_currentServer;
 	Location*				_currentLocation;
 	Response*				_currentResponse;
+	CgiHandler*				_currentCGI;
 
 	int						_epfd;
 	int						_event_socket;
@@ -130,9 +135,6 @@ private :
 
 	bool					isCGI(std::string const & resource);
 	size_t					findContentLength(size_t const & found ) const;
-
-	void					buildResponse();
-	void					buildResponse( const uint16_t & status_code );
 
 	Response*				newGet();
 	Response*				newPost();

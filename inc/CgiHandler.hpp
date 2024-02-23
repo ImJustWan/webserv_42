@@ -24,42 +24,57 @@ public:
 	CgiHandler(Request * theRequest);
 	~CgiHandler();
 
+	uint8_t	const &	getCgiStatus(void) const;
+	void			setCgiStatus(uint8_t status);
+
+	void			execCGI(void);
+
 private:
 	CgiHandler();
 	CgiHandler(CgiHandler const & src);
 	CgiHandler & operator=(CgiHandler const & src);
 
-	void	craftEnv(void);
-	std::string retrieveServerName(std::string request);
-	std::string retrieveScriptName(std::string request);
+	void		craftEnv(void);
+	void		setFds(void);
+	void		setArgv(void);
+	void		accessChecks(std::string script, std::string interpreter);
+	void		writePost(void);
+	void		execParent(void);
+	void		execChild(void);
+	void 	sendResponse(void);
 
-	std::string		_gateway_interface;		// hardcode it! "Our_CGI/1.0"
-	std::string		_server_name;			// look in _request for IP address or Hostname "Referer: http://127.0.0.1:8080/"
-	std::string		_server_software;		// WebSlayyy/1.0
-	std::string		_server_protocol;		// HTTP/1.1
-	std::string		_server_port;			// retrieve from request::_currentServer;
-	std::string		_request_method;		// retrieve from Request::_method;
-	std::string		_path_info;				// fill with path of CGI script
-	std::string		_path_translated;		// fill with path of CGI script
-	std::string		_script_name;			// extract script name 
-	std::string		_document_root;			// to check later ? www or cgi-bin ? 
-	std::string		_query_string;			// if GET -> all after the ?
+	std::string	retrieveServerName(std::string request);
+	std::string	retrieveScriptName(std::string request);
+	void		retrievePathInfo(std::string resource);
+	void		retrieveQueryString(std::string resource);
+
+	uint8_t			_CgiStatus; // Flag status : 1->for Post part 1; 2->for post part 2; or 3-> for GET; 4-> send response
+
 	Request *		_theRequest;
-	// std::string		_remote_host;
-	// std::string		_remote_addr;
-	// std::string		_auth_type;
-	// std::string		_remote_user;
-	// std::string		_remote_ident;
+	std::string		_path_info;		// fill with path of CGI script
+	std::string		_script_name;	// extract script name 
+	std::string		_query_string;	// if GET -> all after the ?
+
+	int				_pid;
+	int				_fds[2];
+	int				_fdPost[2];
+	std::map<std::string, std::string> _envMap;
+	char			**_envp;
+	char			**_argv;
+
+	std::string		_response;
 	std::string		_content_type;			//MIME type of the query data - look in _request for "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8"
 	std::string		_content_length;		// for POST method : length of data passed to CGI through std input. 
-	// std::string		_http_from;
-	// std::string		_http_accept;
-	// std::string		_http_user_agent;
-	// std::string		_http_referer;
-	int				_pid;
-	int				_fdGet[2];
-	int				_fdPost[2];
-	std::string		_currentResponse;
-	std::map<std::string, std::string> _envMap;
+	
+	class ErrorInCGI : public std::exception {
+	public:
+		ErrorInCGI(const char * msg, int error) : _message(msg), _error(error) {}
+		int getError(void) const {return this->_error;}
+		virtual ~ErrorInCGI() throw() {};
+		virtual const char* what() const throw() {return this->_message;}
+	private:
+		const char *	_message;
+		int 			_error;
+	};
 
 };

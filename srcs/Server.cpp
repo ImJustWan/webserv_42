@@ -1,3 +1,4 @@
+	void	closeSocket(int socket);
 #include "Server.hpp"
 
 /*****************  CANONICAL FORM *****************/
@@ -30,10 +31,14 @@ Server::~Server()
 		delete i->second;
 	if (this->_master_socket != -1)
 		close(this->_master_socket);
-
 	for (int i = 0; i < MAX_REQUEST; ++i) {
 		if (_requests[i] != NULL)
 		{
+			// epoll_ctl(this->_epfd, EPOLL_CTL_DEL, _requests[i]->getEventSocket(), NULL);
+			// close (_requests[i]->getEventSocket());
+			// closeSocket(_requests[i]->getEventSocket());
+			// _requests[i]->setEventSocket(-1);
+			_requests[i]->setEventSocket(closeSocket(_requests[i]->getEventSocket()));
 			delete _requests[i];
 			_requests[i] = NULL;
 		}
@@ -248,15 +253,18 @@ void Server::setServerHandler(ServerHandler *serverHandler) { this->_currentServ
 void Server::setMasterSocket(int masterSocket) { this->_master_socket = masterSocket; }
 void Server::setEpfd(const int epfd) { this->_epfd = epfd; }
 
+
 void Server::eraseRequest(int index)
 {
-	if (index < _request_index && _requests[index] != NULL)
+	if (index < _request_index)
 	{
-		if (_requests[index]->getReadBytes() <= 0)
-			close(_requests[index]->getEventSocket());
-		delete _requests[index];
-		_requests[index] = NULL;
-		_request_index--;
+		if (_requests[index] != NULL)
+		{
+			_requests[index]->setEventSocket(closeSocket(_requests[index]->getEventSocket()));
+			delete _requests[index];
+			_requests[index] = NULL;
+			_request_index--;
+		}
 	}
 }
 
@@ -286,6 +294,16 @@ void	Server::buildSocket( void ) {
 		throw ListenError();
 }
 
+int	Server::closeSocket(int socket)
+{
+	if (socket == -1)
+		return (-1);
+	close(socket);
+	if (epoll_ctl(this->_epfd, EPOLL_CTL_DEL, socket, NULL) == -1)
+		;
+	return (-1);
+}
+
 void	Server::initRequest( Request* request )
 {
 	request->setSocketState(READ_STATE);
@@ -311,7 +329,7 @@ void Server::serverProcess() {
 
 	initRequest( current );
 	interestList.data.ptr = current;
-	if (epoll_ctl(this->_epfd, EPOLL_CTL_ADD, this->_baby_socket[_request_index], &interestList) == -1)
+	if (epoll_ctl(this->_epfd, EPOLL_CTL_ADD, current->getEventSocket(), &interestList) == -1)
 		std::cout << "MASTER epoll error" << std::endl;
 	for (int i = 0; i < MAX_REQUEST; ++i)
 	{

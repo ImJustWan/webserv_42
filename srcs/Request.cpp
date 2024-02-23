@@ -11,6 +11,7 @@
 Request::Request() : 
 	_currentLocation(NULL),
 	_currentResponse(NULL),
+	_currentCGI(NULL),
 	_epfd(0),
 	_event_socket(0),
 	_socketState(READ_STATE),
@@ -29,6 +30,8 @@ Request::Request() :
 Request::~Request() {
 	if (_currentResponse)
 		delete _currentResponse;
+	if (_currentCGI)
+		delete _currentCGI;
 }
 
 Request::Request ( const Request& src ) : IEvent(src) {
@@ -113,17 +116,7 @@ bool	Request::checkTimeout()
 {
 	// std::cout << "Diff is : " << time(NULL) - this->_lastEvent << std::endl;
 	if (time(NULL) - this->_lastEvent > TIMEOUT)
-	{
-		std::cout << _ORANGE "Connection closed on " << _event_socket << _END << std::endl;
-		close(this->_event_socket);
-		epoll_ctl(this->_epfd, EPOLL_CTL_DEL, _event_socket, NULL);
-		if (_currentResponse != NULL)
-		{
-			delete _currentResponse;
-			_currentResponse = NULL;
-		}
 		return false;
-	}
 	return true;
 }
 
@@ -403,7 +396,10 @@ void	Request::changeSocketState()
 		modifiedList.events = EPOLLOUT;
 	if (epoll_ctl(this->_epfd, EPOLL_CTL_MOD, _event_socket, &modifiedList) == -1)
 	{
-		close(this->_event_socket);
+		_event_socket = this->getCurrentServer()->closeSocket(_event_socket);
+		// this->getCurrentServer()->closeSocket(_event_socket);
+		// epoll_ctl(this->_epfd, EPOLL_CTL_DEL, _event_socket, NULL);
+		// close(this->_event_socket);
 		this->_lastEvent = 0;
 	}
 }
@@ -423,35 +419,45 @@ void	Request::determinism()
 		else
 			_socketState = READ_STATE;
 	}
-	else if (this->getCurrentServer() != NULL)
+	else
 	{
 		std::cout << _AQUAMARINE "SENDING Response on baby_socket " << this->_event_socket << _END << std::endl;
 		if ( isCGI( this->getResource()) ) {
-			CgiHandler	handleCGI(this);
-			// build&sendCGI
-			_readBytes = 0;
+			if (this->_currentCGI == NULL){
+				CgiHandler*	handleCGI = new CgiHandler(this);
+				_currentCGI = handleCGI;
+				_socketState = WRITE_STATE;
+			}
+			else {
+				_currentCGI->execCGI();
+				if (_currentCGI->getCgiStatus() != 4)
+					_socketState = READ_STATE;
+				else
+					_socketState = WRITE_STATE;
+			}
 		}
 		else
-			buildResponse();
-		if (_method == "POST" && _readFinished == true)
-			_readBytes = 0;
-		if (_responseReady == true)
 		{
-			std::cout << _EMERALD "Response is ready" << _END << std::endl;
-			if (send(this->_event_socket, _currentResponse->getResponse().c_str(), _currentResponse->getResponse().size(), 0) < 0)
-				this->_lastEvent = 0;
+			buildResponse();
+			if (_method == "POST" && _readFinished == true)
+				_readBytes = 0;
+			if (_responseReady == true)
+			{
+				std::cout << _EMERALD "Response is ready" << _END << std::endl;
+				if (send(this->_event_socket, _currentResponse->getResponse().c_str(), _currentResponse->getResponse().size(), 0) < 0)
+					this->_lastEvent = 0;
+			}
+			_request = "";
+			_socketState = READ_STATE;
 		}
-		_request = "";
-		_socketState = READ_STATE;
 	}
-	else
-		this->_lastEvent = 0;
-	
 
 	changeSocketState();
 	if (_readBytes <= 0)
 	{
-		close(this->_event_socket);
+		// close(this->_event_socket);
+		// epoll_ctl(this->_epfd, EPOLL_CTL_DEL, _event_socket, NULL);
+		_event_socket = this->getCurrentServer()->closeSocket(_event_socket);
 		this->_lastEvent = 0;
 	}
 }

@@ -1,3 +1,4 @@
+#! 
 print "Content-type: text/html", "\n\n";
 print "<HTML>", "\n";
 print "<HEAD><TITLE>About this Server</TITLE></HEAD>", "\n";

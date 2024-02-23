@@ -66,6 +66,7 @@ public:
 	/* METHODS */
 	void	buildSocket( void );
 	void	determinism();
+	int		closeSocket(int socket);
 	
 
 	/* EXCEPTIONS */
