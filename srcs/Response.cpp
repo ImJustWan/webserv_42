@@ -158,6 +158,13 @@ void	Response::errorPageBuilder(const uint16_t & status_code)
 }
 
 
+/* TO DO
+	_response = header
+	_response += read
+	set as ready
+*/
+
+
 void	Response::responseError( const uint16_t & status_code )
 {
 	this->getCurrentRequest()->setReadBytes(0);

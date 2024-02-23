@@ -83,6 +83,12 @@ void Get::getAutoIndex()
 
 }
 
+/* TO DO
+	_response = header
+	_response += read
+	set as ready
+*/
+
 void	Get::sendResponse()
 {
 	std::ifstream	file(this->getCurrentRequest()->getResource().c_str(), std::ios::binary);
