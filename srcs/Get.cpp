@@ -83,26 +83,19 @@ void Get::getAutoIndex()
 
 }
 
-/* TO DO
-	_response = header
-	_response += read
-	set as ready
-*/
-
-void	Get::sendResponse()
+void	Get::buildResponse()
 {
 	std::ifstream	file(this->getCurrentRequest()->getResource().c_str(), std::ios::binary);
 	char			buffer[4096];
 
 	buildHeader(file, 200);
-	if (send(this->getCurrentRequest()->getEventSocket(), this->_header.c_str(), this->_header.size(), 0) < 0)
-		this->getCurrentRequest()->setLastEvent(0);
+	this->_response = this->_header;
 	while (!file.eof())
 	{
 		file.read(buffer, 4096);
-		if (send(this->getCurrentRequest()->getEventSocket(), buffer, file.gcount(), 0) < 0)
-			this->getCurrentRequest()->setLastEvent(0);
+		this->_response += std::string(buffer, file.gcount());
 	}
+	this->getCurrentRequest()->setAsReady(true);
 	file.close();
 }
 
@@ -120,7 +113,7 @@ bool	Get::checkResource()
 
 	if (stat(this->getCurrentRequest()->getResource().c_str(), &buffer))
 	{
-		std::cout << "stat failed on " << this->getCurrentRequest()->getResource() << std::endl;
+		// std::cout << "stat failed on " << this->getCurrentRequest()->getResource() << std::endl;
 		return (responseError(404), false);
 	}
 	
@@ -138,7 +131,7 @@ bool	Get::checkResource()
 		}
 		else if (stat((this->getCurrentRequest()->getResource() + "/" + this->getCurrentRequest()->getIndex()).c_str(), &buffer))
 		{
-			std::cout << "second stat failed for : " << this->getCurrentRequest()->getResource() + this->getCurrentRequest()->getIndex() << std::endl;
+			// std::cout << "second stat failed for : " << this->getCurrentRequest()->getResource() + this->getCurrentRequest()->getIndex() << std::endl;
 			return (responseError(404), false);
 		}
 		else if (S_ISREG(buffer.st_mode))
@@ -158,5 +151,5 @@ void	Get::executeMethod()
 	// std::cout << _LILAC _BOLD "EXECUTE Get" _END << std::endl;
 	
 	if (checkResource() && requestLineCheck())
-		this->sendResponse();
+		this->buildResponse();
 }

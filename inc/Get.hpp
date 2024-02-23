@@ -19,9 +19,10 @@ private:
 
 	void				getAutoIndex();
 	void				sendResponse();
+	void				buildResponse();
 	bool				checkResource();
 	unsigned long int	getFileSize();
 
-	std::ifstream	_file;
+	std::ifstream		_file;
 
 };
