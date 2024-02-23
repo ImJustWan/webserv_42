@@ -6,14 +6,9 @@ volatile sig_atomic_t signal_received = false;
 
 /*
 	TO DO
-		- read/recv/send : ONE per epoll event ONLY
-
-		- factorize send() function ? 
-		
-		- check returns -1 is an error, 0 is no more data to be sent (maybe ?)
 
 		- for GET and responseError : 
-		- check EVERY read/recv/send return for 0 AND -1
+			check EVERY read/recv/send return for 0 AND -1
 
 		- implement upload_path
 			fix upload message

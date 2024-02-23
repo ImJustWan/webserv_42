@@ -4,7 +4,7 @@
 
 /*****************  CANONICAL FORM *****************/
 
-Get::Get() {
+Get::Get() : _buffer(READ_BUFFER_SIZE) {
 }
 
 Get::~Get() {
@@ -24,6 +24,44 @@ Get& Get::operator=(const Get& cpy) {
 
 /*****************  CLASS METHODS *****************/
 
+bool	Get::checkResource()
+{
+	struct stat	buffer;
+
+	this->getCurrentRequest()->setResource(this->trimSlash());
+	if (this->getCurrentRequest()->getResource().find(this->getCurrentRequest()->getRoot()) == std::string::npos)
+		this->getCurrentRequest()->setResource(this->getCurrentRequest()->getRoot() + this->getCurrentRequest()->getResource());
+
+	if (this->getCurrentRequest()->getResource().at(0) == '/')
+		this->getCurrentRequest()->setResource(this->getCurrentRequest()->getResource().substr(1));
+
+	if (stat(this->getCurrentRequest()->getResource().c_str(), &buffer))
+		return (responseError(404), false);
+
+	if (S_ISREG(buffer.st_mode))
+		return true;
+	if (S_ISDIR(buffer.st_mode))
+	{
+		if (this->getCurrentRequest()->getIndex() == "")
+		{
+			if ((this->getCurrentRequest()->getLocation() != NULL && this->getCurrentRequest()->getLocation()->getAutoindex())
+				|| (this->getCurrentRequest()->getLocation() == NULL && this->getCurrentRequest()->getCurrentServer()->getAutoindex()))
+				return (getAutoIndex(), false);
+			else
+				return (responseError(403), false);
+		}
+		else if (stat((this->getCurrentRequest()->getResource() + "/" + this->getCurrentRequest()->getIndex()).c_str(), &buffer))
+			return (responseError(404), false);
+		else if (S_ISREG(buffer.st_mode))
+		{
+			this->getCurrentRequest()->setResource(this->getCurrentRequest()->getResource() + "/" + this->getCurrentRequest()->getIndex());
+			return (true);
+		}
+		else
+			return false;
+	}
+	return false;
+}
 
 std::string	getLink(std::string const &dirEntry, std::string const &dirName, std::string const &host, int port) {
 
@@ -83,67 +121,48 @@ void Get::getAutoIndex()
 
 }
 
-void	Get::buildResponse()
-{
-	std::ifstream	file(this->getCurrentRequest()->getResource().c_str(), std::ios::binary);
-	char			buffer[4096];
 
-	buildHeader(file, 200);
-	this->_response = this->_header;
-	while (!file.eof())
-	{
-		file.read(buffer, 4096);
-		this->_response += std::string(buffer, file.gcount());
+void Get::readChunk() {
+
+	if (!_file.is_open()) {
+		std::cout <<  _RED _BOLD "Error: File not open." _END << std::endl;
+		return;
 	}
-	this->getCurrentRequest()->setAsReady(true);
-	file.close();
+
+	char buffer	[READ_BUFFER_SIZE];
+	this->_file.read(buffer, READ_BUFFER_SIZE);
+	this->_response.append(buffer, _file.gcount());
+
+	if (_file)
+	{
+		this->getCurrentRequest()->setSentFinished(false);
+		this->getCurrentRequest()->setAsReady(false);
+	} else {
+		_file.clear(); // Clear the error state
+		_file.close();
+		this->getCurrentRequest()->setSentFinished(true);
+		this->getCurrentRequest()->setAsReady(true);
+	}
+
 }
 
-
-bool	Get::checkResource()
+void	Get::handleFile()
 {
-	struct stat	buffer;
-
-	this->getCurrentRequest()->setResource(this->trimSlash());
-	if (this->getCurrentRequest()->getResource().find(this->getCurrentRequest()->getRoot()) == std::string::npos)
-		this->getCurrentRequest()->setResource(this->getCurrentRequest()->getRoot() + this->getCurrentRequest()->getResource());
-
-	if (this->getCurrentRequest()->getResource().at(0) == '/')
-		this->getCurrentRequest()->setResource(this->getCurrentRequest()->getResource().substr(1));
-
-	if (stat(this->getCurrentRequest()->getResource().c_str(), &buffer))
-	{
-		// std::cout << "stat failed on " << this->getCurrentRequest()->getResource() << std::endl;
-		return (responseError(404), false);
+	if (!_file.is_open()) {
+		// std::cout << _FOREST_GREEN "Opening file at " << this->getCurrentRequest()->getResource() << _END << std::endl;
+		_file.open(this->getCurrentRequest()->getResource().c_str(), std::ios::binary);
+		if (!_file.is_open()) {
+			// std::cerr << "Error opening file." << std::endl;
+			return;
+		}
+		buildHeader(_file, 200);
+		if (this->_response.size() == 0)
+			this->_response = this->_header;
 	}
-	
-	if (S_ISREG(buffer.st_mode))
-		return true;
-	if (S_ISDIR(buffer.st_mode))
-	{
-		if (this->getCurrentRequest()->getIndex() == "")
-		{
-			if ((this->getCurrentRequest()->getLocation() != NULL && this->getCurrentRequest()->getLocation()->getAutoindex())
-				|| (this->getCurrentRequest()->getLocation() == NULL && this->getCurrentRequest()->getCurrentServer()->getAutoindex()))
-				return (getAutoIndex(), false);
-			else
-				return (responseError(403), false);
-		}
-		else if (stat((this->getCurrentRequest()->getResource() + "/" + this->getCurrentRequest()->getIndex()).c_str(), &buffer))
-		{
-			// std::cout << "second stat failed for : " << this->getCurrentRequest()->getResource() + this->getCurrentRequest()->getIndex() << std::endl;
-			return (responseError(404), false);
-		}
-		else if (S_ISREG(buffer.st_mode))
-		{
-			this->getCurrentRequest()->setResource(this->getCurrentRequest()->getResource() + "/" + this->getCurrentRequest()->getIndex());
-			return (true);
-		}
-		else
-			return false;
-	}
-	return false;
+
+	readChunk();
 }
+
 
 
 void	Get::executeMethod()
@@ -151,5 +170,5 @@ void	Get::executeMethod()
 	// std::cout << _LILAC _BOLD "EXECUTE Get" _END << std::endl;
 	
 	if (checkResource() && requestLineCheck())
-		this->buildResponse();
+		this->handleFile();
 }
