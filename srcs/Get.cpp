@@ -67,10 +67,7 @@ std::string	getPage(const char *path, std::string const &host, int port) {
 	
 void Get::getAutoIndex()
 {
-	// std::cout << "Autoindex is ON BABYYYYY" << std::endl;
-
-
-	this->_body = getPage(_resource.c_str(), _host, _listen);
+	this->_body = getPage(this->getCurrentRequest()->getResource().c_str(), getCurrentRequest()->getHost(), getCurrentRequest()->getListen());
 	
 	std::ostringstream file_size_str;
 	file_size_str << _body.size();
@@ -80,32 +77,25 @@ void Get::getAutoIndex()
 	this->_header += "Content-Length: ";
 	this->_header += file_size_str.str();
 	this->_header += "\r\n\r\n";
-	this->_header += this->_body;
-	if (send(this->_event_socket, this->_header.c_str(), this->_header.size(), 0) < 0)
-	{
-		this->getCurrentRequest()->setLastEvent(0);
-		std::cout << "";
-	}
-}
+	this->_response = this->_header + this->_body;
 
+	this->getCurrentRequest()->setAsReady(true);
+
+}
 
 void	Get::sendResponse()
 {
-	std::ifstream	file(Response::_resource.c_str(), std::ios::binary);
+	std::ifstream	file(this->getCurrentRequest()->getResource().c_str(), std::ios::binary);
 	char			buffer[4096];
 
 	buildHeader(file, 200);
-	if (send(this->_event_socket, this->_header.c_str(), this->_header.size(), 0) < 0)
+	if (send(this->getCurrentRequest()->getEventSocket(), this->_header.c_str(), this->_header.size(), 0) < 0)
 		this->getCurrentRequest()->setLastEvent(0);
-		// std::cout << _RED _BOLD "Error: SEND HEADER" _END << std::endl;
 	while (!file.eof())
 	{
 		file.read(buffer, 4096);
-		// std::cout << "Event socket is : " << this->_event_socket << std::endl;
-		if (send(this->_event_socket, buffer, file.gcount(), 0) < 0) {
-			// std::cout << _RED _BOLD "Error: SEND BUFFER" _END << std::endl;
+		if (send(this->getCurrentRequest()->getEventSocket(), buffer, file.gcount(), 0) < 0)
 			this->getCurrentRequest()->setLastEvent(0);
-		}
 	}
 	file.close();
 }
@@ -115,17 +105,16 @@ bool	Get::checkResource()
 {
 	struct stat	buffer;
 
-	_resource = this->trimSlash();
-	if (_resource.find(_root) == std::string::npos)
-		_resource = _root + _resource;
+	this->getCurrentRequest()->setResource(this->trimSlash());
+	if (this->getCurrentRequest()->getResource().find(this->getCurrentRequest()->getRoot()) == std::string::npos)
+		this->getCurrentRequest()->setResource(this->getCurrentRequest()->getRoot() + this->getCurrentRequest()->getResource());
 
-	if (_resource.at(0) == '/')
-		_resource = _resource.substr(1);
-	// std::cout << _EMERALD "Resource is now : " << _resource << _END << std::endl;
+	if (this->getCurrentRequest()->getResource().at(0) == '/')
+		this->getCurrentRequest()->setResource(this->getCurrentRequest()->getResource().substr(1));
 
-	if (stat(_resource.c_str(), &buffer))
+	if (stat(this->getCurrentRequest()->getResource().c_str(), &buffer))
 	{
-		std::cout << "stat failed on " << _resource << std::endl;
+		std::cout << "stat failed on " << this->getCurrentRequest()->getResource() << std::endl;
 		return (responseError(404), false);
 	}
 	
@@ -133,32 +122,22 @@ bool	Get::checkResource()
 		return true;
 	if (S_ISDIR(buffer.st_mode))
 	{
-		// std::cout << "Resource is a directory" << std::endl;
-		if (this->getIndex() == "")
+		if (this->getCurrentRequest()->getIndex() == "")
 		{
-			std::cout << "No index found" << std::endl;
-			// std::cout << _PINK << _request << _END << std::endl;
-			if ((this->getLocation() != NULL && this->getLocation()->getAutoindex())
-				|| (this->getLocation() == NULL && this->getCurrentServer()->getAutoindex()))
-			{
-
+			if ((this->getCurrentRequest()->getLocation() != NULL && this->getCurrentRequest()->getLocation()->getAutoindex())
+				|| (this->getCurrentRequest()->getLocation() == NULL && this->getCurrentRequest()->getCurrentServer()->getAutoindex()))
 				return (getAutoIndex(), false);
-			}	
 			else
-			{
-
 				return (responseError(403), false);
-			}
 		}
-		else if (stat((_resource + "/" + this->getIndex()).c_str(), &buffer))
+		else if (stat((this->getCurrentRequest()->getResource() + "/" + this->getCurrentRequest()->getIndex()).c_str(), &buffer))
 		{
-			std::cout << "second stat failed for : " << _resource + this->getIndex() << std::endl;
+			std::cout << "second stat failed for : " << this->getCurrentRequest()->getResource() + this->getCurrentRequest()->getIndex() << std::endl;
 			return (responseError(404), false);
 		}
 		else if (S_ISREG(buffer.st_mode))
 		{
-			_resource = _resource + "/" + this->getIndex();
-			// std::cout << _FOREST_GREEN "Resource is now : " << _resource << _END << std::endl;
+			this->getCurrentRequest()->setResource(this->getCurrentRequest()->getResource() + "/" + this->getCurrentRequest()->getIndex());
 			return (true);
 		}
 		else
@@ -172,7 +151,6 @@ void	Get::executeMethod()
 {
 	// std::cout << _LILAC _BOLD "EXECUTE Get" _END << std::endl;
 	
-	// std::cout << "Resource is : " << _resource << std::endl;
 	if (checkResource() && requestLineCheck())
 		this->sendResponse();
 }

@@ -4,6 +4,7 @@ import cgi
 import cgitb
 cgitb.enable()
 
+# TODO: Edit page footer and header with nav
 def sum_ascii(string):
 	total = 0
 	for char in string:
@@ -37,21 +38,26 @@ def main():
 	
 	form = cgi.FieldStorage()
 
-	name1 = form.getvalue('nameOne')
-	name2 = form.getvalue('nameTwo')
+	name1 = form.getvalue("nameOne")
+	name2 = form.getvalue("nameTwo")
+
+	if name1 is None or name2 is None:
+		print("Content-Type: text/html\n")  # Print necessary header
+		print("Please provide both names.")  # Inform the user about missing input
+		return 
 	
 	compatibility = calculate_compatibility(name1, name2)
 
-	print("HTTP/1.1 200 OK\n")
-	print("Content-type: text/html\n\n")
+	print("HTTP/1.1 200 OK")
+	print("Content-type: text/html\n")
 	print("<!DOCTYPE html>")
 	print("<html lang=\"en\">")
 	print("<head>")
 	print("<meta charset=\"UTF-8\">")
 	print("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">")
 	print("<title>LOVE Test</title>")
-	print("<link href=\"./form/style.css\" rel=\"stylesheet\">")
-	print("<link rel=\"icon\" type=\"image/x-icon\" href=\"../icons/favicon.ico\">")
+	print("<link href=\"/forms/love_form/style.css\" rel=\"stylesheet\">")
+	print("<link rel=\"icon\" type=\"image/x-icon\" href=\"/forms/love_form/favicon.ico\">")
 	print("<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">")
 	print("<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>")
 	print("<link href=\"https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&display=swap\" rel=\"stylesheet\">")
@@ -116,14 +122,14 @@ def main():
 	print("<div>")
 	print("<p>Social medias:<br>")
 	print("<br>")
-	print("<a href=\"https://facebook.com\" target=\"_blank\"><img src=\"./icons/icons8-facebook.svg\" class=\"socials\" alt=\"facebook\"></a>")
-	print("<a href=\"https://instagram.com\" target=\"_blank\"><img src=\"./icons/icons8-instagram.svg\" class=\"socials\" alt=\"instagram\"></a>")
-	print("<a href=\"https://twitter.com\" target=\"_blank\"><img src=\"./icons/icons8-twitter.svg\" class=\"socials\" alt=\"twitter\"></a>")
-	print("<a href=\"https://tiktok.com\" target=\"_blank\"><img src=\"./icons/icons8-tiktok.svg\" class=\"socials\" alt=\"tiktok\"></a><br>")
-	print("<a href=\"https://reddit.com\" target=\"_blank\"><img src=\"./icons/icons8-reddit.svg\" class=\"socials\" alt=\"reddit\"></a>")
-	print("<a href=\"/form/index.html\" target=\"_blank\"><img src=\"./icons/icons8-tinder.svg\" class=\"tinder\" alt=\"tinder\"></a>")
-	print("<a href=\"https://youtube.com\" target=\"_blank\"><img src=\"./icons/icons8-youtube-logo.svg\" class=\"socials\" alt=\"youtube\"></a>")
-	print("<a href=\"https://pinterest.com\" target=\"_blank\"><img src=\"./icons/icons8-pinterest.svg\" class=\"socials\" alt=\"pinterest\"></a>")
+	print("<a href=\"https://facebook.com\" target=\"_blank\"><img src=\"/images/svg/icons8-facebook.svg\" class=\"socials\" alt=\"facebook\"></a>")
+	print("<a href=\"https://instagram.com\" target=\"_blank\"><img src=\"/images/svg/icons8-instagram.svg\" class=\"socials\" alt=\"instagram\"></a>")
+	print("<a href=\"https://twitter.com\" target=\"_blank\"><img src=\"/images/svg/icons8-twitter.svg\" class=\"socials\" alt=\"twitter\"></a>")
+	print("<a href=\"https://tiktok.com\" target=\"_blank\"><img src=\"/images/svg/icons8-tiktok.svg\" class=\"socials\" alt=\"tiktok\"></a><br>")
+	print("<a href=\"https://reddit.com\" target=\"_blank\"><img src=\"/images/svg/icons8-reddit.svg\" class=\"socials\" alt=\"reddit\"></a>")
+	print("<a href=\"/form/index.html\" target=\"_blank\"><img src=\"/images/svg/icons8-tinder.svg\" class=\"tinder\" alt=\"tinder\"></a>")
+	print("<a href=\"https://youtube.com\" target=\"_blank\"><img src=\"/images/svg/icons8-youtube-logo.svg\" class=\"socials\" alt=\"youtube\"></a>")
+	print("<a href=\"https://pinterest.com\" target=\"_blank\"><img src=\"/images/svg/icons8-pinterest.svg\" class=\"socials\" alt=\"pinterest\"></a>")
 	print("</div>")
 	print("<div><p>Privacy policy</p></div>")
 	print("<div><p>Legal notices</p></div>")

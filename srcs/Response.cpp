@@ -4,7 +4,6 @@
 /*****************  CANONICAL FORM *****************/
 
 Response::Response() {
-	_readBytes = 1;
 	_status_code[400] = "Bad Request";
 	_status_code[403] = "Forbidden";
 	_status_code[404] = "Not found";
@@ -21,7 +20,7 @@ Response::~Response() {
 
 }
 
-Response::Response(Response const & src) : Request(src) {
+Response::Response(Response const & src) {
 	*this = src;
 }
 
@@ -39,7 +38,7 @@ Response& Response::operator=(const Response& cpy) {
 /*****************  CLASS METHODS *****************/
 
 
-Location *Response::getLocation(void) const { return this->_location; }
+std::string	Response::getResponse(void) const { return this->_response; }
 Request	*Response::getCurrentRequest(void) const { return this->_currentRequest; }
 void	Response::setCurrentRequest( Request *current ) { this->_currentRequest = current; }
 
@@ -56,7 +55,6 @@ void	Response::buildHeader( std::ifstream & file, unsigned int const & status_co
 	std::stringstream status_code_str;
 	status_code_str << status_code;
 
-	// Prepare HTTP response headers
 	this->_header = "HTTP/1.1 ";
 	this->_header += status_code_str.str();
 	this->_header += " ";
@@ -68,27 +66,16 @@ void	Response::buildHeader( std::ifstream & file, unsigned int const & status_co
 	this->_header += "Connection: Keep-Alive\r\n";
 	this->_header += "\r\n";
 
-	// this->_header += "Keep-Alive: timeout=5, max=1000" << "\r\n";
-
-}
-
-void	Response::setAttributes()
-{
-	std::istringstream	iss(this->_request);
-	std::string			method;
-
-	iss >> _method >> _resource; 
-	// _resource.erase(0, 1);
 }
 
 bool	Response::extensionCheck()
 {
-	size_t extension = _resource.find_last_of('.');
+	size_t extension = getCurrentRequest()->getResource().find_last_of('.');
 	std::string ext;
 
 	if (extension != std::string::npos) {
-		ext = _resource.substr(extension);
-		if (this->getCurrentServer()->getServerHandler()->getMimeMap().find(ext) == this->getCurrentServer()->getServerHandler()->getMimeMap().end())
+		ext = getCurrentRequest()->getResource().substr(extension);
+		if (this->getCurrentRequest()->getCurrentServer()->getServerHandler()->getMimeMap().find(ext) == this->getCurrentRequest()->getCurrentServer()->getServerHandler()->getMimeMap().end())
 			return ( false );
 	}
 	else if (extension == std::string::npos)
@@ -101,8 +88,8 @@ std::string	Response::trimSlash()
 	std::string buff;
 	bool hasNonSlash = false;
 
-	for (std::string::size_type i = 0; i < _resource.length(); i++) {
-		char currentChar = _resource[i];
+	for (std::string::size_type i = 0; i < getCurrentRequest()->getResource().length(); i++) {
+		char currentChar = getCurrentRequest()->getResource()[i];
 
 		if (currentChar == '/') {
 			if (!hasNonSlash) {
@@ -115,37 +102,32 @@ std::string	Response::trimSlash()
 		}
 	}
 
-	// Remove any trailing slash
 	if (!buff.empty() && buff[buff.length() - 1] == '/') {
-        buff.erase(buff.length() - 1);
-    }
+		buff.erase(buff.length() - 1);
+	}
 
 	return buff.empty() ? "/" : buff;
 }
 
 bool	Response::requestLineCheck( void )
 {
-	std::ifstream	file(this->_resource.c_str(), std::ios::binary);
+	std::ifstream	file(this->getCurrentRequest()->getResource().c_str(), std::ios::binary);
 
-	if (_resource.size() == 0)
+	if (this->getCurrentRequest()->getResource().size() == 0)
 		responseError(404);
-	else if (access(_resource.c_str(), R_OK))
+	else if (access(this->getCurrentRequest()->getResource().c_str(), R_OK))
 		responseError(403);
 	else if (!file.is_open())
 		responseError(404);
-	else if (_request.find("HTTP/1.1") == std::string::npos)
+	else if (this->getCurrentRequest()->getRequest().find("HTTP/1.1") == std::string::npos)
 		responseError(505);
-	else if (_resource.find("/..") != std::string::npos || _resource.find("../") != std::string::npos)
+	else if (this->getCurrentRequest()->getResource().find("/..") != std::string::npos
+		|| getCurrentRequest()->getResource().find("../") != std::string::npos)
 		responseError(403);
-	// else if (!extensionCheck())
-	// 	responseError(501);
 	else
 		return ( true );
 	return ( false );
 }
-
-// Is there error_map and corresponding error
-// Header for errors with macros fixed content of error_page
 
 void	Response::errorPageBuilder(const uint16_t & status_code)
 {
@@ -171,41 +153,40 @@ void	Response::errorPageBuilder(const uint16_t & status_code)
 	this->_header += "Connection: Keep-Alive\r\n";
 	this->_header += "\r\n";
 
-	this->_header += this->_body;
-	if (send(this->_event_socket, this->_header.c_str(), this->_header.size(), 0) < 0)
-		this->getCurrentRequest()->setLastEvent(0);
-		// std::cout << _RED _BOLD "responseError: SEND HEADER" _END << std::endl;
+	this->_response = this->_header + this->_body;
+	this->getCurrentRequest()->setAsReady(true);
 }
 
 
 void	Response::responseError( const uint16_t & status_code )
 {
-	this->setReadBytes(0);
+	this->getCurrentRequest()->setReadBytes(0);
 
 	std::cout << _RED _BOLD "Response Error for : " << status_code <<  _END << std::endl;
-	std::map<uint16_t, std::string>::const_iterator it = this->_current_server->getErrors().find(status_code);
+	std::map<uint16_t, std::string>::const_iterator it = this->getCurrentRequest()->getCurrentServer()->getErrors().find(status_code);
 
-	if (it != this->_current_server->getErrors().end())
+	if (it != this->getCurrentRequest()->getCurrentServer()->getErrors().end())
 	{
 		char			buffer[4096];
-		std::string		path = this->_current_server->getRoot() + it->second;
+		std::string		path = this->getCurrentRequest()->getCurrentServer()->getRoot() + it->second;
 		std::ifstream	error_page(path.c_str(), std::ios::binary);
 		if (!error_page){
 			errorPageBuilder(status_code);
 			return;
 		}
 		buildHeader(error_page, status_code);
-		if (send(this->_event_socket, this->_header.c_str(), this->_header.size(), 0) < 0)
-		{			
+		if (send(this->getCurrentRequest()->getEventSocket(), this->_header.c_str(), this->_header.size(), 0) < 0)
+		{
 			this->getCurrentRequest()->setLastEvent(0);
+			return ;
 		}
+		this->_response = this->_header;
+
 		while (!error_page.eof())
 		{
 			error_page.read(buffer, 4096);
-			if (send(this->_event_socket, buffer, error_page.gcount(), 0) < 0) {
+			if (send(this->getCurrentRequest()->getEventSocket(), buffer, error_page.gcount(), 0) < 0)
 				this->getCurrentRequest()->setLastEvent(0);
-				// std::cout << _RED _BOLD "Error: SEND BUFFER" _END << std::endl;
-			}
 		}
 		error_page.close();
 	}

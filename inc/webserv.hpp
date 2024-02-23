@@ -20,6 +20,3 @@
 # include "ServerHandler.hpp"
 # include "Server.hpp"
 # include "Location.hpp"
-
-//  /*  Listening port  */
-// # define PORT 8081

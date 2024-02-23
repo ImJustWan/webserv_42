@@ -66,6 +66,7 @@ public:
 	/* METHODS */
 	void	buildSocket( void );
 	void	determinism();
+	int		closeSocket(int socket);
 	
 
 	/* EXCEPTIONS */
@@ -134,12 +135,12 @@ private:
 	int									_methods;
 	long long int						_clientMaxBodySize;
 	std::vector<std::string>			_serverNames;
-	std::map<std::string, Location *>	_locations;
+	std::map<std::string, Location *>	_currentLocations;
 	std::map<uint16_t, std::string>		_errors;
 
 	std::map<std::string, void(Server::*)(const std::vector<std::string>)> _configMap;
 
-	ServerHandler				*_serverHandler;
+	ServerHandler				*_currentServerHandler;
 	int							_epfd;
 	int							_port;
 	int							_master_socket;

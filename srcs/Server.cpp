@@ -1,3 +1,4 @@
+	void	closeSocket(int socket);
 #include "Server.hpp"
 
 /*****************  CANONICAL FORM *****************/
@@ -26,14 +27,14 @@ Server::Server(std::vector<std::string> &tokens, int id) : _serverID(id), _liste
 
 Server::~Server()
 {
-	for (std::map<std::string, Location *>::iterator i = this->_locations.begin(); i != this->_locations.end(); ++i)
+	for (std::map<std::string, Location *>::iterator i = this->_currentLocations.begin(); i != this->_currentLocations.end(); ++i)
 		delete i->second;
 	if (this->_master_socket != -1)
 		close(this->_master_socket);
-	// std::cout << _LILAC "Number of requests: " << _request_index << _END << std::endl;
 	for (int i = 0; i < MAX_REQUEST; ++i) {
 		if (_requests[i] != NULL)
 		{
+			_requests[i]->setEventSocket(closeSocket(_requests[i]->getEventSocket()));
 			delete _requests[i];
 			_requests[i] = NULL;
 		}
@@ -75,7 +76,7 @@ std::vector<std::string>::iterator i)
 
 void Server::earlyDeath(void)
 {
-	for (std::map<std::string, Location *>::iterator i = this->_locations.begin(); i != this->_locations.end(); ++i)
+	for (std::map<std::string, Location *>::iterator i = this->_currentLocations.begin(); i != this->_currentLocations.end(); ++i)
 		delete i->second;
 }
 
@@ -112,9 +113,9 @@ std::string const & Server::getIndex(void) const { return this->_index; }
 bool const & Server::getAutoindex(void) const { return this->_autoindex; }
 long long int const & Server::getClientMaxBodySize(void) const { return this->_clientMaxBodySize; }
 std::vector<std::string> const & Server::getServerNames(void) const { return this->_serverNames; }
-std::map<std::string, Location *> const & Server::getLocations(void) const { return this->_locations; }
+std::map<std::string, Location *> const & Server::getLocations(void) const { return this->_currentLocations; }
 std::map<uint16_t, std::string>	const & Server::getErrors(void) const { return this->_errors; }
-ServerHandler * Server::getServerHandler(void) const { return this->_serverHandler; }
+ServerHandler * Server::getServerHandler(void) const { return this->_currentServerHandler; }
 
 int const & Server::getEpfd(void) const { return this->_epfd; }
 int const & Server::getReqIndex(void) const { return this->_request_index; }
@@ -204,8 +205,8 @@ void Server::setServerNames(std::vector<std::string> serverNames)
 
 void Server::setLocations(std::vector<std::string> locations)
 {
-	if (this->_locations.find(locations[1]) != this->_locations.end()){
-		for (std::map<std::string, Location *>::iterator i = this->_locations.begin(); i != this->_locations.end(); ++i) {
+	if (this->_currentLocations.find(locations[1]) != this->_currentLocations.end()){
+		for (std::map<std::string, Location *>::iterator i = this->_currentLocations.begin(); i != this->_currentLocations.end(); ++i) {
 			delete i->second;
 		}
 		throw InvalidConfig(INVALCONF "Duplicate Location Directive");
@@ -213,14 +214,14 @@ void Server::setLocations(std::vector<std::string> locations)
 	try
 	{
 		Location    * newLocation = new Location(locations, this);
-		this->_locations[newLocation->getDirectory()] = newLocation;
+		this->_currentLocations[newLocation->getDirectory()] = newLocation;
 		if (newLocation->getMethods() == 0)
 			newLocation->setMethods(this->_methods);
 	}
 	catch(const std::exception& e)
 	{
 		std::cout << e.what() << std::endl;
-		for (std::map<std::string, Location *>::iterator i = this->_locations.begin(); i != this->_locations.end(); ++i)
+		for (std::map<std::string, Location *>::iterator i = this->_currentLocations.begin(); i != this->_currentLocations.end(); ++i)
 			delete i->second;
 		throw InvalidConfig(INVALCONF "error in location parsing");
 	}
@@ -244,23 +245,22 @@ void Server::setErrors(std::vector<std::string> errors)
 /* **************** EXEC SETTERS **************** */
 
 
-// void Server::setBabySocket(int * sockets) {
-// 	for (int i = 0; i < MAX_BBY_SOCKET; ++i)
-// 		this->_baby_socket[i] = sockets[i];
-// }
-
-void Server::setServerHandler(ServerHandler *serverHandler) { this->_serverHandler = serverHandler; }
+void Server::setServerHandler(ServerHandler *serverHandler) { this->_currentServerHandler = serverHandler; }
 void Server::setMasterSocket(int masterSocket) { this->_master_socket = masterSocket; }
-// void Server::setBabySocket(int idx, int socket) { this->_baby_socket[idx] = socket; }
 void Server::setEpfd(const int epfd) { this->_epfd = epfd; }
+
 
 void Server::eraseRequest(int index)
 {
 	if (index < _request_index)
 	{
-		delete _requests[index];
-		_requests[index] = NULL;
-		_request_index--;
+		if (_requests[index] != NULL)
+		{
+			_requests[index]->setEventSocket(closeSocket(_requests[index]->getEventSocket()));
+			delete _requests[index];
+			_requests[index] = NULL;
+			_request_index--;
+		}
 	}
 }
 
@@ -290,12 +290,22 @@ void	Server::buildSocket( void ) {
 		throw ListenError();
 }
 
+int	Server::closeSocket(int socket)
+{
+	if (socket == -1)
+		return (-1);
+	close(socket);
+	if (epoll_ctl(this->_epfd, EPOLL_CTL_DEL, socket, NULL) == -1)
+		;
+	return (-1);
+}
+
 void	Server::initRequest( Request* request )
 {
 	request->setSocketState(READ_STATE);
 	request->setEventSocket(this->_baby_socket[_request_index]);
 	request->setEpfd(this->_epfd);
-	request->setServerHandler(this->_serverHandler);
+	request->setServerHandler(this->_currentServerHandler);
 	request->setCurrentServer(NULL);
 	request->setLocation(NULL);
 	request->setLastEvent();
@@ -305,7 +315,6 @@ void Server::serverProcess() {
 	struct epoll_event interestList;
 
 	interestList.events = EPOLLIN;
-	// std::cout << _FOREST_GREEN "NEW CLIENT CONNECTION" _END << std::endl;
 
 	if (this->_request_index == MAX_BBY_SOCKET)
 		return ;
@@ -316,7 +325,7 @@ void Server::serverProcess() {
 
 	initRequest( current );
 	interestList.data.ptr = current;
-	if (epoll_ctl(this->_epfd, EPOLL_CTL_ADD, this->_baby_socket[_request_index], &interestList) == -1)
+	if (epoll_ctl(this->_epfd, EPOLL_CTL_ADD, current->getEventSocket(), &interestList) == -1)
 		std::cout << "MASTER epoll error" << std::endl;
 	for (int i = 0; i < MAX_REQUEST; ++i)
 	{
