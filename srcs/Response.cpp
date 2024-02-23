@@ -102,7 +102,6 @@ std::string	Response::trimSlash()
 		}
 	}
 
-	// Remove any trailing slash
 	if (!buff.empty() && buff[buff.length() - 1] == '/') {
 		buff.erase(buff.length() - 1);
 	}

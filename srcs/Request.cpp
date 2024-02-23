@@ -397,9 +397,6 @@ void	Request::changeSocketState()
 	if (epoll_ctl(this->_epfd, EPOLL_CTL_MOD, _event_socket, &modifiedList) == -1)
 	{
 		_event_socket = this->getCurrentServer()->closeSocket(_event_socket);
-		// this->getCurrentServer()->closeSocket(_event_socket);
-		// epoll_ctl(this->_epfd, EPOLL_CTL_DEL, _event_socket, NULL);
-		// close(this->_event_socket);
 		this->_lastEvent = 0;
 	}
 }
@@ -455,8 +452,6 @@ void	Request::determinism()
 	changeSocketState();
 	if (_readBytes <= 0)
 	{
-		// close(this->_event_socket);
-		// epoll_ctl(this->_epfd, EPOLL_CTL_DEL, _event_socket, NULL);
 		_event_socket = this->getCurrentServer()->closeSocket(_event_socket);
 		this->_lastEvent = 0;
 	}

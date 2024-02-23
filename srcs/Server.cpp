@@ -34,10 +34,6 @@ Server::~Server()
 	for (int i = 0; i < MAX_REQUEST; ++i) {
 		if (_requests[i] != NULL)
 		{
-			// epoll_ctl(this->_epfd, EPOLL_CTL_DEL, _requests[i]->getEventSocket(), NULL);
-			// close (_requests[i]->getEventSocket());
-			// closeSocket(_requests[i]->getEventSocket());
-			// _requests[i]->setEventSocket(-1);
 			_requests[i]->setEventSocket(closeSocket(_requests[i]->getEventSocket()));
 			delete _requests[i];
 			_requests[i] = NULL;

@@ -67,8 +67,6 @@ std::string	getPage(const char *path, std::string const &host, int port) {
 	
 void Get::getAutoIndex()
 {
-	// std::cout << "Autoindex is ON BABYYYYY" << std::endl;
-
 	this->_body = getPage(this->getCurrentRequest()->getResource().c_str(), getCurrentRequest()->getHost(), getCurrentRequest()->getListen());
 	
 	std::ostringstream file_size_str;

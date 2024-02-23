@@ -47,14 +47,3 @@ private :
 	std::map<unsigned int, std::string>	_status_code;
 
 };
-
-// OBSOLETE ?
-// struct header {
-// 	int				status_code; // (?)
-// 	std::string		date;
-// 	std::string		server;
-// 	std::string		content_type;
-// 	std::string		content_length;
-// 	bool			connection; // keep-alive/closed
-// 	// std::string location;
-// };
