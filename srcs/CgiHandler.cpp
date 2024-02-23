@@ -264,7 +264,7 @@ void CgiHandler::execChild(void)
 void CgiHandler::sendResponse(void)
 {
 	std::cout << _BOLD _YELLOW "CGI RESPONSE" _END << std::endl;
-	std::cout << this->_response << std::endl;
+	// std::cout << this->_response << std::endl;
 	if (send(this->_theRequest->getEventSocket(), this->_response.c_str(), this->_response.size(), 0) < 0)
 		throw ErrorInCGI("Error Sending Response", 500);
 	this->_theRequest->setReadBytes(0);

@@ -34,6 +34,8 @@ Server::~Server()
 	for (int i = 0; i < MAX_REQUEST; ++i) {
 		if (_requests[i] != NULL)
 		{
+			epoll_ctl(this->_epfd, EPOLL_CTL_DEL, _requests[i]->getEventSocket(), NULL);
+			close (_requests[i]->getEventSocket());
 			delete _requests[i];
 			_requests[i] = NULL;
 		}
@@ -260,6 +262,8 @@ void Server::eraseRequest(int index)
 	{
 		if (_requests[index] != NULL)
 		{
+			epoll_ctl(this->_epfd, EPOLL_CTL_DEL, _requests[index]->getEventSocket(), NULL);
+			close (_requests[index]->getEventSocket());
 			delete _requests[index];
 			_requests[index] = NULL;
 			_request_index--;

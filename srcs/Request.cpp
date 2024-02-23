@@ -272,6 +272,8 @@ void	Request::setAttributes()
 				break ;
 			}
 	}
+	// if (this->getCurrentServer() == NULL)
+	// HANDLE ERROR
 	setLocation();
 	setMethodsRootIndex();
 }
@@ -463,6 +465,8 @@ void	Request::determinism()
 	{
 		close(this->_event_socket);
 		this->_lastEvent = 0;
+		epoll_ctl(this->_epfd, EPOLL_CTL_DEL, _event_socket, NULL);
+
 		// std::cout << "EPOLL error" << std::endl;
 	}
 }

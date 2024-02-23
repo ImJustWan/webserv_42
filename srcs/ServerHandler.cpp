@@ -116,13 +116,13 @@ void	ServerHandler::constructorExtension(std::string const & filename)
 	}
 	if (this->_servers.size() == 0)
 		throw InvalidConfFileException();
-	for (size_t i = 0; i < this->_servers.size(); ++i)
-		std::cout << *(this->_servers[i]);
+// 	for (size_t i = 0; i < this->_servers.size(); ++i)
+// 		std::cout << *(this->_servers[i]);
 }
 
 ServerHandler::~ServerHandler()
 {
-
+	close(this->_epfd);
 	for (std::vector<Server *>::iterator i = this->_servers.begin(); i != this->_servers.end(); ++i)
 		delete *i;
 	return;
