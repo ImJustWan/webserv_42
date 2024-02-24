@@ -1,11 +1,15 @@
 # include "CgiHandler.hpp"
 
+// TODO: Secure all system calls
+
 CgiHandler::CgiHandler(Request * theRequest) : _theRequest(theRequest)
 {
-	if (_theRequest->getMethod() == "POST")
-		this->_CgiStatus = 1;
+	// if (_theRequest->getMethod() == "POST")
+	// 	this->_CgiStatus = 1;
 	this->_CgiStatus = 3;
 	try {
+		this->_argv = NULL;
+		this->_envp = NULL;
 		_fds[READ] = -1;
 		_fds[WRITE] = -1;
 		_fdPost[READ] = -1;
@@ -17,8 +21,11 @@ CgiHandler::CgiHandler(Request * theRequest) : _theRequest(theRequest)
 	}
 	catch (ErrorInCGI &e){
 		std::cout << _RED _BOLD << "Error: " << _END << e.what() << std::endl;
-		_theRequest->buildResponse(e.getError());
-	}
+		this->_theRequest->buildResponse(e.getError());
+		this->_theRequest->setReadBytes(0);
+		return;
+	} 
+	// FIXME: When script is not accessible ? 
 }
 
 CgiHandler::~CgiHandler() 
@@ -31,25 +38,28 @@ CgiHandler::~CgiHandler()
 		::close(this->_fdPost[READ]);
 	if (this->_fdPost[WRITE] != -1)
 		::close(this->_fdPost[WRITE]);
-	for (int i = 0; _envp[i]; ++i)
-		delete [] _envp[i];
-	delete [] this->_envp;
-	for (int i = 0; _argv[i]; ++i)
-		delete [] _argv[i];
-	delete [] this->_argv;
+	if (this->_envp != NULL){
+		for (int i = 0; _envp[i]; ++i)
+			delete [] _envp[i];
+		delete [] this->_envp;
+	}
+	if (this->_argv != NULL){
+		for (int i = 0; _argv[i]; ++i)
+			delete [] _argv[i];
+		delete [] this->_argv;
+	}
 }
-
 
 uint8_t	const &	CgiHandler::getCgiStatus(void) const {
 	return this->_CgiStatus;
 }
 
-void			CgiHandler::setCgiStatus(uint8_t status) {
+void	CgiHandler::setCgiStatus(uint8_t status) {
 	if (status < 1 || status > 5)
 		throw ErrorInCGI("Invalid CGI status code", 500);
 }
 
-std::string CgiHandler::retrieveServerName(std::string request)
+std::string	CgiHandler::retrieveServerName(std::string request)
 {
 	size_t		begin;
 	size_t		end;
@@ -66,7 +76,7 @@ std::string CgiHandler::retrieveServerName(std::string request)
 	return NULL;
 }
 
-std::string CgiHandler::retrieveScriptName(std::string resource)
+std::string	CgiHandler::retrieveScriptName(std::string resource)
 {
 	size_t		begin;
 	size_t		end;
@@ -83,12 +93,12 @@ std::string CgiHandler::retrieveScriptName(std::string resource)
 	return script_name;
 }
 
-void CgiHandler::retrievePathInfo(std::string resource)
+void	CgiHandler::retrievePathInfo(std::string resource)
 {
 	size_t		end;
 
 	if (_theRequest->getMethod() == "POST"){
-		this->_path_info = resource;
+		this->_path_info = "." + resource;
 	}
 	else {
 		end = resource.find('?');
@@ -96,7 +106,7 @@ void CgiHandler::retrievePathInfo(std::string resource)
 	}
 }
 
-void CgiHandler::retrieveQueryString(std::string resource)
+void	CgiHandler::retrieveQueryString(std::string resource)
 {
 	size_t		begin;
 
@@ -109,7 +119,33 @@ void CgiHandler::retrieveQueryString(std::string resource)
 	}
 }
 
-void CgiHandler::craftEnv(void)
+std::string	CgiHandler::envContentLen(void)
+{
+	size_t bodyDelim = this->_theRequest->getRequest().find("\r\n\r\n");
+	if (bodyDelim != std::string::npos)
+		this->_requestBody = this->_theRequest->getRequest().substr(bodyDelim + 4, this->_theRequest->getRequest().size() - bodyDelim);
+	std::cout << "Body: [" << this->_requestBody << "]" << std::endl;
+	std::ostringstream content_len;
+	content_len << this->_requestBody.size();
+	return content_len.str();
+}
+
+std::string	CgiHandler::envContentType(void)
+{
+	size_t begin = this->_theRequest->getRequest().find("Content-Type: ");
+	size_t end;
+	std::string contentType = "";
+	if (begin != std::string::npos){
+		begin += 14;
+		contentType = this->_theRequest->getRequest().substr(begin, std::string::npos);
+		end = contentType.find('\n');
+		contentType = contentType.substr(0, end);
+	}
+	return contentType;
+}
+
+
+void	CgiHandler::craftEnv(void)
 {
 	retrievePathInfo(_theRequest->getResource());
 	retrieveQueryString(_theRequest->getResource());
@@ -117,6 +153,10 @@ void CgiHandler::craftEnv(void)
 	port << _theRequest->getListen();
 
 	_envMap["DOCUMENT_ROOT"] = this->_path_info;
+	if ( _theRequest->getMethod() == "POST"){
+		_envMap["CONTENT_LENGTH"] = envContentLen();
+		_envMap["CONTENT_TYPE"] = envContentType();
+	}
 	_envMap["GATEWAY_INTERFACE"] = "Our_CGI/1.1";
 	_envMap["PATH_INFO"] = this->_path_info;
 	_envMap["PATH_TRANSLATED"] = this->_path_info;
@@ -150,19 +190,18 @@ void CgiHandler::setFds(void)
 			throw ErrorInCGI("Post Pipe Failed", 500);
 	}
 	else {
-		_fdPost[0] = -1;
-		_fdPost[1] = -1;
+		_fdPost[READ] = -1;
+		_fdPost[WRITE] = -1;
 	}
 	if (::pipe(_fds) == -1)
-		throw ErrorInCGI("Get Pipe Failed", 500);
+		throw ErrorInCGI("Child Pipe Failed", 500);
 }
 
-void CgiHandler::setArgv(void)
+void	CgiHandler::setArgv(void)
 {
-	char **argv = new char*[3];
-
 	accessChecks(this->_path_info, this->_theRequest->getLocation()->getCgiPath());
-
+ 	
+	char **argv = new char*[3];
 	argv[0] = new char[this->_theRequest->getLocation()->getCgiPath().size() + 1];
 	argv[1] = new char[this->_path_info.size() + 1];
 	::strcpy(argv[0], this->_theRequest->getLocation()->getCgiPath().c_str());
@@ -172,7 +211,7 @@ void CgiHandler::setArgv(void)
 	this->_argv = argv;
 }
 
-void CgiHandler::accessChecks(std::string script, std::string interpreter)
+void	CgiHandler::accessChecks(std::string script, std::string interpreter)
 {
 	if (::access(script.c_str(), F_OK) != 0)
 		throw ErrorInCGI("No access to script", 403);
@@ -185,16 +224,13 @@ void CgiHandler::accessChecks(std::string script, std::string interpreter)
 }
 
 
-void CgiHandler::execCGI(void)
+void	CgiHandler::execCGI(void)
 {
 	std::cout << _BOLD _YELLOW "CGI" _END << std::endl;
 
 	if (this->_CgiStatus == 1) {
-		// TODO: pipe Postfds
-		// TODO: send data to fd[1]
-	}
-	else if (this->_CgiStatus == 2) {
-		// TODO: Not sure I need this one tough
+		// writePost();
+		return;
 	}
 	else if (this->_CgiStatus == 3) {
 		this->_pid = fork();
@@ -205,66 +241,67 @@ void CgiHandler::execCGI(void)
 		else
 			execParent();
 		this->_CgiStatus = 4;
-
+		return;
 	}
 	else if (this->_CgiStatus == 4) {
 		sendResponse();
+		return;
 	}
+}
+
+// TODO: Check headers in response from scipt and add correct header
+
+// TODO: Find a more efficient way to read from buffer
+
+void	CgiHandler::execParent(void)
+{
+
 	waitpid(this->_pid, NULL, 0);
-
-// TODO: depending on _CgiStatus flag 
-// 1-> for Post part 1; -> writePost
-// 2-> for post part 2; -> read response after execve
-// 3-> for GET;  -> read response after execve
-// 4-> send response 
-}
-
-void CgiHandler::writePost(void)
-{
-// TODO: write in PostFd to send request to child's standard input
-// TODO: then -> do something to determinism because I did a write.
-}
-
-void CgiHandler::execParent(void)
-{
 	std::cout << _BOLD _YELLOW "PARENT" _END << std::endl;
-	waitpid(this->_pid, NULL, 0);
 	char *buffer = new char[10000000 + 1];
-	int size = ::read(_fds[0], buffer, 10000000);
+	int size = ::read(_fds[READ], buffer, 10000000);
 	if (size < 0)
 	{
 		delete [] buffer;
-		close(_fds[0]);
-		close(_fds[1]);
-		waitpid(this->_pid, NULL, 0);
+		close(_fds[READ]);
+		close(_fds[WRITE]);
 		throw ErrorInCGI("Reading buffer", 500);
 	}
 	if (size == 0)
 	{
-		close(_fds[0]);
-		close(_fds[1]);
+		close(_fds[READ]);
+		close(_fds[WRITE]);
 	}
 	else 
 	{
 		buffer[size] = '\0';
 		this->_response = buffer;
 	}
+	// TODO: Set flag _theRequest->setAsReady(true);
 	delete [] buffer;
 }
 
-void CgiHandler::execChild(void)
+void	CgiHandler::execChild(void)
 {
 	std::cout << _BOLD _YELLOW "CHILD" _END << std::endl;
-	::dup2(this->_fds[1], STDOUT_FILENO);
-	close(this->_fds[1]);
-	close(this->_fds[0]);
-	execve(this->_argv[0], this->_argv, this->_envp);
+	::close(this->_fds[READ]);
+	this->_fds[READ] = -1;
+	::dup2(this->_fds[WRITE], STDOUT_FILENO);
+	::close(this->_fds[WRITE]);
+	if (this->_theRequest->getMethod() == "POST") {
+		::dup2(this->_fdPost[READ], STDIN_FILENO);
+		if (write(this->_fdPost[WRITE], this->_requestBody.c_str(), this->_requestBody.size()) <= 0)
+			throw ErrorInCGI("write to post failled", 500);
+		::close(this->_fdPost[WRITE]);
+		this->_fdPost[WRITE] = -1;
+	}
+	::execve(this->_argv[0], this->_argv, this->_envp);
+	std::cout << "execve failed" <<  std::endl;
 }
 
-void CgiHandler::sendResponse(void)
+void	CgiHandler::sendResponse(void)
 {
 	std::cout << _BOLD _YELLOW "CGI RESPONSE" _END << std::endl;
-	// std::cout << this->_response << std::endl;
 	if (send(this->_theRequest->getEventSocket(), this->_response.c_str(), this->_response.size(), 0) < 0)
 		throw ErrorInCGI("Error Sending Response", 500);
 	this->_theRequest->setReadBytes(0);
@@ -272,11 +309,3 @@ void CgiHandler::sendResponse(void)
 	this->_theRequest->setRequest("");
 	this->_CgiStatus = 4;
 }
-
-
-// TODO: setup pipes redirection > same as minishell to retreive response from script to parent process.
-// TODO: setup pipes for post redirection : send the request body to the standard input of the child.
-// TODO: make argv to pass to execve
-// TODO: Implement fork + execve (interpretor; argv; envp)
-
-

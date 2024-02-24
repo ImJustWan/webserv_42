@@ -435,6 +435,7 @@ void	Request::determinism()
 				CgiHandler*	handleCGI = new CgiHandler(this);
 				_currentCGI = handleCGI;
 				_socketState = WRITE_STATE;
+				// _readBytes = 0;
 			}
 			else {
 				_currentCGI->execCGI();
@@ -442,17 +443,17 @@ void	Request::determinism()
 					_socketState = READ_STATE;
 				else
 					_socketState = WRITE_STATE;
+				// _readBytes = 0;
 			}
 		}
 		else
 		{
 			buildResponse();
-			_request = "";
 			if (_method == "POST" && _readFinished == true)
 				_readBytes = 0;
 			if (_sentFinished == false)
 				_socketState = WRITE_STATE;
-			else if (_responseReady == true)
+			if (_responseReady == true)
 			{
 				std::cout << _EMERALD "Response is ready" << _END << std::endl;
 				if (send(this->_event_socket, _currentResponse->getResponse().c_str(), _currentResponse->getResponse().size(), 0) < 0)
@@ -461,7 +462,10 @@ void	Request::determinism()
 					this->_lastEvent = 0; // will delete client/socket in main loop
 				}
 				_socketState = READ_STATE;
+				_request = "";
 			}
+			// std::cout << _LILAC "Sent finished : " << _sentFinished << std::endl;
+			// std::cout << "Response ready : " << _responseReady << _END << std::endl;
 		}
 	}
 

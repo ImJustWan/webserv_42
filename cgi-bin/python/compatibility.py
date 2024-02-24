@@ -4,7 +4,6 @@ import cgi
 import cgitb
 cgitb.enable()
 
-# TODO: Edit page footer and header with nav
 def sum_ascii(string):
 	total = 0
 	for char in string:
@@ -18,38 +17,30 @@ def calculate_compatibility(name1, name2):
 	name1count = sum_ascii(name1)
 	name2count = sum_ascii(name2)
 
-	common_letters_count = len(set(name1) & set(name2))
+	ascii_diff = abs(name1count - name2count)
 
-	longest = max(len(name1), len(name2))
-	
-	bigger = max(name1count, name2count)
-	smaller = min(name1count, name2count)
-
-	normalized_score = (common_letters_count/smaller)/(longest/bigger)
+	compatibility_score = 100 - (ascii_diff % 100)
 	
 	if {'marie', 'tiffany'} == {name1, name2}:
-		normalized_score = 3.0
+		compatibility_score = 1000
 	
-	compatibility_percentage = round(normalized_score * 100, 2)
-	
-	return compatibility_percentage
+	return compatibility_score
 
 def main():
-	
-	form = cgi.FieldStorage()
-
-	name1 = form.getvalue("nameOne")
-	name2 = form.getvalue("nameTwo")
-
-	if name1 is None or name2 is None:
-		print("Content-Type: text/html\n")  # Print necessary header
-		print("Please provide both names.")  # Inform the user about missing input
-		return 
-	
-	compatibility = calculate_compatibility(name1, name2)
 
 	print("HTTP/1.1 200 OK")
 	print("Content-type: text/html\n")
+
+	form = cgi.FieldStorage()
+	name1 = form.getvalue("nameOne", "")
+	name2 = form.getvalue("nameTwo", "")
+
+	if name1 == "" or name2 == "":
+		print("Please provide both names.")
+		return 
+
+	compatibility = calculate_compatibility(name1, name2)
+
 	print("<!DOCTYPE html>")
 	print("<html lang=\"en\">")
 	print("<head>")
@@ -61,17 +52,17 @@ def main():
 	print("<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">")
 	print("<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>")
 	print("<link href=\"https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&display=swap\" rel=\"stylesheet\">")
-
 	print("</head>")
 	print("<div class=\"header_wrapper\">")
 	print("<header>")
-	print("<h1><strong>Webserv</strong></h1>")
+	print("<h1><strong><a href=\"../../index.html\">Webserv</a></strong></h1>")
 	print("</header>")
 	print("<nav>")
 	print("<ul>")
-	print("<a href=\"../index.html\">Home</a>")
-	print("<a href=\"./form/index.html\">Form</a>")
-	print("<a href=\"/../upload/index.html\">Upload</a>")
+	print ("<a href=\"../../index.html\">Home</a>")
+	print ("<a href=\"/forms/love_form/\">Love test</a>")
+	print ("<a href=\"../upload_form/index.html\">Upload form</a>")
+	print ("<a href=\"../kill_form/index.html\">Delete form</a>")
 	print("</ul>")
 	print("</nav>")
 	print("</div>")
@@ -86,16 +77,23 @@ def main():
 	if compatibility <= 33:
 		print("<p>Oh oh! (╯°□°)╯︵ ┻━┻<br>")
 		print("Looks like your love is doomed...<br><br>")
-		print(f"Compatibility between {name1} and {name2}: {compatibility}%</p>")
+		print(f"Compatibility between <strong style=\"color: #ffffff\">{name1}</strong> and <strong style=\"color: #ffffff\">{name2}</strong>: {compatibility}%</p>")
 	elif 33 < compatibility < 66:
 		print("<p>¯\_(ツ)_/¯ okayyyy ¯\_(ツ)_/¯<br>")
 		print("This could work if you try <br><br>")
-		print(f"Compatibility between {name1} and {name2}: {compatibility}%</p>")
+		print(f"Compatibility between <strong style=\"color: #ffffff\">{name1}</strong> and <strong style=\"color: #ffffff\">{name2}</strong>: {compatibility}%</p>")
 	else:
 		print("<p> <3 Love is in the air <3 <br>")
-		print("You can already book the caterer!<br><br>")
-		print(f"Compatibility between {name1} and {name2}: {compatibility}%</p>")
+		print("You can already book the wedding venue!<br><br>")
+		print(f"Compatibility between <strong style=\"color: #ffffff\">{name1}</strong> and <strong style=\"color: #ffffff\">{name2}</strong>: {compatibility}%</p>")
 
+	print("<section class=\"cta\">")
+	print("<br>")
+	print("<a href=\"/forms/love_form/\">")
+	print("[Back to Love Test]")
+	print("</a>")
+	print("<br>")
+	print("</section>")
 	print("</section>")
 	print("</section>")
 	print("<p>The Webserv Corporation© hereby disclaims any liability or accountability pertaining to the outcomes, be they favorable or adverse, of relationships in any form.</p>")
@@ -107,7 +105,6 @@ def main():
 	print("+33 01 23 45 67 89<br>")
 	print("tgibier@student.42.fr<br>")
 	print("mrony@student.42.fr<br>")
-	print("mmeguedm@student.42.fr<br>")
 	print("92 boulevard Bessiere<br>")
 	print("75017 Paris<br>")
 	print("France</p>")

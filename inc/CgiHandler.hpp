@@ -29,6 +29,8 @@ public:
 
 	void			execCGI(void);
 
+// TODO: Clean Up this doc
+
 private:
 	CgiHandler();
 	CgiHandler(CgiHandler const & src);
@@ -41,7 +43,9 @@ private:
 	void		writePost(void);
 	void		execParent(void);
 	void		execChild(void);
-	void 	sendResponse(void);
+	void		sendResponse(void);
+	std::string	envContentLen(void);
+	std::string	envContentType(void);
 
 	std::string	retrieveServerName(std::string request);
 	std::string	retrieveScriptName(std::string request);
@@ -54,6 +58,7 @@ private:
 	std::string		_path_info;		// fill with path of CGI script
 	std::string		_script_name;	// extract script name 
 	std::string		_query_string;	// if GET -> all after the ?
+	std::string		_requestBody;
 
 	int				_pid;
 	int				_fds[2];
