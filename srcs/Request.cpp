@@ -84,6 +84,7 @@ bool		Request::getSentFinished(void) const { return (this->_sentFinished); }
 std::string	const & Request::getRequest(void) const { return (this->_request); }
 std::string	const & Request::getMethod(void) const { return (this->_method); }
 std::string const & Request::getResource(void) const { return ( this->_resource ); }
+std::string	const & Request::getHTTP(void) const { return (this->_http); }
 Server* Request::getCurrentServer(void) const { return ( this->_currentServer ); }
 Location* Request::getLocation() const { return ( this->_currentLocation ); }
 Response* Request::getResponse() const { return ( this->_currentResponse ); }
@@ -136,9 +137,7 @@ size_t Request::findContentLength( size_t const & found ) const
 
 void	Request::setLocation()
 {
-	if (this->_currentServer == NULL)
-		return ;
-	if (this->_currentServer->getLocations().empty())
+	if (this->_currentServer == NULL || this->_currentServer->getLocations().empty())
 		return ;
 	std::map<std::string, Location *>	locations = this->_currentServer->getLocations();
 	
@@ -225,12 +224,13 @@ void	Request::setAttributes()
 {
 	std::istringstream	iss(Request::_request);
 
-	iss >> _method >> _resource;
+	iss >> _method >> _resource >> _http;
 
 	std::string line;
 
 	_listen = 0;
 
+	std::cout << _PINK "Request is : " << _request << _END << std::endl;
 	// retrieve host and port
 	while (std::getline(iss, line)) {
 		if (line.find("Host:") != std::string::npos) {
@@ -249,6 +249,7 @@ void	Request::setAttributes()
 	}
 
 	// std::cout << _GOLD "Host is : " << _host << " on port " << _listen << _END << std::endl;
+	std::cout << _GOLD "http is : " << _http << _END << std::endl;
 
 	// find matching server
 	for (std::vector<Server *>::const_iterator i = this->getServerHandler()->getServers().begin(); i != this->_currentServerHandler->getServers().end(); ++i)
@@ -322,7 +323,7 @@ void	Request::buildResponse()
 		_currentResponse = NULL;
 	}
 
-	if (_contentLength > _currentServer->getClientMaxBodySize())
+	if (getCurrentServer() &&  _contentLength > getCurrentServer()->getClientMaxBodySize())
 	{
 		buildResponse(413);
 		return ;

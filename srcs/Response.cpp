@@ -119,10 +119,8 @@ bool	Response::requestLineCheck( void )
 		responseError(403);
 	else if (!file.is_open())
 		responseError(404);
-	// else if (this->getCurrentRequest()->getRequest().find("HTTP/1.1") == std::string::npos)
-	// {
-	// 	responseError(505);
-	// }
+	else if (this->getCurrentRequest()->getHTTP() != "HTTP/1.1")
+		responseError(505);
 	else if (this->getCurrentRequest()->getResource().find("/..") != std::string::npos
 		|| getCurrentRequest()->getResource().find("../") != std::string::npos)
 		responseError(403);

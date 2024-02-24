@@ -30,7 +30,7 @@
 // # define POST	( 1 << 1 )
 // # define DELETE	( 1 << 2 )
 # define N_METHODS 3
-# define TIMEOUT 4
+# define TIMEOUT 10
 
 
 
@@ -64,6 +64,7 @@ public:
 	std::string	const &		getRoot() const;
 	std::string	const &		getResource() const;
 	std::string	const &		getMethod() const;
+	std::string	const &		getHTTP() const;
 	bool					getReady() const;
 	bool					getReadFinished() const;
 	bool					getSentFinished() const;
@@ -116,6 +117,7 @@ protected:
 	std::string				_host;
 	std::string				_request;
 	std::string				_method;
+	std::string				_http;
 	std::string				_resource;
 	std::string				_cgiExt;
 
