@@ -59,10 +59,10 @@ def main():
 	print("</header>")
 	print("<nav>")
 	print("<ul>")
-	print ("<a href=\"../../index.html\">Home</a>")
+	print ("<a href=\"/index.html\">Home</a>")
 	print ("<a href=\"/forms/love_form/\">Love test</a>")
-	print ("<a href=\"../upload_form/index.html\">Upload form</a>")
-	print ("<a href=\"../kill_form/index.html\">Delete form</a>")
+	print ("<a href=\"/forms/upload_form/index.html\">Upload form</a>")
+	print ("<a href=\"/forms/kill_form/index.html\">Delete form</a>")
 	print("</ul>")
 	print("</nav>")
 	print("</div>")
@@ -77,6 +77,10 @@ def main():
 	if compatibility <= 33:
 		print("<p>Oh oh! (╯°□°)╯︵ ┻━┻<br>")
 		print("Looks like your love is doomed...<br><br>")
+		print(f"Compatibility between <strong style=\"color: #ffffff\">{name1}</strong> and <strong style=\"color: #ffffff\">{name2}</strong>: {compatibility}%</p>")
+	elif compatibility == 1000:
+		print("<p>This has never been seen before!<br>")
+		print("This bound holds the universe together <3<br><br>")
 		print(f"Compatibility between <strong style=\"color: #ffffff\">{name1}</strong> and <strong style=\"color: #ffffff\">{name2}</strong>: {compatibility}%</p>")
 	elif 33 < compatibility < 66:
 		print("<p>¯\_(ツ)_/¯ okayyyy ¯\_(ツ)_/¯<br>")
