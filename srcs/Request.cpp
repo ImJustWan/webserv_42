@@ -172,7 +172,7 @@ void Request::setRequest() {
 	
 	if (_readBytes == -1) // if 0, handled in determinism
 	{
-		this->_lastEvent = 0;
+		this->_lastEvent = 0; // will delete client/socket in main loop
 		return ;
 	}
 
@@ -407,7 +407,7 @@ void	Request::changeSocketState()
 	if (epoll_ctl(this->_epfd, EPOLL_CTL_MOD, _event_socket, &modifiedList) == -1)
 	{
 		_event_socket = this->getCurrentServer()->closeSocket(_event_socket);
-		this->_lastEvent = 0;
+		this->_lastEvent = 0; // will delete client/socket in main loop
 	}
 
 }
@@ -456,7 +456,7 @@ void	Request::determinism()
 			if (_responseReady == true)
 			{
 				std::cout << _EMERALD "Response is ready" << _END << std::endl;
-				if (send(this->_event_socket, _currentResponse->getResponse().c_str(), _currentResponse->getResponse().size(), 0) < 0)
+				if (send(this->_event_socket, _currentResponse->getResponse().c_str(), _currentResponse->getResponse().size(), 0) == -1)
 				{
 					std::cout << _RED "Error sending response" << _END << std::endl;
 					this->_lastEvent = 0; // will delete client/socket in main loop
@@ -473,6 +473,6 @@ void	Request::determinism()
 	if (_readBytes <= 0)
 	{
 		_event_socket = this->getCurrentServer()->closeSocket(_event_socket);
-		this->_lastEvent = 0;
+		this->_lastEvent = 0; // will delete client/socket in main loop
 	}
 }
