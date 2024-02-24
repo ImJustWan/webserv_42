@@ -110,6 +110,7 @@ uint16_t const & Server::getListen(void) const { return this->_listen; }
 int const & Server::getMethods(void) const { return this->_methods; }
 std::string const & Server::getRoot(void) const { return this->_root; }
 std::string const & Server::getIndex(void) const { return this->_index; }
+std::string const & Server::getUploadPath(void) const { return this->_uploadPath; }
 bool const & Server::getAutoindex(void) const { return this->_autoindex; }
 long long int const & Server::getClientMaxBodySize(void) const { return this->_clientMaxBodySize; }
 std::vector<std::string> const & Server::getServerNames(void) const { return this->_serverNames; }
@@ -248,6 +249,7 @@ void Server::setErrors(std::vector<std::string> errors)
 void Server::setServerHandler(ServerHandler *serverHandler) { this->_currentServerHandler = serverHandler; }
 void Server::setMasterSocket(int masterSocket) { this->_master_socket = masterSocket; }
 void Server::setEpfd(const int epfd) { this->_epfd = epfd; }
+void Server::setUploadPath(std::string path) { this->_uploadPath = path; }
 
 
 void Server::eraseRequest(int index)

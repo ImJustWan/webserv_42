@@ -20,11 +20,12 @@ private:
 	Post& operator=(const Post& cpy);
 
 	std::string	_filename;
+	std::string	_uploadedPath;
 	std::string	_boundary;
 	std::string	_data;
 
 	void		startUpload();
-	void		uploadFile();
+	bool		uploadFile();
 	void		buildHeader();
 	void		sendResponse();
 	void		extractBoundary();

@@ -57,7 +57,7 @@ void Location::checkMinimumConf(void)
 		this->_directory = '/' + this->_directory;
 	}
 	
-	std::string	Uppath = this->_root + this->_UploadPath;
+	std::string	Uppath = this->_root + this->_uploadPath;
 	std::ifstream testUp(Uppath.c_str());
 	if (!testUp)
 		throw InvalidConfig(INVALLOC "Location Upload Directive");
@@ -73,7 +73,7 @@ std::string const & Location::getIndex(void) const { return this->_index; }
 std::string const & Location::getFileExt(void) const { return this->_fileExt; }
 std::string const & Location::getCgiPath(void) const { return this->_cgiPath; }
 bool const & Location::getAutoindex(void) const { return this->_autoindex; }
-std::string const & Location::getUploadPath(void) const { return this->_UploadPath; }
+std::string const & Location::getUploadPath(void) const { return this->_uploadPath; }
 
 /* ****************  SETTERS **************** */
 
@@ -150,5 +150,6 @@ void Location::setUploadPath(std::vector<std::string> UploadPath)
 		throw InvalidConfig(INVALLOC "Upload Path Directive");
 	std::string	data;
 	data = dataExtractor<std::string>(UploadPath[1]);
-	this->_UploadPath = data;
+	this->_uploadPath = data;
+	this->_currentServer->setUploadPath(this->_uploadPath);
 }
