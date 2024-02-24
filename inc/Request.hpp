@@ -64,6 +64,9 @@ public:
 	std::string	const &		getRoot() const;
 	std::string	const &		getResource() const;
 	std::string	const &		getMethod() const;
+	bool					getReady() const;
+	bool					getReadFinished() const;
+	bool					getSentFinished() const;
 
 	/* SETTERS */
 	void					setServerHandler( ServerHandler *serverHandler );
@@ -84,6 +87,8 @@ public:
 	void					setLastEvent( void );
 	void					setLastEvent(long long int time);
 	void					setAsReady(bool state);
+	void					setReadFinished(bool state);
+	void					setSentFinished(bool state);
 
 	/* METHODS */
 

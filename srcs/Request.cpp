@@ -22,7 +22,7 @@ Request::Request() :
 	_readBytes(0),
 	_readFinished(false),
 	_sentFinished(false),
-	_responseReady(false),
+	_responseReady(true),
 	_readLength(0),
 	_contentLength(0) {
 }
@@ -78,6 +78,9 @@ int const &	Request::getReadBytes(void) const { return (this->_readBytes); }
 int const &	Request::getEventSocket(void) const { return (this->_event_socket); }
 int const &	Request::getMethods(void) const { return (this->_methods); }
 int const &	Request::getListen(void) const { return (this->_listen); }
+bool		Request::getReady(void) const { return (this->_responseReady); }
+bool		Request::getReadFinished(void) const { return (this->_readFinished); }
+bool		Request::getSentFinished(void) const { return (this->_sentFinished); }
 std::string	const & Request::getRequest(void) const { return (this->_request); }
 std::string	const & Request::getMethod(void) const { return (this->_method); }
 std::string const & Request::getResource(void) const { return ( this->_resource ); }
@@ -110,6 +113,8 @@ void	Request::setRequest( std::string request ) { this->_request = request; }
 void	Request::setLastEvent( void ) { this->_lastEvent = time(NULL); }
 void 	Request::setLastEvent(long long int time) { this->_lastEvent = time; }
 void	Request::setAsReady(bool state) { this->_responseReady = state; }
+void	Request::setReadFinished(bool state) { this->_readFinished = state; }
+void	Request::setSentFinished(bool state) { this->_sentFinished = state; }
 
 
 bool	Request::checkTimeout()
@@ -306,6 +311,11 @@ void	Request::buildResponse( const uint16_t & status_code )
 
 void	Request::buildResponse()
 {
+	if (_currentResponse && _responseReady == false)
+	{
+		_currentResponse->executeMethod();	
+		return ;
+	}
 	if (_currentResponse)
 	{
 		delete _currentResponse;
@@ -399,6 +409,7 @@ void	Request::changeSocketState()
 		_event_socket = this->getCurrentServer()->closeSocket(_event_socket);
 		this->_lastEvent = 0;
 	}
+
 }
 
 
@@ -406,24 +417,25 @@ void	Request::determinism()
 {
 	this->setLastEvent();
 	if (_socketState == READ_STATE) {
-		std::cout << _CYAN "READING Request on baby_socket " << this->_event_socket << _END << std::endl;
+		std::cout << _CYAN "EPOLLIN on baby_socket " << this->_event_socket << _END << std::endl;
 		this->setRequest();
 		this->setAttributes();
 		// std::cout << _PINK "Request : " << _request << _END << std::endl;
 		// std::cout << _PINK "Resource : " << _resource << _END << std::endl;
-		if (_readFinished == true || _contentLength > _currentServer->getClientMaxBodySize())
+		if (_readFinished == true || (getCurrentServer() && _contentLength > getCurrentServer()->getClientMaxBodySize()))
 			_socketState = WRITE_STATE;
 		else
 			_socketState = READ_STATE;
 	}
 	else
 	{
-		std::cout << _AQUAMARINE "SENDING Response on baby_socket " << this->_event_socket << _END << std::endl;
+		std::cout << _AQUAMARINE "EPOLLOUT on baby_socket " << this->_event_socket << _END << std::endl;
 		if ( isCGI( this->getResource()) ) {
 			if (this->_currentCGI == NULL){
 				CgiHandler*	handleCGI = new CgiHandler(this);
 				_currentCGI = handleCGI;
 				_socketState = WRITE_STATE;
+				// _readBytes = 0;
 			}
 			else {
 				_currentCGI->execCGI();
@@ -431,6 +443,7 @@ void	Request::determinism()
 					_socketState = READ_STATE;
 				else
 					_socketState = WRITE_STATE;
+				// _readBytes = 0;
 			}
 		}
 		else
@@ -438,14 +451,21 @@ void	Request::determinism()
 			buildResponse();
 			if (_method == "POST" && _readFinished == true)
 				_readBytes = 0;
+			if (_sentFinished == false)
+				_socketState = WRITE_STATE;
 			if (_responseReady == true)
 			{
 				std::cout << _EMERALD "Response is ready" << _END << std::endl;
 				if (send(this->_event_socket, _currentResponse->getResponse().c_str(), _currentResponse->getResponse().size(), 0) < 0)
-					this->_lastEvent = 0;
+				{
+					std::cout << _RED "Error sending response" << _END << std::endl;
+					this->_lastEvent = 0; // will delete client/socket in main loop
+				}
+				_socketState = READ_STATE;
+				_request = "";
 			}
-			_request = "";
-			_socketState = READ_STATE;
+			// std::cout << _LILAC "Sent finished : " << _sentFinished << std::endl;
+			// std::cout << "Response ready : " << _responseReady << _END << std::endl;
 		}
 	}
 

@@ -119,8 +119,10 @@ bool	Response::requestLineCheck( void )
 		responseError(403);
 	else if (!file.is_open())
 		responseError(404);
-	else if (this->getCurrentRequest()->getRequest().find("HTTP/1.1") == std::string::npos)
-		responseError(505);
+	// else if (this->getCurrentRequest()->getRequest().find("HTTP/1.1") == std::string::npos)
+	// {
+	// 	responseError(505);
+	// }
 	else if (this->getCurrentRequest()->getResource().find("/..") != std::string::npos
 		|| getCurrentRequest()->getResource().find("../") != std::string::npos)
 		responseError(403);
@@ -128,6 +130,7 @@ bool	Response::requestLineCheck( void )
 		return ( true );
 	return ( false );
 }
+
 
 void	Response::errorPageBuilder(const uint16_t & status_code)
 {
@@ -157,7 +160,6 @@ void	Response::errorPageBuilder(const uint16_t & status_code)
 	this->getCurrentRequest()->setAsReady(true);
 }
 
-
 void	Response::responseError( const uint16_t & status_code )
 {
 	this->getCurrentRequest()->setReadBytes(0);
@@ -174,20 +176,15 @@ void	Response::responseError( const uint16_t & status_code )
 			errorPageBuilder(status_code);
 			return;
 		}
-		buildHeader(error_page, status_code);
-		if (send(this->getCurrentRequest()->getEventSocket(), this->_header.c_str(), this->_header.size(), 0) < 0)
-		{
-			this->getCurrentRequest()->setLastEvent(0);
-			return ;
-		}
-		this->_response = this->_header;
 
+		buildHeader(error_page, status_code);
+		this->_response = this->_header;
 		while (!error_page.eof())
 		{
 			error_page.read(buffer, 4096);
-			if (send(this->getCurrentRequest()->getEventSocket(), buffer, error_page.gcount(), 0) < 0)
-				this->getCurrentRequest()->setLastEvent(0);
+			this->_response += std::string(buffer, error_page.gcount());
 		}
+		this->getCurrentRequest()->setAsReady(true);
 		error_page.close();
 	}
 	else

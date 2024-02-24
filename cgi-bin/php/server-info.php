@@ -1,6 +1,7 @@
 #!/usr/bin/php-cgi
 <?php
-echo "Content-type: text/html\n\n";
+// echo "HTTP/1.1 200 OK";
+// echo "Content-type: text/html\n\n";
 
 echo "<!DOCTYPE html>";
 echo "<html>";
