@@ -31,6 +31,7 @@ public:
 	int const & 								getMethods(void) const;
 	std::string const & 						getRoot(void) const;
 	std::string const & 						getIndex(void) const;
+	std::string const & 						getUploadPath(void) const;
 	bool const & 								getAutoindex(void) const;
 	long long int const & 						getClientMaxBodySize(void) const;
 	std::vector<std::string> const & 			getServerNames(void) const;
@@ -55,6 +56,7 @@ public:
 	void	setServerNames(std::vector<std::string>);
 	void	setLocations(std::vector<std::string>);
 	void	setErrors(std::vector<std::string>);
+	void	setUploadPath(std::string path);
 
 	void	setEpfd(const int epfd);
 	void	setMasterSocket(int masterSocket);
@@ -153,6 +155,7 @@ private:
 	std::string					message;
 	long long int				_timeout;
 	Request*					_requests[MAX_REQUEST];
+	std::string					_uploadPath;
 
 };
 

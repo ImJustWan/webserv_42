@@ -456,6 +456,7 @@ void	Request::determinism()
 			if (_responseReady == true)
 			{
 				std::cout << _EMERALD "Response is ready" << _END << std::endl;
+				// std::cout << _PINK << _currentResponse->getResponse() << _END << std::endl;
 				if (send(this->_event_socket, _currentResponse->getResponse().c_str(), _currentResponse->getResponse().size(), 0) < 0)
 				{
 					std::cout << _RED "Error sending response" << _END << std::endl;

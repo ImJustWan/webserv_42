@@ -11,9 +11,6 @@ volatile sig_atomic_t signal_received = false;
 			check EVERY read/recv/send return for 0 AND -1
 		- check again all read/recv/write/send
 
-		- implement upload_path
-			fix upload response ("Thanks for your participation, here is your file: " + GET file)
-
 		- CGI : can't do child (write) AND parent (read) at the same time
 			-> need a new epoll event cd new implementation
 

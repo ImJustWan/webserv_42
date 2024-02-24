@@ -1,4 +1,5 @@
 # include "Post.hpp"
+# include "uploaded.hpp"
 
 /*****************  CANONICAL FORM *****************/
 
@@ -25,20 +26,20 @@ Post& Post::operator=(const Post& cpy) {
 void	Post::buildHeader()
 {
 	this->_header = "HTTP/1.1 ";
-	this->_header += "202 Accepted";
-	this->_header += "\r\n";
-	this->_header += "Content-Type: text/plain\r\n";
-	this->_header += "\r\n";
+	this->_header += "202 Accepted\r\n\r\n";
 }
 
 void	Post::sendResponse()
 {
 	this->buildHeader();
-	this->_body = "The request has been completed, file is uploaded. Thanks :)\n";
-	this->_response = this->_header + this->_body;
-	this->_header += this->_body;
-	
+	this->_response = this->_header;
+	this->_response += HTMLBODY1;
+	this->_response += HTMLBODY2;
+	this->_response += HTMLBODY3;
+	this->_response += this->getCurrentRequest()->getCurrentServer()->getUploadPath() + "/" + _filename;
+	this->_response += HTMLBODY4;
 	this->getCurrentRequest()->setAsReady(true);
+	std::cout << _GOLD << "Uploaded file at " << this->_uploadedPath << _END << std::endl;
 
 }
 
@@ -72,16 +73,13 @@ void Post::uploadFile() {
 	size_t filenameEnd = this->getCurrentRequest()->getRequest().find("\"", filenameStart);
 	_filename = this->getCurrentRequest()->getRequest().substr(filenameStart, filenameEnd - filenameStart);
 
-	/* UPLOAD PATH MUST BE upload_path if it exists */
-
 	if (tmpStart != std::string::npos && dataEnd != std::string::npos) {
 		std::string imageData = this->getCurrentRequest()->getRequest().substr(dataStart);
-		std::string path = this->getCurrentRequest()->getCurrentServer()->getRoot() + "/" + _filename;
+		this->_uploadedPath = this->getCurrentRequest()->getCurrentServer()->getUploadPath() + "/" + _filename;
+		std::string path = this->getCurrentRequest()->getCurrentServer()->getRoot() + _uploadedPath;
 		std::ofstream newFile(path.c_str());
-		// std::cout << _PINK "Request " << this->getCurrentRequest()->getRequest() << _END <<  std::endl;
 		newFile.write(imageData.c_str(), imageData.size());
 		newFile.close();
-		std::cerr << "File created at " << path << std::endl;
 	}
 	else {
 		std::cerr << "Error: Could not find file's content" << std::endl;

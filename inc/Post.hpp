@@ -20,6 +20,7 @@ private:
 	Post& operator=(const Post& cpy);
 
 	std::string	_filename;
+	std::string	_uploadedPath;
 	std::string	_boundary;
 	std::string	_data;
 

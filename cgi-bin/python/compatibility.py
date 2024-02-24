@@ -105,7 +105,7 @@ def main():
 	print("+33 01 23 45 67 89<br>")
 	print("tgibier@student.42.fr<br>")
 	print("mrony@student.42.fr<br>")
-	print("92 boulevard Bessiere<br>")
+	print("92 boulevard Bessieres<br>")
 	print("75017 Paris<br>")
 	print("France</p>")
 	print("</div>")

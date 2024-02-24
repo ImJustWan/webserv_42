@@ -72,7 +72,7 @@ private:
 
 	std::string		_directory;
 	std::string		_root;
-	std::string		_UploadPath;
+	std::string		_uploadPath;
 	std::string		_index;
 	bool			_autoindex;
 	int				_methods;
