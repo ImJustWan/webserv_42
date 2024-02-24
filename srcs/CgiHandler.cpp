@@ -2,6 +2,9 @@
 
 // TODO: Secure all system calls
 
+// TODO:- CGI : can't do child (write) AND parent (read) at the same time
+//			-> need a new epoll event cd new implementation
+
 CgiHandler::CgiHandler(Request * theRequest) : _theRequest(theRequest)
 {
 	// if (_theRequest->getMethod() == "POST")
