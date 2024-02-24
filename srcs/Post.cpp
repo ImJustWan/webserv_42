@@ -54,13 +54,13 @@ void Post::extractBoundary() {
 	_boundary = this->getCurrentRequest()->getRequest().substr(boundaryPos, boundaryEnd - boundaryPos);
 }
 
-void Post::uploadFile() {
+bool Post::uploadFile() {
 
 	extractBoundary();
 
 	if (_boundary.empty()) {
 		std::cerr << "Error: Could not extract boundary." << std::endl;
-		return;
+		return false;
 	}
 
 	size_t dataStart = this->getCurrentRequest()->getRequest().find(_boundary);
@@ -78,18 +78,24 @@ void Post::uploadFile() {
 		this->_uploadedPath = this->getCurrentRequest()->getCurrentServer()->getUploadPath() + "/" + _filename;
 		std::string path = this->getCurrentRequest()->getCurrentServer()->getRoot() + _uploadedPath;
 		std::ofstream newFile(path.c_str());
+		if (!newFile) {
+			std::cerr << "Error: Could not create file" << std::endl;
+			responseError(500);
+			return false;
+		}
 		newFile.write(imageData.c_str(), imageData.size());
 		newFile.close();
 	}
 	else {
 		std::cerr << "Error: Could not find file's content" << std::endl;
 	}
+	return true;
 }
 
 void	Post::executeMethod()
 {
 	// std::cout << _LILAC _BOLD "EXECUTE Get" _END << std::endl;
 
-	uploadFile();
-	this->sendResponse();
+	if (uploadFile())
+		this->sendResponse();
 }

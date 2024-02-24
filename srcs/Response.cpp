@@ -162,7 +162,7 @@ void	Response::errorPageBuilder(const uint16_t & status_code)
 
 void	Response::responseError( const uint16_t & status_code )
 {
-	this->getCurrentRequest()->setReadBytes(0);
+	// this->getCurrentRequest()->setReadBytes(0);
 
 	std::cout << _RED _BOLD "Response Error for : " << status_code <<  _END << std::endl;
 	std::map<uint16_t, std::string>::const_iterator it = this->getCurrentRequest()->getCurrentServer()->getErrors().find(status_code);

@@ -25,7 +25,7 @@ private:
 	std::string	_data;
 
 	void		startUpload();
-	void		uploadFile();
+	bool		uploadFile();
 	void		buildHeader();
 	void		sendResponse();
 	void		extractBoundary();
