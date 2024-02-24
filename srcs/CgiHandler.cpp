@@ -1,13 +1,9 @@
 # include "CgiHandler.hpp"
 
-// TODO: Secure all system calls
-
-// TODO:- CGI : can't do child (write) AND parent (read) at the same time
-//			-> need a new epoll event cd new implementation
-
 CgiHandler::CgiHandler(Request * theRequest) : _theRequest(theRequest)
 {
-	this->_CgiStatus = 3;
+	std::cout << _BOLD _YELLOW "CREATE CGI" _END << " Method->" << this->_theRequest->getMethod() << std::endl;
+	this->_CgiStatus = 1;
 	try {
 		this->_argv = NULL;
 		this->_envp = NULL;
@@ -19,14 +15,13 @@ CgiHandler::CgiHandler(Request * theRequest) : _theRequest(theRequest)
 		craftEnv();
 		setFds();
 		setArgv();
+		this->_CgiStatus = 2;
 	}
 	catch (ErrorInCGI &e){
 		std::cout << _RED _BOLD << "Error: " << _END << e.what() << std::endl;
 		this->_theRequest->buildResponse(e.getError());
-		this->_theRequest->setReadBytes(0);
-		return;
-	} 
-	// FIXME: When script is not accessible ? 
+	}
+	// FIXME: When script is not accessible ?
 }
 
 CgiHandler::~CgiHandler() 
@@ -125,7 +120,6 @@ std::string	CgiHandler::envContentLen(void)
 	size_t bodyDelim = this->_theRequest->getRequest().find("\r\n\r\n");
 	if (bodyDelim != std::string::npos)
 		this->_requestBody = this->_theRequest->getRequest().substr(bodyDelim + 4, this->_theRequest->getRequest().size() - bodyDelim);
-	std::cout << "Body: [" << this->_requestBody << "]" << std::endl;
 	std::ostringstream content_len;
 	content_len << this->_requestBody.size();
 	return content_len.str();
@@ -174,7 +168,7 @@ void	CgiHandler::craftEnv(void)
 	int i = 0;
 	for (std::map<std::string, std::string>::iterator it = _envMap.begin(); it != _envMap.end(); ++it)
 	{
-		std::cout << it->first << " = " << it->second << std::endl;
+		// std::cout << _LILAC << it->first << " = " << it->second << _END << std::endl;
 		std::string envExport = it->first + "=" + it->second;
 		envp[i] = new char[envExport.size() + 1];
 		strcpy(envp[i], envExport.c_str());
@@ -228,82 +222,83 @@ void	CgiHandler::accessChecks(std::string script, std::string interpreter)
 
 void	CgiHandler::execCGI(void)
 {
-	std::cout << _BOLD _YELLOW "CGI" _END << std::endl;
-
-	if (this->_CgiStatus == 3) {
-		this->_pid = fork();
-		if (this->_pid == -1)
-			throw ErrorInCGI("Fork failed", 500);
-		else if (this->_pid == 0)
-			execChild();
-		else
+	try {
+		std::cout << _BOLD _YELLOW "EXEC CGI" _END << " Method->" << this->_theRequest->getMethod() << std::endl;
+		if (this->_CgiStatus == 3) {
 			execParent();
-		this->_CgiStatus = 4;
-		return;
+			return;
+		}
+		if (this->_CgiStatus == 2) {
+			this->_pid = ::fork();
+			if (this->_pid == -1)
+				throw ErrorInCGI("Fork failed", 500);
+			if (this->_pid == 0)
+				execChild();
+			else
+				this->_CgiStatus = 3;
+			return ;
+		}
 	}
-	else if (this->_CgiStatus == 4) {
-		sendResponse();
+	catch (ErrorInCGI &e){
+		std::cout << _RED _BOLD << "Error: " << _END << e.what() << std::endl;
+		this->_CgiStatus = 5;
+		this->_theRequest->buildResponse(e.getError());
 		return;
-	}
+	} 
 }
 
-// TODO: Check headers in response from scipt and add correct header
 
 // TODO: Find a more efficient way to read from buffer
 
 void	CgiHandler::execParent(void)
 {
-
 	waitpid(this->_pid, NULL, 0);
-	std::cout << _BOLD _YELLOW "PARENT" _END << std::endl;
 	char *buffer = new char[10000000 + 1];
 	int size = ::read(_fds[READ], buffer, 10000000);
 	if (size < 0)
 	{
 		delete [] buffer;
-		close(_fds[READ]);
-		close(_fds[WRITE]);
+		if (::close(_fds[READ]) < 0|| ::close(_fds[WRITE]) < 0)
+			throw ErrorInCGI("Close failed for _fds", 500);
 		throw ErrorInCGI("Reading buffer", 500);
 	}
 	if (size == 0)
 	{
-		close(_fds[READ]);
-		close(_fds[WRITE]);
+		if (::close(_fds[READ]) < 0|| ::close(_fds[WRITE]) < 0)
+			throw ErrorInCGI("Close failed for _fds", 500);
 	}
-	else 
+	else
 	{
 		buffer[size] = '\0';
 		this->_response = buffer;
 	}
-	// TODO: Set flag _theRequest->setAsReady(true);
+	this->_CgiStatus = 4;
 	delete [] buffer;
 }
 
 void	CgiHandler::execChild(void)
 {
-	std::cout << _BOLD _YELLOW "CHILD" _END << std::endl;
-	::close(this->_fds[READ]);
+	if (::dup2(this->_fds[WRITE], STDOUT_FILENO) < 0)
+		throw ErrorInCGI("Dup2 failed for _fds[WRITE]", 500);
+	if (::close(this->_fds[WRITE]) < 0 || ::close(this->_fds[READ]) < 0)
+		throw ErrorInCGI("Close failed for _fds", 500);
 	this->_fds[READ] = -1;
-	::dup2(this->_fds[WRITE], STDOUT_FILENO);
-	::close(this->_fds[WRITE]);
 	if (this->_theRequest->getMethod() == "POST") {
-		::dup2(this->_fdPost[READ], STDIN_FILENO);
+		if (::dup2(this->_fdPost[READ], STDIN_FILENO) < 0)
+			throw ErrorInCGI("Dup2 failed for _fdPost[READ]", 500);
 		if (write(this->_fdPost[WRITE], this->_requestBody.c_str(), this->_requestBody.size()) <= 0)
 			throw ErrorInCGI("write to post failled", 500);
-		::close(this->_fdPost[WRITE]);
+		if (::close(this->_fdPost[WRITE]) < 0)
+			throw ErrorInCGI("Close failed for _fdPost[WRITE]", 500);
 		this->_fdPost[WRITE] = -1;
 	}
 	::execve(this->_argv[0], this->_argv, this->_envp);
-	std::cout << "execve failed" <<  std::endl;
+	throw ErrorInCGI("Execve Failed", 500);
 }
 
 void	CgiHandler::sendResponse(void)
 {
-	std::cout << _BOLD _YELLOW "CGI RESPONSE" _END << std::endl;
-	if (send(this->_theRequest->getEventSocket(), this->_response.c_str(), this->_response.size(), 0) < 0)
-		throw ErrorInCGI("Error Sending Response", 500);
-	this->_theRequest->setReadBytes(0);
-	this->_theRequest->setResource("");
-	this->_theRequest->setRequest("");
-	this->_CgiStatus = 4;
+	// TODO: check header + complete header
+	std::cout << _BOLD _YELLOW "CGI RESPONSE" _END  << " Method->" << this->_theRequest->getMethod() << std::endl;
+	this->_theRequest->setFinalResponse(this->_response);
 }

@@ -3,9 +3,6 @@
 
 /*****************  CANONICAL FORM *****************/
 
-/*****************  CANONICAL FORM *****************/
-
-
 Server::Server(std::vector<std::string> &tokens, int id) : _serverID(id), _listen(0), _autoindex(true), _methods(0), _clientMaxBodySize(1000000), _master_socket(-1),_request_index(0)
 {
 	configurationMap();
@@ -54,6 +51,7 @@ void Server::configurationMap(void)
 	this->_configMap["location"] = &Server::setLocations;
 	this->_configMap["error_page"] = &Server::setErrors;
 	this->_configMap["autoindex"] = &Server::setAutoindex;
+	this->_configMap["upload_path"] = &Server::setUploadPath;
 }
 
 void Server::directiveIsolation(std::string delim, std::vector<std::string> &tokens,
@@ -101,6 +99,16 @@ void Server::checkMinimumConf(void)
 		throw InvalidConfig(INVALCONF "Invalid root or index file");
 	}
 	infile.close();
+	if (this->_uploadPath.empty() == false) {
+		std::string	Uppath = this->_root + this->_uploadPath;
+		std::ifstream testUp(Uppath.c_str());
+		if (!testUp)
+		{
+			earlyDeath();
+			throw InvalidConfig(INVALCONF "Location Upload Directive");
+		}
+		testUp.close();
+	}
 }
 
 /* ****************  GETTERS **************** */
@@ -241,7 +249,14 @@ void Server::setErrors(std::vector<std::string> errors)
 	this->_errors[code] = errors[2];
 }
 
-
+void Server::setUploadPath(std::vector<std::string> UploadPath)
+{
+	if (UploadPath.size() != 2)
+		throw InvalidConfig(INVALLOC "Upload Path Directive");
+	std::string	data;
+	data = dataExtractor<std::string>(UploadPath[1]);
+	this->_uploadPath = data;
+}
 
 /* **************** EXEC SETTERS **************** */
 
@@ -249,7 +264,6 @@ void Server::setErrors(std::vector<std::string> errors)
 void Server::setServerHandler(ServerHandler *serverHandler) { this->_currentServerHandler = serverHandler; }
 void Server::setMasterSocket(int masterSocket) { this->_master_socket = masterSocket; }
 void Server::setEpfd(const int epfd) { this->_epfd = epfd; }
-void Server::setUploadPath(std::string path) { this->_uploadPath = path; }
 
 
 void Server::eraseRequest(int index)

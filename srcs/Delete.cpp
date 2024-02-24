@@ -36,6 +36,7 @@ void	Delete::sendResponse()
 {
 	this->buildHeader();
 	this->_response = this->_header + this->_body;
+	this->getCurrentRequest()->setFinalResponse(this->_response);
 
 	this->getCurrentRequest()->setAsReady(true);
 }

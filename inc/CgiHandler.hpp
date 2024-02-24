@@ -28,6 +28,7 @@ public:
 	void			setCgiStatus(uint8_t status);
 
 	void			execCGI(void);
+	void			sendResponse(void);
 
 // TODO: Clean Up this doc
 
@@ -43,7 +44,6 @@ private:
 	void		writePost(void);
 	void		execParent(void);
 	void		execChild(void);
-	void		sendResponse(void);
 	std::string	envContentLen(void);
 	std::string	envContentType(void);
 

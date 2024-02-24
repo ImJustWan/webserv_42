@@ -116,6 +116,7 @@ void Get::getAutoIndex()
 	this->_header += file_size_str.str();
 	this->_header += "\r\n\r\n";
 	this->_response = this->_header + this->_body;
+	this->getCurrentRequest()->setFinalResponse(this->_response);
 
 	this->getCurrentRequest()->setAsReady(true);
 
@@ -142,6 +143,8 @@ void Get::readChunk() {
 		_file.close();
 		this->getCurrentRequest()->setSentFinished(true);
 		this->getCurrentRequest()->setAsReady(true);
+		this->getCurrentRequest()->setFinalResponse(this->_response);
+
 	}
 
 }
@@ -156,8 +159,9 @@ void	Get::handleFile()
 			return;
 		}
 		buildHeader(_file, 200);
-		if (this->_response.size() == 0)
+		if (this->_response.size() == 0){
 			this->_response = this->_header;
+		}
 	}
 
 	readChunk();

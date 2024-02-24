@@ -91,6 +91,7 @@ ServerHandler* Request::getServerHandler() const { return ( this->_currentServer
 std::string const & Request::getIndex(void) const { return ( this->_index ); }
 std::string const & Request::getHost(void) const { return ( this->_host ); }
 std::string const & Request::getRoot(void) const { return ( this->_root ); }
+std::string	const & Request::getFileExt(void) const { return ( this->_fileExt); }
 
 
 /* ****************  SETTERS **************** */
@@ -110,6 +111,8 @@ void	Request::setIndex( std::string index ) { this->_index = index; }
 void	Request::setHost( std::string host ) { this->_host = host; }
 void	Request::setResource( std::string resource ) { this->_resource = resource; }
 void	Request::setRequest( std::string request ) { this->_request = request; }
+void	Request::setFinalResponse( std::string finalResponse ) { this->_finalResponse = finalResponse; }
+
 void	Request::setLastEvent( void ) { this->_lastEvent = time(NULL); }
 void 	Request::setLastEvent(long long int time) { this->_lastEvent = time; }
 void	Request::setAsReady(bool state) { this->_responseReady = state; }
@@ -386,8 +389,8 @@ bool	Request::isCGI(std::string const & resource)
 		if (dot == std::string::npos)
 			return false;
 		fileExt = fileExt.substr(dot, std::string::npos);
+		this->_fileExt = fileExt;
 	}
-
 	if (this->_currentLocation && this->_currentLocation->getFileExt().size() != 0 && this->_currentLocation->getFileExt() == fileExt){
 		this->_cgiExt = fileExt;
 		return true;
@@ -432,18 +435,28 @@ void	Request::determinism()
 		std::cout << _AQUAMARINE "EPOLLOUT on baby_socket " << this->_event_socket << _END << std::endl;
 		if ( isCGI( this->getResource()) ) {
 			if (this->_currentCGI == NULL){
-				CgiHandler*	handleCGI = new CgiHandler(this);
-				_currentCGI = handleCGI;
+				_currentCGI = new CgiHandler(this);
 				_socketState = WRITE_STATE;
-				// _readBytes = 0;
+				_responseReady = false;
 			}
 			else {
-				_currentCGI->execCGI();
-				if (_currentCGI->getCgiStatus() != 4)
+				if (_responseReady == false && _currentCGI->getCgiStatus() == 4) {
 					_socketState = READ_STATE;
+					_currentCGI->sendResponse();
+					_responseReady = true;
+				}
 				else
-					_socketState = WRITE_STATE;
-				// _readBytes = 0;
+				{
+					if (_currentCGI->getCgiStatus() < 4) {
+						_currentCGI->execCGI();
+						_socketState = WRITE_STATE;
+					}
+					else if (_currentCGI->getCgiStatus() == 4) {
+						_responseReady = false;
+					}
+					if (_currentCGI->getCgiStatus() == 5)
+						_responseReady = true;
+				}
 			}
 		}
 		else
@@ -453,20 +466,22 @@ void	Request::determinism()
 				_readBytes = 0;
 			if (_sentFinished == false)
 				_socketState = WRITE_STATE;
-			if (_responseReady == true)
-			{
-				std::cout << _EMERALD "Response is ready" << _END << std::endl;
-				// std::cout << _PINK << _currentResponse->getResponse() << _END << std::endl;
-				if (send(this->_event_socket, _currentResponse->getResponse().c_str(), _currentResponse->getResponse().size(), 0) < 0)
-				{
-					std::cout << _RED "Error sending response" << _END << std::endl;
-					this->_lastEvent = 0; // will delete client/socket in main loop
-				}
-				_socketState = READ_STATE;
-				_request = "";
-			}
 			// std::cout << _LILAC "Sent finished : " << _sentFinished << std::endl;
 			// std::cout << "Response ready : " << _responseReady << _END << std::endl;
+		}
+
+		if (_responseReady == true)
+		{
+			std::cout << _EMERALD "Response is ready" << _END << std::endl;
+			// std::cout << _PINK << this->_finalResponse << _END << std::endl;
+			if (send(this->_event_socket, this->_finalResponse.c_str(), this->_finalResponse.size(), 0) < 0)
+			{
+				std::cout << _RED "Error sending response" << _END << std::endl;
+				this->_lastEvent = 0; // will delete client/socket in main loop
+			}
+			_socketState = READ_STATE;
+			_readBytes = 0;
+			_request = "";
 		}
 	}
 

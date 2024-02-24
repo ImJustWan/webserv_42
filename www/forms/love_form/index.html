@@ -39,9 +39,9 @@
 						Why not explore whether you and your crush are destined for each other? <br>
 						Here's a love compatibility test, influenced solely by our subjective perspectives on love.
 					</p>
-						<form method="GET" action="../../../cgi-bin/python/compatibility.py">
-							<label> Your name</label>: [<input type="text" name="nameOne">] <br>
-							<label> Their name</label>: [<input type="text" name="nameTwo">]
+						<form method="POST" action="../../../cgi-bin/python/compatibility.py" enctype="multipart/form-data">
+							<label> Your name</label>: [<input type="text" name="nameOne" required>] <br>
+							<label> Their name</label>: [<input type="text" name="nameTwo" required>]
 							<br>
 							<br>
 							<input type="submit" value="[ Ask Cupidon ]" >
@@ -57,7 +57,7 @@
 				+33 01 23 45 67 89<br>
 				tgibier@student.42.fr<br>
 				mrony@student.42.fr<br>
-				92 boulevard Bessieres<br>
+				92 boulevard Bessiere<br>
 				75017 Paris<br>
 				France</p>
 			</div>

@@ -28,7 +28,7 @@ public:
 	std::string const & getFileExt(void) const;
 	std::string const & getCgiPath(void) const;
 	bool const & getAutoindex(void) const;
-	std::string const & getUploadPath(void) const;
+	// std::string const & getUploadPath(void) const;
 
 	/* SETTERS */
 	void setDirectory(std::vector<std::string>);
@@ -39,7 +39,7 @@ public:
 	void setFileExt(std::vector<std::string>);
 	void setCgiPath(std::vector<std::string>);
 	void setAutoindex(std::vector<std::string>);
-	void setUploadPath(std::vector<std::string>);
+	// void setUploadPath(std::vector<std::string>);
 
 	class InvalidConfig : public std::exception {
 	public:
@@ -91,7 +91,6 @@ inline std::ostream & operator<<(std::ostream & o, Location const & rhs)
 {
 	o << _BOLD " · Locations\t\t\t" _END << rhs.getDirectory() << "\n";
 	o << _BOLD "    ◦ Root\t\t\t" _END << rhs.getRoot() << "\n";
-	o << _BOLD "    ◦ Upload Path\t\t" _END << rhs.getUploadPath() << "\n";
 	o << _BOLD "    ◦ Index\t\t\t" _END << rhs.getIndex() << "\n";
 	o << _BOLD "    ◦ Autoindex\t\t\t" _END << (rhs.getAutoindex()?"true":"false") << "\n";
 	o << _BOLD "    ◦ Methods\t\t\t" _END << rhs.getMethods() << "\n";

@@ -9,7 +9,7 @@ void Location::configurationMap(void)
 	this->_configMap["file_ext"] = &Location::setFileExt;
 	this->_configMap["cgi_path"] = &Location::setCgiPath;
 	this->_configMap["autoindex"] = &Location::setAutoindex;
-	this->_configMap["upload_path"] = &Location::setUploadPath;
+	
 }
 
 
@@ -56,12 +56,6 @@ void Location::checkMinimumConf(void)
 		testDir.close();
 		this->_directory = '/' + this->_directory;
 	}
-	
-	std::string	Uppath = this->_root + this->_uploadPath;
-	std::ifstream testUp(Uppath.c_str());
-	if (!testUp)
-		throw InvalidConfig(INVALLOC "Location Upload Directive");
-	testUp.close();
 }
 
 /* ****************  GETTERS **************** */
@@ -73,7 +67,6 @@ std::string const & Location::getIndex(void) const { return this->_index; }
 std::string const & Location::getFileExt(void) const { return this->_fileExt; }
 std::string const & Location::getCgiPath(void) const { return this->_cgiPath; }
 bool const & Location::getAutoindex(void) const { return this->_autoindex; }
-std::string const & Location::getUploadPath(void) const { return this->_uploadPath; }
 
 /* ****************  SETTERS **************** */
 
@@ -142,15 +135,4 @@ void Location::setAutoindex(std::vector<std::string> autoindex) {
 		this->_autoindex = false;
 	else
 		throw InvalidConfig(INVALLOC "Autoindex Directive");
-}
-
-void Location::setUploadPath(std::vector<std::string> UploadPath)
-{
-	if (UploadPath.size() != 2)
-		throw InvalidConfig(INVALLOC "Upload Path Directive");
-	std::string	data;
-	data = dataExtractor<std::string>(UploadPath[1]);
-	this->_uploadPath = data;
-	this->_currentServer->setUploadPath(this->_uploadPath);
-
 }

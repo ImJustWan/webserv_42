@@ -38,6 +38,7 @@ void	Post::sendResponse()
 	this->_response += HTMLBODY3;
 	this->_response += this->getCurrentRequest()->getCurrentServer()->getUploadPath() + "/" + _filename;
 	this->_response += HTMLBODY4;
+	this->getCurrentRequest()->setFinalResponse(this->_response);
 	this->getCurrentRequest()->setAsReady(true);
 	std::cout << _GOLD << "Uploaded file at " << this->_uploadedPath << _END << std::endl;
 

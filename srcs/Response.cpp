@@ -157,6 +157,7 @@ void	Response::errorPageBuilder(const uint16_t & status_code)
 	this->_header += "\r\n";
 
 	this->_response = this->_header + this->_body;
+	this->getCurrentRequest()->setFinalResponse(this->_response);
 	this->getCurrentRequest()->setAsReady(true);
 }
 
@@ -186,6 +187,7 @@ void	Response::responseError( const uint16_t & status_code )
 		}
 		this->getCurrentRequest()->setAsReady(true);
 		error_page.close();
+		this->getCurrentRequest()->setFinalResponse(this->_response);
 	}
 	else
 		errorPageBuilder(status_code);

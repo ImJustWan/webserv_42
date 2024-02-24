@@ -64,6 +64,7 @@ public:
 	std::string	const &		getRoot() const;
 	std::string	const &		getResource() const;
 	std::string	const &		getMethod() const;
+	std::string	const &		getFileExt() const;
 	bool					getReady() const;
 	bool					getReadFinished() const;
 	bool					getSentFinished() const;
@@ -81,6 +82,7 @@ public:
 	void					setHost( std::string host ); 
 	void					setRequest( std::string request );
 	void					setResource( std::string resource );
+	void					setFinalResponse( std::string resource );
 	void					setListen( const int listen );
 	void					setMethods( const int methods );
 	void					setReadBytes( const int readbytes );
@@ -118,6 +120,8 @@ protected:
 	std::string				_method;
 	std::string				_resource;
 	std::string				_cgiExt;
+	std::string				_fileExt;
+	std::string				_finalResponse;
 
 	int						_listen;
 	int						_methods;

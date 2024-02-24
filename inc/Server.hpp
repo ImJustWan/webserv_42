@@ -56,7 +56,8 @@ public:
 	void	setServerNames(std::vector<std::string>);
 	void	setLocations(std::vector<std::string>);
 	void	setErrors(std::vector<std::string>);
-	void	setUploadPath(std::string path);
+	void	setUploadPath(std::vector<std::string>);
+
 
 	void	setEpfd(const int epfd);
 	void	setMasterSocket(int masterSocket);
@@ -173,6 +174,7 @@ inline std::ostream & operator<<(std::ostream & o, Server const & rhs)
 	o << _BOLD " · Index\t\t\t" _END << rhs.getIndex() << "\n";
 	o << _BOLD " · Autoindex\t\t\t" _END << (rhs.getAutoindex()?"true":"false") << "\n";
 	o << _BOLD " · Methods\t\t\t" _END << rhs.getMethods() << "\n";
+	o << _BOLD " · Upload Path\t\t\t" _END << rhs.getUploadPath() << "\n";
 	o << _BOLD " · CMBS\t\t\t\t" _END << rhs.getClientMaxBodySize() << "\n";
 	o << _BOLD "\n · Server names" _END " · · · · · · · · · · · · · · · · · ·+\n";
 	for (std::vector<std::string>::iterator i = serverNames.begin(); i != serverNames.end(); ++i)

@@ -20,7 +20,13 @@ volatile sig_atomic_t signal_received = false;
 			* use a script containing an infinite loop or an error (timeout closes socket ?)
 			* In the configuration, try to setup the same port multiple times. It should not work. ???
 				// if no different server_name ?
+
+		- www concatenation of root + current page
+		
+		- from syscall_fix get http protocol_check
 			
+	if (_contentLength > _currentServer->getClientMaxBodySize())
+		-  error 
 */
 
 int main(int ac, char **av)

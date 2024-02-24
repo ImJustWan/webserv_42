@@ -152,6 +152,16 @@ input[type=submit] {
 	cursor: pointer;
 }
 
+.cta{
+	font-size: 0.9em;
+	text-align: center;
+}
+
+.cta a{
+	text-decoration: none;
+	color: white;
+}
+
 footer {
 	padding-left: 15vh;
 	padding-right: 15vh;
