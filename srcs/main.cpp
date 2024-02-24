@@ -11,9 +11,6 @@ volatile sig_atomic_t signal_received = false;
 			check EVERY read/recv/send return for 0 AND -1
 		- check again all read/recv/write/send
 
-		- CGI : can't do child (write) AND parent (read) at the same time
-			-> need a new epoll event cd new implementation
-
 		- check all error status code
 
 		- from eval grid
