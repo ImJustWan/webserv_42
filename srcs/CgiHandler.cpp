@@ -4,8 +4,6 @@
 
 CgiHandler::CgiHandler(Request * theRequest) : _theRequest(theRequest)
 {
-	// if (_theRequest->getMethod() == "POST")
-	// 	this->_CgiStatus = 1;
 	this->_CgiStatus = 3;
 	try {
 		this->_argv = NULL;
@@ -223,16 +221,13 @@ void	CgiHandler::accessChecks(std::string script, std::string interpreter)
 		throw ErrorInCGI("Access to interpreter forbidden", 403);
 }
 
+// TODO: Add timeout for script exec
 
 void	CgiHandler::execCGI(void)
 {
 	std::cout << _BOLD _YELLOW "CGI" _END << std::endl;
 
-	if (this->_CgiStatus == 1) {
-		// writePost();
-		return;
-	}
-	else if (this->_CgiStatus == 3) {
+	if (this->_CgiStatus == 3) {
 		this->_pid = fork();
 		if (this->_pid == -1)
 			throw ErrorInCGI("Fork failed", 500);
