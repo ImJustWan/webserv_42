@@ -34,6 +34,9 @@ int main(int ac, char **av)
 			return 1;
 		}
 	}
+	catch (CgiHandler::QuitProg &e){
+		return 0;
+	}
 	catch (std::exception &e){
 		std::cout << _RED _BOLD "Error: " _END << e.what() << std::endl;
 	}

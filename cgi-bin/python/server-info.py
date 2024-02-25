@@ -2,8 +2,8 @@
 
 import os
 
-print("HTTP/1.1 200 OK")
-print("Content-type: text/html\n")
+# print("HTTP/1.1 200 OK")
+# print("Content-type: text/html\n")
 print("<HTML>")
 print("<HEAD><TITLE>About this Server</TITLE></HEAD>")
 print("<BODY><H1>About this Server</H1>")

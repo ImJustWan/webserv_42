@@ -7,6 +7,7 @@
 # define DEFAULT_CONF "./config/default.conf"
 # define DELIMITERS "{};"
 # define WHITESPACE " \t"
+#define READ_BUFFER_SIZE 4096 * 32
 
 class Server;
 

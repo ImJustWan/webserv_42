@@ -414,7 +414,6 @@ void	Request::changeSocketState()
 		_event_socket = this->getCurrentServer()->closeSocket(_event_socket);
 		this->_lastEvent = 0; // will delete client/socket in main loop
 	}
-
 }
 
 
@@ -426,7 +425,7 @@ void	Request::determinism()
 		this->setRequest();
 		this->setAttributes();
 		// std::cout << _PINK "Request : " << _request << _END << std::endl;
-		// std::cout << _PINK "Resource : " << _resource << _END << std::endl;
+		// std::cout << _PINK _REV "Resource : " << _resource << _END << std::endl;
 		if (_readFinished == true || _contentLength > getCurrentServer()->getClientMaxBodySize())
 			_socketState = WRITE_STATE;
 		else
@@ -437,9 +436,9 @@ void	Request::determinism()
 		std::cout << _AQUAMARINE "EPOLLOUT on baby_socket " << this->_event_socket << _END << std::endl;
 		if ( isCGI( this->getResource()) ) {
 			if (this->_currentCGI == NULL){
+				_responseReady = false;
 				_currentCGI = new CgiHandler(this);
 				_socketState = WRITE_STATE;
-				_responseReady = false;
 			}
 			else {
 				if (_responseReady == false && _currentCGI->getCgiStatus() == 4) {
