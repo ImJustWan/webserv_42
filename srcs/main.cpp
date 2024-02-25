@@ -12,11 +12,6 @@ volatile sig_atomic_t signal_received = false;
 		- from eval grid
 			* Limit the client body (use: curl -X POST -H "Content-Type: plain/text" --data "BODY IS HERE write something
 			shorter or longer than body limit"). // OK ?
-			
-			* The CGI should be run in the correct directory for relative path file access.
-			* use a script containing an infinite loop or an error (timeout closes socket ?)
-			* In the configuration, try to setup the same port multiple times. It should not work. ???
-				// if no different server_name ?
 
 */
 
