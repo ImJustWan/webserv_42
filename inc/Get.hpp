@@ -2,8 +2,6 @@
 
 # include "Response.hpp"
 
-#define READ_BUFFER_SIZE 4096 * 32
-
 class Get : public Response {
 
 public:

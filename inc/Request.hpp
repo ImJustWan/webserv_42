@@ -30,9 +30,7 @@
 // # define POST	( 1 << 1 )
 // # define DELETE	( 1 << 2 )
 # define N_METHODS 3
-# define TIMEOUT 4
-
-
+# define TIMEOUT 10
 
 class	Response;
 class	Server;

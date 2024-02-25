@@ -19,9 +19,9 @@ CgiHandler::CgiHandler(Request * theRequest) : _theRequest(theRequest)
 	}
 	catch (ErrorInCGI &e){
 		std::cout << _RED _BOLD << "Error: " << _END << e.what() << std::endl;
+		this->_CgiStatus = 5;
 		this->_theRequest->buildResponse(e.getError());
 	}
-	// FIXME: When script is not accessible ?
 }
 
 CgiHandler::~CgiHandler() 
@@ -61,7 +61,7 @@ std::string	CgiHandler::retrieveServerName(std::string request)
 	size_t		end;
 	std::string	server_name;
 
-	begin = request.find("Referer: http://");
+	begin = request.find("Host: ");
 	if (begin != std::string::npos){
 		server_name = request.substr(begin + 16, std::string::npos);
 		end = server_name.find(":");
@@ -117,6 +117,8 @@ void	CgiHandler::retrieveQueryString(std::string resource)
 
 std::string	CgiHandler::envContentLen(void)
 {
+	if (this->_theRequest->getMethod() == "GET")
+		return "0";
 	size_t bodyDelim = this->_theRequest->getRequest().find("\r\n\r\n");
 	if (bodyDelim != std::string::npos)
 		this->_requestBody = this->_theRequest->getRequest().substr(bodyDelim + 4, this->_theRequest->getRequest().size() - bodyDelim);
@@ -218,7 +220,51 @@ void	CgiHandler::accessChecks(std::string script, std::string interpreter)
 		throw ErrorInCGI("Access to interpreter forbidden", 403);
 }
 
-// TODO: Add timeout for script exec
+
+void	CgiHandler::watchDog(void)
+{
+	pid_t	pidTimer = ::fork();
+	if (pidTimer == -1)
+		throw ErrorInCGI("Timer Fork Failed", 500);
+	if (pidTimer == 0){
+		sleep(TIMEOUT/2);
+		throw QuitProg();
+	}
+
+	pid_t	pidWorker = ::fork();
+	if (pidWorker == -1)
+		throw ErrorInCGI("Child Fork failed", 500);
+	if (pidWorker == 0)
+		execChild();
+	
+	int		status = 0;
+	pid_t	firstFinisher = pidWaiter(&status);
+	if (firstFinisher == pidTimer)
+	{
+		::kill(pidWorker, SIGKILL);
+		throw ErrorInCGI("Child TimedOut", 504);
+	}
+	else if (firstFinisher == pidWorker){
+		std::cout << _EMERALD "Child Executed normally" _END << std::endl;
+		::kill(pidTimer, SIGKILL);
+	}
+	pidWaiter(&status);
+}
+
+pid_t	CgiHandler::pidWaiter(int *status)
+{
+	pid_t	finisher = 0;
+	while(( finisher = waitpid(WAIT_ANY, status, 0)) == -1) {
+		if (errno == EINTR)
+			continue;
+		else{
+			perror("Waitpid");
+			std::abort();
+		}
+	}
+	return finisher;
+}
+
 
 void	CgiHandler::execCGI(void)
 {
@@ -229,13 +275,8 @@ void	CgiHandler::execCGI(void)
 			return;
 		}
 		if (this->_CgiStatus == 2) {
-			this->_pid = ::fork();
-			if (this->_pid == -1)
-				throw ErrorInCGI("Fork failed", 500);
-			if (this->_pid == 0)
-				execChild();
-			else
-				this->_CgiStatus = 3;
+			watchDog();
+			this->_CgiStatus = 3;
 			return ;
 		}
 	}
@@ -247,14 +288,10 @@ void	CgiHandler::execCGI(void)
 	} 
 }
 
-
-// TODO: Find a more efficient way to read from buffer
-
 void	CgiHandler::execParent(void)
 {
-	waitpid(this->_pid, NULL, 0);
-	char *buffer = new char[10000000 + 1];
-	int size = ::read(_fds[READ], buffer, 10000000);
+	char *buffer = new char[READ_BUFFER_SIZE];
+	int size = ::read(_fds[READ], buffer, READ_BUFFER_SIZE);
 	if (size < 0)
 	{
 		delete [] buffer;

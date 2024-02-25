@@ -13,12 +13,12 @@ Response::Response() {
 	_status_code[415] = "Unsupported Media Type";
 	_status_code[500] = "Internal Server Error";
 	_status_code[501] = "Not Implemented";
+	_status_code[502] = "Gateway Error";
 	_status_code[504] = "Gateway Timeout";
 	_status_code[505] = "HTTP Version Not Supported";
 }
 
 Response::~Response() {
-
 }
 
 Response::Response(Response const & src) {

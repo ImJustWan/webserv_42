@@ -30,7 +30,9 @@ public:
 	void			execCGI(void);
 	void			sendResponse(void);
 
-// TODO: Clean Up this doc
+	class QuitProg : public std::exception {
+		virtual const char* what() const throw() {return "";}
+	};
 
 private:
 	CgiHandler();
@@ -46,6 +48,9 @@ private:
 	void		execChild(void);
 	std::string	envContentLen(void);
 	std::string	envContentType(void);
+	void		childKiller(void);
+	void		watchDog(void);
+	pid_t		pidWaiter(int *status);
 
 	std::string	retrieveServerName(std::string request);
 	std::string	retrieveScriptName(std::string request);
@@ -60,7 +65,6 @@ private:
 	std::string		_query_string;	// if GET -> all after the ?
 	std::string		_requestBody;
 
-	int				_pid;
 	int				_fds[2];
 	int				_fdPost[2];
 	std::map<std::string, std::string> _envMap;
