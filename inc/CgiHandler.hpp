@@ -51,6 +51,8 @@ private:
 	std::string	retrieveScriptName(std::string request);
 	void		retrievePathInfo(std::string resource);
 	void		retrieveQueryString(std::string resource);
+	void		checkCgiHeader(void);
+	void		createCgiHeader(void);
 
 	uint8_t			_CgiStatus; // Flag status : 1->for Post part 1; 2->for post part 2; or 3-> for GET; 4-> send response
 

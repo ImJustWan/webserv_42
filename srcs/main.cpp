@@ -18,14 +18,6 @@ volatile sig_atomic_t signal_received = false;
 			* In the configuration, try to setup the same port multiple times. It should not work. ???
 				// if no different server_name ?
 
-
-		requestLineCheck line 178 : sends 501 if extension is not supported
-			=> blocks perl
-			=> what to do about php ?
-
-		- Error with newRoot in location : blocks in parsing
-			=> also, CGI should be inside www (not getting out of it)
-
 */
 
 int main(int ac, char **av)

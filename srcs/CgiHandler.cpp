@@ -296,9 +296,33 @@ void	CgiHandler::execChild(void)
 	throw ErrorInCGI("Execve Failed", 500);
 }
 
+void	CgiHandler::createCgiHeader(void) {
+	_response = "HTTP/1.1 200 OK\r\nContent-type: text/html\r\n\r\n" + _response;
+}
+
+void	CgiHandler::checkCgiHeader(void)
+{
+	size_t emptyLinePos = _response.find("\r\n\r\n");
+
+	if (emptyLinePos == std::string::npos) {
+		emptyLinePos = _response.find("\n\n");
+		if (emptyLinePos == std::string::npos) {
+			createCgiHeader();
+			return ;
+		}
+	}
+
+	std::string header = _response.substr(0, emptyLinePos);
+	if (header.find("HTTP/1.1 200") != std::string::npos && header.find("Content-type: text/html") != std::string::npos)
+		return;
+	else
+		createCgiHeader();
+}
+
+
 void	CgiHandler::sendResponse(void)
 {
-	// TODO: check header + complete header
 	std::cout << _BOLD _YELLOW "CGI RESPONSE" _END  << " Method->" << this->_theRequest->getMethod() << std::endl;
+	checkCgiHeader();
 	this->_theRequest->setFinalResponse(this->_response);
 }
