@@ -170,7 +170,7 @@ void	Request::setLocation()
 }
 
 void Request::setRequest() {
-	char buffer[4096] = "";
+	char buffer[READ_BUFFER_SIZE] = "";
 
 	_readBytes = recv(this->_event_socket, buffer, sizeof(buffer) - 1, 0);
 	
@@ -380,6 +380,7 @@ bool	Request::isCGI(std::string const & resource)
 		if (dot == std::string::npos)
 			return false;
 		fileExt = resource.substr(dot, std::string::npos);
+		this->_fileExt = fileExt;
 	}
 
 	else if (this->_method == "GET"){

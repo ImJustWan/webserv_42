@@ -69,7 +69,6 @@ void	ServerHandler::createMimeMap()
 	_mimeMap[".otf"] = "font/otf";
 	_mimeMap[".png"] = "image/png";
 	_mimeMap[".pdf"] = "application/pdf";
-	_mimeMap[".php"] = "application/x-httpd-php";
 	_mimeMap[".ppt"] = "application/vnd.ms-powerpoint";
 	_mimeMap[".pptx"] = "application/vnd.openxmlformats-officedocument.presentationml.presentation";
 	_mimeMap[".rar"] = "application/vnd.rar";
@@ -98,9 +97,6 @@ void	ServerHandler::createMimeMap()
 	_mimeMap[".3gp"] = "video/3gpp";
 	_mimeMap[".3g2"] = "video/3gpp2";
 	_mimeMap[".7z"] = "application/x-7z-compressed";
-	// _mimeMap[".pl"] = "application/x-perl";
-
-
 }
 
 void	ServerHandler::constructorExtension(std::string const & filename)

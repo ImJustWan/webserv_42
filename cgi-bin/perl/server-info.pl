@@ -1,4 +1,4 @@
-#! 
+#! /usr/bin/perl
 print "HTTP/1.1 200 OK", "\n";
 print "Content-type: text/html", "\n\n";
 print "<HTML>", "\n";
