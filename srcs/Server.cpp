@@ -322,7 +322,7 @@ void	Server::initRequest( Request* request )
 	request->setEventSocket(this->_baby_socket[_request_index]);
 	request->setEpfd(this->_epfd);
 	request->setServerHandler(this->_currentServerHandler);
-	request->setCurrentServer(NULL);
+	request->setCurrentServer(this);
 	request->setLocation(NULL);
 	request->setLastEvent();
 }

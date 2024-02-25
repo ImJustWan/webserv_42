@@ -11,7 +11,8 @@ public:
 	Get( void );
 	~Get();
 
-	void executeMethod();
+	void	executeMethod();
+	void	getAutoIndex();
 
 
 private:
@@ -19,10 +20,9 @@ private:
 	Get(const Get& src);
 	Get& operator=(const Get& cpy);
 
-	void				getAutoIndex();
 	void				sendResponse();
 	void				handleFile();
-	bool				checkResource();
+	// bool				checkResource();
 	void				readChunk();
 	// void				buildHeader();
 	unsigned long int	getFileSize();

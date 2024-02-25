@@ -84,6 +84,7 @@ bool		Request::getSentFinished(void) const { return (this->_sentFinished); }
 std::string	const & Request::getRequest(void) const { return (this->_request); }
 std::string	const & Request::getMethod(void) const { return (this->_method); }
 std::string const & Request::getResource(void) const { return ( this->_resource ); }
+std::string	const & Request::getHTTP(void) const { return (this->_http); }
 Server* Request::getCurrentServer(void) const { return ( this->_currentServer ); }
 Location* Request::getLocation() const { return ( this->_currentLocation ); }
 Response* Request::getResponse() const { return ( this->_currentResponse ); }
@@ -175,7 +176,7 @@ void Request::setRequest() {
 	
 	if (_readBytes == -1) // if 0, handled in determinism
 	{
-		this->_lastEvent = 0;
+		this->_lastEvent = 0; // will delete client/socket in main loop
 		return ;
 	}
 
@@ -228,7 +229,7 @@ void	Request::setAttributes()
 {
 	std::istringstream	iss(Request::_request);
 
-	iss >> _method >> _resource;
+	iss >> _method >> _resource >> _http;
 
 	std::string line;
 
@@ -410,7 +411,7 @@ void	Request::changeSocketState()
 	if (epoll_ctl(this->_epfd, EPOLL_CTL_MOD, _event_socket, &modifiedList) == -1)
 	{
 		_event_socket = this->getCurrentServer()->closeSocket(_event_socket);
-		this->_lastEvent = 0;
+		this->_lastEvent = 0; // will delete client/socket in main loop
 	}
 
 }
@@ -425,7 +426,7 @@ void	Request::determinism()
 		this->setAttributes();
 		// std::cout << _PINK "Request : " << _request << _END << std::endl;
 		// std::cout << _PINK "Resource : " << _resource << _END << std::endl;
-		if (_readFinished == true || (getCurrentServer() && _contentLength > getCurrentServer()->getClientMaxBodySize()))
+		if (_readFinished == true || _contentLength > getCurrentServer()->getClientMaxBodySize())
 			_socketState = WRITE_STATE;
 		else
 			_socketState = READ_STATE;
@@ -489,6 +490,6 @@ void	Request::determinism()
 	if (_readBytes <= 0)
 	{
 		_event_socket = this->getCurrentServer()->closeSocket(_event_socket);
-		this->_lastEvent = 0;
+		this->_lastEvent = 0; // will delete client/socket in main loop
 	}
 }

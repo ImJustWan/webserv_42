@@ -7,26 +7,25 @@ volatile sig_atomic_t signal_received = false;
 /*
 	TO DO
 
-		- for GET and responseError : 
-			check EVERY read/recv/send return for 0 AND -1
-		- check again all read/recv/write/send
-
 		- check all error status code
 
 		- from eval grid
 			* Limit the client body (use: curl -X POST -H "Content-Type: plain/text" --data "BODY IS HERE write something
-			shorter or longer than body limit").
+			shorter or longer than body limit"). // OK ?
+			
 			* The CGI should be run in the correct directory for relative path file access.
 			* use a script containing an infinite loop or an error (timeout closes socket ?)
 			* In the configuration, try to setup the same port multiple times. It should not work. ???
 				// if no different server_name ?
 
-		- www concatenation of root + current page
-		
-		- from syscall_fix get http protocol_check
-			
-	if (_contentLength > _currentServer->getClientMaxBodySize())
-		-  error 
+
+		requestLineCheck line 178 : sends 501 if extension is not supported
+			=> blocks perl
+			=> what to do about php ?
+
+		- Error with newRoot in location : blocks in parsing
+			=> also, CGI should be inside www (not getting out of it)
+
 */
 
 int main(int ac, char **av)

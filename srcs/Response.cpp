@@ -1,4 +1,5 @@
 #include "Response.hpp"
+#include "Get.hpp"
 #include <filesystem>
 
 /*****************  CANONICAL FORM *****************/
@@ -68,6 +69,7 @@ void	Response::buildHeader( std::ifstream & file, unsigned int const & status_co
 
 }
 
+
 bool	Response::extensionCheck()
 {
 	size_t extension = getCurrentRequest()->getResource().find_last_of('.');
@@ -109,6 +111,48 @@ std::string	Response::trimSlash()
 	return buff.empty() ? "/" : buff;
 }
 
+bool	Response::checkResource()
+{
+	struct stat	buffer;
+
+	this->getCurrentRequest()->setResource(this->trimSlash());
+	if (this->getCurrentRequest()->getResource().find(this->getCurrentRequest()->getRoot()) == std::string::npos)
+		this->getCurrentRequest()->setResource(this->getCurrentRequest()->getRoot() + this->getCurrentRequest()->getResource());
+
+	if (this->getCurrentRequest()->getResource().at(0) == '/')
+		this->getCurrentRequest()->setResource(this->getCurrentRequest()->getResource().substr(1));
+
+	if (stat(this->getCurrentRequest()->getResource().c_str(), &buffer))
+	{
+		std::cout << "stat error for " << this->getCurrentRequest()->getResource() << std::endl;
+		return (responseError(404), false);
+	}
+
+	if (S_ISREG(buffer.st_mode))
+		return true;
+	if (S_ISDIR(buffer.st_mode))
+	{
+		if (this->getCurrentRequest()->getIndex() == "")
+		{
+			if ((this->getCurrentRequest()->getLocation() != NULL && this->getCurrentRequest()->getLocation()->getAutoindex())
+				|| (this->getCurrentRequest()->getLocation() == NULL && this->getCurrentRequest()->getCurrentServer()->getAutoindex()))
+				return (getAutoIndex(), false);
+			else
+				return (responseError(403), false);
+		}
+		else if (stat((this->getCurrentRequest()->getResource() + "/" + this->getCurrentRequest()->getIndex()).c_str(), &buffer))
+			return (responseError(404), false);
+		else if (S_ISREG(buffer.st_mode))
+		{
+			this->getCurrentRequest()->setResource(this->getCurrentRequest()->getResource() + "/" + this->getCurrentRequest()->getIndex());
+			return (true);
+		}
+		else
+			return false;
+	}
+	return false;
+}
+
 bool	Response::requestLineCheck( void )
 {
 	std::ifstream	file(this->getCurrentRequest()->getResource().c_str(), std::ios::binary);
@@ -119,13 +163,13 @@ bool	Response::requestLineCheck( void )
 		responseError(403);
 	else if (!file.is_open())
 		responseError(404);
-	// else if (this->getCurrentRequest()->getRequest().find("HTTP/1.1") == std::string::npos)
-	// {
-	// 	responseError(505);
-	// }
+	else if (this->getCurrentRequest()->getHTTP() != "HTTP/1.1")
+		responseError(505);
 	else if (this->getCurrentRequest()->getResource().find("/..") != std::string::npos
 		|| getCurrentRequest()->getResource().find("../") != std::string::npos)
 		responseError(403);
+	else if (!extensionCheck())
+		responseError(501);
 	else
 		return ( true );
 	return ( false );
@@ -191,7 +235,11 @@ void	Response::responseError( const uint16_t & status_code )
 	}
 	else
 		errorPageBuilder(status_code);
+}
 
+
+void	Response::getAutoIndex()
+{
 }
 
 void	Response::executeMethod()

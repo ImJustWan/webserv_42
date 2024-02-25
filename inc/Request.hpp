@@ -65,6 +65,7 @@ public:
 	std::string	const &		getResource() const;
 	std::string	const &		getMethod() const;
 	std::string	const &		getFileExt() const;
+	std::string	const &		getHTTP() const;
 	bool					getReady() const;
 	bool					getReadFinished() const;
 	bool					getSentFinished() const;
@@ -118,6 +119,7 @@ protected:
 	std::string				_host;
 	std::string				_request;
 	std::string				_method;
+	std::string				_http;
 	std::string				_resource;
 	std::string				_cgiExt;
 	std::string				_fileExt;

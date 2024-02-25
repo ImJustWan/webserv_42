@@ -24,45 +24,6 @@ Get& Get::operator=(const Get& cpy) {
 
 /*****************  CLASS METHODS *****************/
 
-bool	Get::checkResource()
-{
-	struct stat	buffer;
-
-	this->getCurrentRequest()->setResource(this->trimSlash());
-	if (this->getCurrentRequest()->getResource().find(this->getCurrentRequest()->getRoot()) == std::string::npos)
-		this->getCurrentRequest()->setResource(this->getCurrentRequest()->getRoot() + this->getCurrentRequest()->getResource());
-
-	if (this->getCurrentRequest()->getResource().at(0) == '/')
-		this->getCurrentRequest()->setResource(this->getCurrentRequest()->getResource().substr(1));
-
-	if (stat(this->getCurrentRequest()->getResource().c_str(), &buffer))
-		return (responseError(404), false);
-
-	if (S_ISREG(buffer.st_mode))
-		return true;
-	if (S_ISDIR(buffer.st_mode))
-	{
-		if (this->getCurrentRequest()->getIndex() == "")
-		{
-			if ((this->getCurrentRequest()->getLocation() != NULL && this->getCurrentRequest()->getLocation()->getAutoindex())
-				|| (this->getCurrentRequest()->getLocation() == NULL && this->getCurrentRequest()->getCurrentServer()->getAutoindex()))
-				return (getAutoIndex(), false);
-			else
-				return (responseError(403), false);
-		}
-		else if (stat((this->getCurrentRequest()->getResource() + "/" + this->getCurrentRequest()->getIndex()).c_str(), &buffer))
-			return (responseError(404), false);
-		else if (S_ISREG(buffer.st_mode))
-		{
-			this->getCurrentRequest()->setResource(this->getCurrentRequest()->getResource() + "/" + this->getCurrentRequest()->getIndex());
-			return (true);
-		}
-		else
-			return false;
-	}
-	return false;
-}
-
 std::string	getLink(std::string const &dirEntry, std::string const &dirName, std::string const &host, int port) {
 
 	std::ostringstream linkStream;

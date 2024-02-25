@@ -98,7 +98,7 @@ void	ServerHandler::createMimeMap()
 	_mimeMap[".3gp"] = "video/3gpp";
 	_mimeMap[".3g2"] = "video/3gpp2";
 	_mimeMap[".7z"] = "application/x-7z-compressed";
-	_mimeMap[".pl"] = "application/x-perl";
+	// _mimeMap[".pl"] = "application/x-perl";
 
 
 }

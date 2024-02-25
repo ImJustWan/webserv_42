@@ -24,6 +24,7 @@ public:
 	std::string				trimSlash();
 
 	virtual void			executeMethod();
+	virtual void			getAutoIndex();
 
 
 protected:
