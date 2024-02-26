@@ -61,12 +61,19 @@ void	Response::buildHeader( std::ifstream & file, unsigned int const & status_co
 	this->_header += " ";
 	this->_header +=  _status_code[status_code];
 	this->_header += "\r\n";
+	if (this->getCurrentRequest()->getLocation() && !this->getCurrentRequest()->getLocation()->getRewrite().empty())
+	{
+		this->_header += "Location: ";
+		this->_header += this->getCurrentRequest()->getLocation()->getRewrite().begin()->second;
+		this->_header += "\r\n\r\n";
+		this->getCurrentRequest()->setFinalResponse(this->_header);
+		this->getCurrentRequest()->setAsReady(true);
+		return;
+	}
 	this->_header += "Content-Length: ";
 	this->_header += file_size_str.str();
-	this->_header += "\r\n";
-	this->_header += "Connection: Keep-Alive\r\n";
-	this->_header += "\r\n";
-
+	this->_header += "\r\n\r\n";
+	// std::cout << _GOLD << "Header is : " << this->_header << _END << std::endl;
 }
 
 
@@ -147,7 +154,7 @@ bool	Response::checkResource()
 			return (responseError(404), false);
 		else if (S_ISREG(buffer.st_mode))
 		{
-			this->getCurrentRequest()->setResource(this->getCurrentRequest()->getResource() + "/" + this->getCurrentRequest()->getIndex());
+			this->getCurrentRequest()->setResource(this->getCurrentRequest()->getResource() + this->getCurrentRequest()->getIndex());
 			return (true);
 		}
 		else
