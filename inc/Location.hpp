@@ -28,7 +28,8 @@ public:
 	std::string const & getFileExt(void) const;
 	std::string const & getCgiPath(void) const;
 	bool const & getAutoindex(void) const;
-	// std::string const & getUploadPath(void) const;
+	std::string const & getUploadPath(void) const;
+	std::map<int, std::string> const & getRewrite(void) const;
 
 	/* SETTERS */
 	void setDirectory(std::vector<std::string>);
@@ -39,7 +40,8 @@ public:
 	void setFileExt(std::vector<std::string>);
 	void setCgiPath(std::vector<std::string>);
 	void setAutoindex(std::vector<std::string>);
-	// void setUploadPath(std::vector<std::string>);
+	void setUploadPath(std::vector<std::string>);
+	void setRewrite(std::vector<std::string>);
 
 	class InvalidConfig : public std::exception {
 	public:
@@ -52,6 +54,7 @@ public:
 
 private:
 
+	void BlackList(void);
 	void configurationMap(void);
 
 	Location();
@@ -79,16 +82,19 @@ private:
 	std::string		_fileExt;
 	std::string		_cgiPath;
 	Server *		_currentServer;
+	std::map<int, std::string>	_rewrite;
 
 	std::map<std::string, void(Location::*)(const std::vector<std::string>)> _configMap;
+	std::set<std::string> _blackList;
 
 };
 
 # include "Server.hpp"
 
-
 inline std::ostream & operator<<(std::ostream & o, Location const & rhs)
 {
+	std::map<int, std::string> rewrite = rhs.getRewrite();
+
 	o << _BOLD " · Locations\t\t\t" _END << rhs.getDirectory() << "\n";
 	o << _BOLD "    ◦ Root\t\t\t" _END << rhs.getRoot() << "\n";
 	o << _BOLD "    ◦ Index\t\t\t" _END << rhs.getIndex() << "\n";
@@ -96,6 +102,9 @@ inline std::ostream & operator<<(std::ostream & o, Location const & rhs)
 	o << _BOLD "    ◦ Methods\t\t\t" _END << rhs.getMethods() << "\n";
 	o << _BOLD "    ◦ File extension\t\t" _END << rhs.getFileExt() << "\n";
 	o << _BOLD "    ◦ CGI path\t\t\t" _END << rhs.getCgiPath() << std::endl;
+	o << _BOLD "    ◦ Upload Path\t\t\t" _END << rhs.getUploadPath() << "\n";
+	for (std::map<int, std::string>::iterator i = rewrite.begin(); i != rewrite.end(); ++i) 
+		o << _BOLD "    ◦ Rewrite\t\t\t" _END << i->first << " " << i->second << "\n";
 
 	return o;
 };

@@ -51,7 +51,6 @@ void Server::configurationMap(void)
 	this->_configMap["location"] = &Server::setLocations;
 	this->_configMap["error_page"] = &Server::setErrors;
 	this->_configMap["autoindex"] = &Server::setAutoindex;
-	this->_configMap["upload_path"] = &Server::setUploadPath;
 }
 
 void Server::directiveIsolation(std::string delim, std::vector<std::string> &tokens,
@@ -118,7 +117,6 @@ uint16_t const & Server::getListen(void) const { return this->_listen; }
 int const & Server::getMethods(void) const { return this->_methods; }
 std::string const & Server::getRoot(void) const { return this->_root; }
 std::string const & Server::getIndex(void) const { return this->_index; }
-std::string const & Server::getUploadPath(void) const { return this->_uploadPath; }
 bool const & Server::getAutoindex(void) const { return this->_autoindex; }
 long long int const & Server::getClientMaxBodySize(void) const { return this->_clientMaxBodySize; }
 std::vector<std::string> const & Server::getServerNames(void) const { return this->_serverNames; }
@@ -247,15 +245,6 @@ void Server::setErrors(std::vector<std::string> errors)
 	if (errors[2].rfind(".html\0") == std::string::npos)
 		throw InvalidConfig(INVALCONF "Errors page file extension");
 	this->_errors[code] = errors[2];
-}
-
-void Server::setUploadPath(std::vector<std::string> UploadPath)
-{
-	if (UploadPath.size() != 2)
-		throw InvalidConfig(INVALLOC "Upload Path Directive");
-	std::string	data;
-	data = dataExtractor<std::string>(UploadPath[1]);
-	this->_uploadPath = data;
 }
 
 /* **************** EXEC SETTERS **************** */

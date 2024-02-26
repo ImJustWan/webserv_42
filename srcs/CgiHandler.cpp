@@ -220,7 +220,6 @@ void	CgiHandler::accessChecks(std::string script, std::string interpreter)
 		throw ErrorInCGI("Access to interpreter forbidden", 403);
 }
 
-
 void	CgiHandler::watchDog(void)
 {
 	pid_t	pidTimer = ::fork();
@@ -264,7 +263,6 @@ pid_t	CgiHandler::pidWaiter(int *status)
 	}
 	return finisher;
 }
-
 
 void	CgiHandler::execCGI(void)
 {
@@ -323,7 +321,7 @@ void	CgiHandler::execChild(void)
 	if (this->_theRequest->getMethod() == "POST") {
 		if (::dup2(this->_fdPost[READ], STDIN_FILENO) < 0)
 			throw ErrorInCGI("Dup2 failed for _fdPost[READ]", 500);
-		if (write(this->_fdPost[WRITE], this->_requestBody.c_str(), this->_requestBody.size()) <= 0)
+		if (::write(this->_fdPost[WRITE], this->_requestBody.c_str(), this->_requestBody.size()) <= 0)
 			throw ErrorInCGI("write to post failled", 500);
 		if (::close(this->_fdPost[WRITE]) < 0)
 			throw ErrorInCGI("Close failed for _fdPost[WRITE]", 500);

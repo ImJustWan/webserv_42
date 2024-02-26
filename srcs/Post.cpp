@@ -36,7 +36,10 @@ void	Post::sendResponse()
 	this->_response += HTMLBODY1;
 	this->_response += HTMLBODY2;
 	this->_response += HTMLBODY3;
-	this->_response += this->getCurrentRequest()->getCurrentServer()->getUploadPath() + "/" + _filename;
+	if (this->getCurrentRequest()->getLocation() != NULL)
+		this->_response += this->getCurrentRequest()->getLocation()->getUploadPath() + "/" + _filename;
+	else
+		this->_response += this->getCurrentRequest()->getCurrentServer()->getRoot() + "/" + _filename;
 	this->_response += HTMLBODY4;
 	this->getCurrentRequest()->setFinalResponse(this->_response);
 	this->getCurrentRequest()->setAsReady(true);
@@ -76,7 +79,11 @@ bool Post::uploadFile() {
 
 	if (tmpStart != std::string::npos && dataEnd != std::string::npos) {
 		std::string imageData = this->getCurrentRequest()->getRequest().substr(dataStart);
-		this->_uploadedPath = this->getCurrentRequest()->getCurrentServer()->getUploadPath() + "/" + _filename;
+		// this->_uploadedPath = this->getCurrentRequest()->getCurrentServer()->getUploadPath() + "/" + _filename;
+		if (this->getCurrentRequest()->getLocation() != NULL)
+			this->_uploadedPath = this->getCurrentRequest()->getLocation()->getUploadPath() + "/" + _filename;
+		else
+			this->_uploadedPath = this->getCurrentRequest()->getCurrentServer()->getRoot() + "/" + _filename;
 		std::string path = this->getCurrentRequest()->getCurrentServer()->getRoot() + _uploadedPath;
 		std::ofstream newFile(path.c_str());
 		if (!newFile) {
