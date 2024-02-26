@@ -31,7 +31,7 @@
 <h1>Thanks for your participation!</h1>\n\
 <p>Your picture has been successfully uploaded.</p>\n\
 <p>Here is the file you submitted:</p>\n\n\
-<img style=\"width: 20%;\" src=\"../.."
+<img style=\"width: 50%;\" src=\"../.."
 
 # define HTMLBODY4	"\" alt=\"Uploaded File\">\n\
 <p><a href=\"../../index.html\">Back to Home</a></p>\n\
