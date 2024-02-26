@@ -119,7 +119,13 @@ void	Get::handleFile()
 			// std::cerr << "Error opening file." << std::endl;
 			return;
 		}
-		buildHeader(_file, 200);
+		if (this->getCurrentRequest()->getLocation() && !this->getCurrentRequest()->getLocation()->getRewrite().empty())
+		{
+			buildHeader(_file, this->getCurrentRequest()->getLocation()->getRewrite().begin()->first);
+		}
+
+		else
+			buildHeader(_file, 200);
 		if (this->_response.size() == 0){
 			this->_response = this->_header;
 		}

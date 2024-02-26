@@ -40,7 +40,6 @@ protected:
 	std::string		_status;
 	std::string		_response;
 
-
 private :
 
 

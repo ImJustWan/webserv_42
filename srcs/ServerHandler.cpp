@@ -115,8 +115,8 @@ void	ServerHandler::constructorExtension(std::string const & filename)
 	}
 	if (this->_servers.size() == 0)
 		throw InvalidConfFileException();
-	for (size_t i = 0; i < this->_servers.size(); ++i)
-		std::cout << *(this->_servers[i]);
+	// for (size_t i = 0; i < this->_servers.size(); ++i)
+	// 	std::cout << *(this->_servers[i]);
 }
 
 ServerHandler::~ServerHandler()

@@ -115,6 +115,9 @@ bool	Response::checkResource()
 {
 	struct stat	buffer;
 
+	if (this->getCurrentRequest()->getLocation() && !this->getCurrentRequest()->getLocation()->getRewrite().empty())
+		this->getCurrentRequest()->setResource(this->getCurrentRequest()->getLocation()->getRewrite().begin()->second);
+
 	this->getCurrentRequest()->setResource(this->trimSlash());
 	if (this->getCurrentRequest()->getResource().find(this->getCurrentRequest()->getRoot()) == std::string::npos)
 		this->getCurrentRequest()->setResource(this->getCurrentRequest()->getRoot() + this->getCurrentRequest()->getResource());
