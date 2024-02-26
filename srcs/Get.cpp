@@ -115,15 +115,10 @@ void	Get::handleFile()
 	if (!_file.is_open()) {
 		// std::cout << _FOREST_GREEN "Opening file at " << this->getCurrentRequest()->getResource() << _END << std::endl;
 		_file.open(this->getCurrentRequest()->getResource().c_str(), std::ios::binary);
-		if (!_file.is_open()) {
-			// std::cerr << "Error opening file." << std::endl;
+		if (!_file.is_open())
 			return;
-		}
 		if (this->getCurrentRequest()->getLocation() && !this->getCurrentRequest()->getLocation()->getRewrite().empty())
-		{
 			buildHeader(_file, this->getCurrentRequest()->getLocation()->getRewrite().begin()->first);
-		}
-
 		else
 			buildHeader(_file, 200);
 		if (this->_response.size() == 0){
