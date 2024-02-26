@@ -1,6 +1,7 @@
 #! /usr/bin/perl
 print "HTTP/1.1 200 OK", "\n";
-print "Content-type: text/html", "\n\n";
+print "Content-Length: 280\n";
+print "Content-Type: text/html", "\n\n";
 print "<HTML>", "\n";
 print "<HEAD><TITLE>About this Server</TITLE></HEAD>", "\n";
 print "<BODY><H1>About this Server</H1>", "\n";

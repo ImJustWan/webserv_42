@@ -1,7 +1,8 @@
 #!/usr/bin/php-cgi
 <?php
-echo "HTTP/1.1 200 OK";
-echo "Content-type: text/html\n\n";
+echo "HTTP/1.1 200 OK\n";
+echo "Content-Type: text/html\n";
+echo "Content-Length: 321\n\n";
 
 echo "<!DOCTYPE html>";
 echo "<html>";
