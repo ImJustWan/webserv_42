@@ -281,6 +281,8 @@ void	Request::setAttributes()
 				break ;
 			}
 	}
+	if (this->getCurrentServer() == NULL)
+		this->setCurrentServer(this->getServerHandler()->getServers().front());
 	setLocation();
 	setMethodsRootIndex();
 }
