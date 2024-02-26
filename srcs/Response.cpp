@@ -154,7 +154,7 @@ bool	Response::checkResource()
 			return (responseError(404), false);
 		else if (S_ISREG(buffer.st_mode))
 		{
-			this->getCurrentRequest()->setResource(this->getCurrentRequest()->getResource() + this->getCurrentRequest()->getIndex());
+			this->getCurrentRequest()->setResource(this->getCurrentRequest()->getResource() + "/" + this->getCurrentRequest()->getIndex());
 			return (true);
 		}
 		else
