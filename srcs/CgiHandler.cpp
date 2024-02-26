@@ -5,6 +5,7 @@ CgiHandler::CgiHandler(Request * theRequest) : _theRequest(theRequest)
 	std::cout << _BOLD _YELLOW "CREATE CGI" _END << " Method->" << this->_theRequest->getMethod() << std::endl;
 	this->_CgiStatus = 1;
 	try {
+		this->_time = time(NULL);
 		this->_argv = NULL;
 		this->_envp = NULL;
 		_fds[READ] = -1;
@@ -185,6 +186,7 @@ void CgiHandler::setFds(void)
 	if (_theRequest->getMethod() == "POST"){
 		if (::pipe(_fdPost) == -1)
 			throw ErrorInCGI("Post Pipe Failed", 500);
+		fcntl(_fdPost[1], F_SETFL, fcntl(_fdPost[1], F_GETFL) | O_NONBLOCK);
 	}
 	else {
 		_fdPost[READ] = -1;
@@ -192,6 +194,7 @@ void CgiHandler::setFds(void)
 	}
 	if (::pipe(_fds) == -1)
 		throw ErrorInCGI("Child Pipe Failed", 500);
+	fcntl(_fds[0], F_SETFL, fcntl(_fds[0], F_GETFL) | O_NONBLOCK);
 }
 
 void	CgiHandler::setArgv(void)
@@ -220,50 +223,6 @@ void	CgiHandler::accessChecks(std::string script, std::string interpreter)
 		throw ErrorInCGI("Access to interpreter forbidden", 403);
 }
 
-void	CgiHandler::watchDog(void)
-{
-	pid_t	pidTimer = ::fork();
-	if (pidTimer == -1)
-		throw ErrorInCGI("Timer Fork Failed", 500);
-	if (pidTimer == 0){
-		sleep(TIMEOUT/2);
-		throw QuitProg();
-	}
-
-	pid_t	pidWorker = ::fork();
-	if (pidWorker == -1)
-		throw ErrorInCGI("Child Fork failed", 500);
-	if (pidWorker == 0)
-		execChild();
-	
-	int		status = 0;
-	pid_t	firstFinisher = pidWaiter(&status);
-	if (firstFinisher == pidTimer)
-	{
-		::kill(pidWorker, SIGKILL);
-		throw ErrorInCGI("Child TimedOut", 504);
-	}
-	else if (firstFinisher == pidWorker){
-		std::cout << _EMERALD "Child Executed normally" _END << std::endl;
-		::kill(pidTimer, SIGKILL);
-	}
-	pidWaiter(&status);
-}
-
-pid_t	CgiHandler::pidWaiter(int *status)
-{
-	pid_t	finisher = 0;
-	while(( finisher = waitpid(WAIT_ANY, status, 0)) == -1) {
-		if (errno == EINTR)
-			continue;
-		else{
-			perror("Waitpid");
-			std::abort();
-		}
-	}
-	return finisher;
-}
-
 void	CgiHandler::execCGI(void)
 {
 	try {
@@ -273,7 +232,11 @@ void	CgiHandler::execCGI(void)
 			return;
 		}
 		if (this->_CgiStatus == 2) {
-			watchDog();
+			this->_pid = ::fork();
+			if (this->_pid == -1)
+				throw ErrorInCGI("Child Fork failed", 500);
+			if (this->_pid == 0)
+				execChild();
 			this->_CgiStatus = 3;
 			return ;
 		}
@@ -288,27 +251,38 @@ void	CgiHandler::execCGI(void)
 
 void	CgiHandler::execParent(void)
 {
-	char *buffer = new char[READ_BUFFER_SIZE];
-	int size = ::read(_fds[READ], buffer, READ_BUFFER_SIZE);
-	if (size < 0)
-	{
-		delete [] buffer;
-		if (::close(_fds[READ]) < 0|| ::close(_fds[WRITE]) < 0)
-			throw ErrorInCGI("Close failed for _fds", 500);
-		throw ErrorInCGI("Reading buffer", 500);
+	int		status;
+	pid_t	finisher;
+	if (time(NULL) - this->_time < 2) {
+		finisher = waitpid(this->_pid, &status, WNOHANG);
+		if (finisher == this->_pid){
+			char *buffer = new char[READ_BUFFER_SIZE];
+			int size = ::read(_fds[READ], buffer, READ_BUFFER_SIZE);
+			if (size < 0)
+			{
+				delete [] buffer;
+				if (::close(_fds[READ]) < 0|| ::close(_fds[WRITE]) < 0)
+					throw ErrorInCGI("Close failed for _fds", 500);
+				throw ErrorInCGI("Reading buffer", 500);
+			}
+			if (size == 0)
+			{
+				if (::close(_fds[READ]) < 0|| ::close(_fds[WRITE]) < 0)
+					throw ErrorInCGI("Close failed for _fds", 500);
+			}
+			else
+			{
+				buffer[size] = '\0';
+				this->_response = buffer;
+			}
+			this->_CgiStatus = 4;
+			delete [] buffer;
+		}
 	}
-	if (size == 0)
-	{
-		if (::close(_fds[READ]) < 0|| ::close(_fds[WRITE]) < 0)
-			throw ErrorInCGI("Close failed for _fds", 500);
+	else {
+		kill(this->_pid, SIGKILL);
+		throw ErrorInCGI("Child TimedOut", 504);
 	}
-	else
-	{
-		buffer[size] = '\0';
-		this->_response = buffer;
-	}
-	this->_CgiStatus = 4;
-	delete [] buffer;
 }
 
 void	CgiHandler::execChild(void)
@@ -331,8 +305,16 @@ void	CgiHandler::execChild(void)
 	throw ErrorInCGI("Execve Failed", 500);
 }
 
-void	CgiHandler::createCgiHeader(void) {
-	_response = "HTTP/1.1 200 OK\r\nContent-type: text/html\r\n\r\n" + _response;
+void	CgiHandler::createCgiHeader(void)
+{
+	std::string response = _response;
+	std::ostringstream file_size_str;
+	file_size_str << _response.size();
+	std::string tmp = file_size_str.str();
+
+	_response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n";
+	_response += "Content-Length: " + tmp + "\r\n\r\n";
+	_response += response;
 }
 
 void	CgiHandler::checkCgiHeader(void)
@@ -348,12 +330,13 @@ void	CgiHandler::checkCgiHeader(void)
 	}
 
 	std::string header = _response.substr(0, emptyLinePos);
-	if (header.find("HTTP/1.1 200") != std::string::npos && header.find("Content-type: text/html") != std::string::npos)
+	if (header.find("HTTP/1.1") != std::string::npos
+		&& header.find("Content-Type:") != std::string::npos
+		&& header.find("Content-Length:") != std::string::npos)
 		return;
 	else
 		createCgiHeader();
 }
-
 
 void	CgiHandler::sendResponse(void)
 {

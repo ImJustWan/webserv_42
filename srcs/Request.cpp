@@ -483,7 +483,6 @@ void	Request::determinism()
 				this->_lastEvent = 0; // will delete client/socket in main loop
 			}
 			_socketState = READ_STATE;
-			_readBytes = 0;
 			_request = "";
 		}
 	}

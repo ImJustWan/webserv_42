@@ -107,6 +107,7 @@ private:
 	Server(const Server& src);
 	Server& operator=(const Server& cpy);
 
+	void BlackList(void);
 	void configurationMap(void);
 	void directiveIsolation(std::string delim, std::vector<std::string> &tokens,
 		std::map<std::string, void (Server::*)(std::vector<std::string>)>::iterator configIt,
@@ -140,6 +141,7 @@ private:
 	std::map<uint16_t, std::string>		_errors;
 
 	std::map<std::string, void(Server::*)(const std::vector<std::string>)> _configMap;
+	std::set<std::string> _blackList;
 
 	ServerHandler				*_currentServerHandler;
 	int							_epfd;

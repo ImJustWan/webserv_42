@@ -3,8 +3,8 @@
 void Location::configurationMap(void)
 {
 	this->_configMap["location"] = &Location::setDirectory;
-	this->_configMap["root"] = &Location::setRoot;
 	this->_configMap["methods"] = &Location::setMethods;
+	this->_configMap["root"] = &Location::setRoot;
 	this->_configMap["index"] = &Location::setIndex;
 	this->_configMap["file_ext"] = &Location::setFileExt;
 	this->_configMap["cgi_path"] = &Location::setCgiPath;
@@ -97,7 +97,10 @@ void Location::setDirectory(std::vector<std::string> location) {
 
 }
 
-void Location::setRoot(std::vector<std::string> root) {
+void Location::setRoot(std::vector<std::string> root)
+{
+	if (this->_root.empty() == false)
+		throw InvalidConfig(INVALLOC "Duplicate Root Directive");
 	std::string	data;
 	data = dataExtractor<std::string>(root[1]);
 	this->_root = data;
@@ -121,14 +124,19 @@ void Location::setMethods(std::vector<std::string> methods) {
 	}
 }
 
-void Location::setMethods(int methods) {
-	
+void Location::setMethods(int methods)
+{
+	if (this->_methods != 0)
+		throw InvalidConfig(INVALCONF "Duplicate method");
 	if (methods < 0 || methods > 7)
 		throw InvalidConfig(INVALCONF "Unknown method");
 	this->_methods = methods;
 }
 
-void Location::setIndex(std::vector<std::string> index) {
+void Location::setIndex(std::vector<std::string> index)
+{
+	if (this->_index.empty() == false)
+		throw InvalidConfig(INVALLOC "Duplicate Index Directive");
 	std::string	data;
 	data = dataExtractor<std::string>(index[1]);
 	if (data.rfind(".html\0") == std::string::npos)
@@ -136,13 +144,19 @@ void Location::setIndex(std::vector<std::string> index) {
 	this->_index = data;
 }
 
-void Location::setFileExt(std::vector<std::string> fileExt) {
+void Location::setFileExt(std::vector<std::string> fileExt)
+{
+	if (this->_fileExt.empty() == false)
+		throw InvalidConfig(INVALLOC "Duplicate FileExt Directive");
 	if (fileExt.size() != 2)
 		throw InvalidConfig(INVALLOC "File Extension Directive");
 	this->_fileExt = fileExt[1];
 }
 
-void Location::setCgiPath(std::vector<std::string> cgiPath) {
+void Location::setCgiPath(std::vector<std::string> cgiPath)
+{
+	if (this->_cgiPath.empty() == false)
+		throw InvalidConfig(INVALLOC "Duplicate CGI path Directive");
 	if (cgiPath.size() != 2)
 		throw InvalidConfig(INVALLOC "CGI Directive");
 	this->_cgiPath = cgiPath[1];
@@ -159,6 +173,8 @@ void Location::setAutoindex(std::vector<std::string> autoindex) {
 
 void Location::setUploadPath(std::vector<std::string> UploadPath)
 {
+	if (this->_uploadPath.empty() == false)
+		throw InvalidConfig(INVALLOC "Duplicate upload path Directive");
 	if (UploadPath.size() != 2)
 		throw InvalidConfig(INVALLOC "Upload Path Directive");
 	std::string	data;
@@ -168,6 +184,8 @@ void Location::setUploadPath(std::vector<std::string> UploadPath)
 
 void Location::setRewrite(std::vector<std::string> rewrite)
 {
+	if (this->_rewrite.empty() == false)
+		throw InvalidConfig(INVALLOC "Duplicate rewrite Directive");
 	if (rewrite.size() != 3)
 		throw InvalidConfig(INVALLOC "Rewrite Directive");
 	int error_code;

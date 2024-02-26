@@ -49,8 +49,6 @@ private:
 	std::string	envContentLen(void);
 	std::string	envContentType(void);
 	void		childKiller(void);
-	void		watchDog(void);
-	pid_t		pidWaiter(int *status);
 
 	std::string	retrieveServerName(std::string request);
 	std::string	retrieveScriptName(std::string request);
@@ -69,6 +67,8 @@ private:
 
 	int				_fds[2];
 	int				_fdPost[2];
+	pid_t			_pid;
+	long long int	_time;
 	std::map<std::string, std::string> _envMap;
 	char			**_envp;
 	char			**_argv;

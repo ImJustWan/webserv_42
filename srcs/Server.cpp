@@ -5,9 +5,16 @@
 
 Server::Server(std::vector<std::string> &tokens, int id) : _serverID(id), _listen(0), _autoindex(true), _methods(0), _clientMaxBodySize(1000000), _master_socket(-1),_request_index(0)
 {
+	BlackList();
 	configurationMap();
 	for (std::vector<std::string>::iterator i = tokens.begin(); i != tokens.end(); ++i) {
 		std::map<std::string, void (Server::*)(std::vector<std::string>)>::iterator configIt = this->_configMap.find(*i);
+		std::set<std::string>::iterator isBlackListed = this->_blackList.find(*i);
+		if (isBlackListed != this->_blackList.end())
+		{
+			std::cout << *isBlackListed << std::endl;
+			throw InvalidConfig(INVALCONF "Black listed member in Server");
+		}
 		if (configIt != this->_configMap.end() && configIt->first == "location")
 		{
 			directiveIsolation("}", tokens, configIt, i);
@@ -51,6 +58,14 @@ void Server::configurationMap(void)
 	this->_configMap["location"] = &Server::setLocations;
 	this->_configMap["error_page"] = &Server::setErrors;
 	this->_configMap["autoindex"] = &Server::setAutoindex;
+}
+
+void Server::BlackList(void)
+{
+	this->_blackList.insert("file_ext");
+	this->_blackList.insert("cgi_path");
+	this->_blackList.insert("upload_path");
+	this->_blackList.insert("rewrite");
 }
 
 void Server::directiveIsolation(std::string delim, std::vector<std::string> &tokens,
@@ -136,6 +151,8 @@ Request * Server::getRequest(int index) { if (index <= this->_request_index) ret
 
 void Server::setListen(std::vector<std::string> listen)
 {
+	if (this->_listen != 0)
+		throw InvalidConfig(INVALCONF "Duplicate Listen Directive");
 	uint16_t	data;
 	data = dataExtractor<uint16_t>(listen[1]);
 	if (data < 8000 || data > 8999)
@@ -145,6 +162,8 @@ void Server::setListen(std::vector<std::string> listen)
 
 void Server::setMethods(std::vector<std::string> methods)
 {
+	if (this->_methods != 0)
+		throw InvalidConfig(INVALCONF "Duplicate method");
 	std::string methodsID[5] = {"", "GET", "POST", "", "DELETE"};
 	for(std::vector<std::string>::iterator i = methods.begin() + 1; i!= methods.end(); ++i)
 	{
@@ -161,6 +180,8 @@ void Server::setMethods(std::vector<std::string> methods)
 
 void Server::setRoot(std::vector<std::string> root)
 {
+	if (this->_root.empty() == false)
+		throw InvalidConfig(INVALCONF "Duplicate Root Directive");
 	std::string	data;
 	data = dataExtractor<std::string>(root[1]);
 	std::ifstream test(data.c_str());
@@ -172,6 +193,8 @@ void Server::setRoot(std::vector<std::string> root)
 
 void Server::setIndex(std::vector<std::string> index)
 {
+	if (this->_index.empty() == false)
+		throw InvalidConfig(INVALCONF "Duplicate Index Directive");
 	std::string	data;
 	data = dataExtractor<std::string>(index[1]);
 	if (data.rfind(".html\0") == std::string::npos)
@@ -192,7 +215,6 @@ void Server::setAutoindex(std::vector<std::string> autoindex)
 
 void Server::setClientMaxBodySize(std::vector<std::string> clientMaxBodySize)
 {
-
 	long long unsigned int	data;
 	data = dataExtractor<long long unsigned int>(clientMaxBodySize[1]);
 	if (data > 10000000000)
@@ -202,7 +224,6 @@ void Server::setClientMaxBodySize(std::vector<std::string> clientMaxBodySize)
 
 void Server::setServerNames(std::vector<std::string> serverNames)
 {
-
 	size_t	size = serverNames.size() - 1;
 	if (size == 0)
 		throw InvalidConfig(INVALCONF "Server Name Directive");
