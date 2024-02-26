@@ -63,7 +63,7 @@ std::string	CgiHandler::retrieveServerName(std::string request)
 
 	begin = request.find("Host: ");
 	if (begin != std::string::npos){
-		server_name = request.substr(begin + 16, std::string::npos);
+		server_name = request.substr(begin + 6, std::string::npos);
 		end = server_name.find(":");
 		if (end != std::string::npos)
 			server_name = server_name.substr(0, end);
