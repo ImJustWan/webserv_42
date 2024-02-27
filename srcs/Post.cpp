@@ -73,10 +73,20 @@ bool Post::uploadFile() {
 	
 	dataStart = this->getCurrentRequest()->getRequest().find("\r\n\r\n", tmpStart) + 4;
 	
-	size_t filenameStart = this->getCurrentRequest()->getRequest().find("filename=\"") + 10;
-	size_t filenameEnd = this->getCurrentRequest()->getRequest().find("\"", filenameStart);
-	_filename = this->getCurrentRequest()->getRequest().substr(filenameStart, filenameEnd - filenameStart);
-
+	size_t filenameStart = this->getCurrentRequest()->getRequest().find("filename=\"");// + 10;
+	if (filenameStart == std::string::npos){
+		std::cout << _boundary << std::endl;
+		srand(time(NULL));
+		int rnd = rand();
+		std::stringstream	filename;
+		filename << rnd;
+		_filename = filename.str();
+	}
+	else {
+		filenameStart += 10;
+		size_t filenameEnd = this->getCurrentRequest()->getRequest().find("\"", filenameStart);
+		_filename = this->getCurrentRequest()->getRequest().substr(filenameStart, filenameEnd - filenameStart);
+	}
 	if (tmpStart != std::string::npos && dataEnd != std::string::npos) {
 		std::string imageData = this->getCurrentRequest()->getRequest().substr(dataStart);
 		// this->_uploadedPath = this->getCurrentRequest()->getCurrentServer()->getUploadPath() + "/" + _filename;

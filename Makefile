@@ -67,6 +67,8 @@ all : $(NAME)
 
 clean :
 		rm -rf $(OBJ_PATH)
+		rm -rf ./www/uploads/*
+		cp www/images/png/saved/* www/images/png/delete/
 
 fclean : clean
 		rm -rf $(NAME)

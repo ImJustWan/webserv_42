@@ -28,9 +28,6 @@ def calculate_compatibility(name1, name2):
 
 def main():
 
-	print("HTTP/1.1 200 OK")
-	print("Content-type: text/html\n")
-
 	form = cgi.FieldStorage()
 	name1 = form.getvalue("nameOne", "")
 	name2 = form.getvalue("nameTwo", "")
