@@ -20,6 +20,7 @@ Request::Request() :
 	_resource(""),
 	_cgiExt(""),
 	_readBytes(0),
+	_chunked(false),
 	_readFinished(false),
 	_sentFinished(false),
 	_responseReady(true),
@@ -81,6 +82,7 @@ int const &	Request::getListen(void) const { return (this->_listen); }
 bool		Request::getReady(void) const { return (this->_responseReady); }
 bool		Request::getReadFinished(void) const { return (this->_readFinished); }
 bool		Request::getSentFinished(void) const { return (this->_sentFinished); }
+bool		Request::getChunked(void) const { return (this->_chunked); }
 std::string	const & Request::getRequest(void) const { return (this->_request); }
 std::string	const & Request::getMethod(void) const { return (this->_method); }
 std::string const & Request::getResource(void) const { return ( this->_resource ); }
@@ -169,11 +171,31 @@ void	Request::setLocation()
 	this->setLocation(NULL);
 }
 
+void Request::handleHeader() {
+	size_t headerEnd = _request.find("\r\n\r\n");
+	if (headerEnd != std::string::npos)
+	{
+		if ( _request.find("POST") == std::string::npos)
+			_readFinished = true;
+		else
+		{
+			_readFinished = false;
+			size_t found = _request.find("Content-Length:");
+			if (found != std::string::npos)
+				_contentLength = findContentLength(found + 1 + std::strlen("Content-Length:"));
+			else
+				_chunked = true;
+		}
+	}
+}
+
+
 void Request::setRequest() {
 	char buffer[READ_BUFFER_SIZE] = "";
 
 	_readBytes = recv(this->_event_socket, buffer, sizeof(buffer) - 1, 0);
 	
+	std::string tmp = buffer;
 	if (_readBytes == -1) // if 0, handled in determinism
 	{
 		this->_lastEvent = 0; // will delete client/socket in main loop
@@ -184,12 +206,7 @@ void Request::setRequest() {
 	_readLength += _readBytes;
 
 	size_t headerEnd = _request.find("\r\n\r\n");
-	if (headerEnd != std::string::npos)
-		_readFinished = true;
-
-	size_t found = _request.find("Content-Length:");
-	_contentLength = (found != std::string::npos) ? findContentLength(found + 1 + std::strlen("Content-Length:")) : _readBytes;
-	
+	handleHeader();
 	if (_readLength < _contentLength)
 		_readFinished = false;
 	else
@@ -198,17 +215,21 @@ void Request::setRequest() {
 			_readFinished = true;
 		_readLength = 0;
 	}
+
+	if (_chunked == true)
+		_readFinished = false;
+	if (_chunked == true && _request.find("\r\n0\r\n\r\n") != std::string::npos)
+		_readFinished = true;
 }
+
 
 void	Request::setMethodsRootIndex()
 {
 
 	if (this->getLocation() != NULL)
 		this->setMethods(this->getLocation()->getMethods());
-	else if (this->getCurrentServer() != NULL)
-		this->setMethods(this->getCurrentServer()->getMethods());
 	else
-		this->setMethods(0);
+		this->setMethods(this->getCurrentServer()->getMethods());
 
 	if (this->getLocation() != NULL && this->getLocation()->getRoot() != "")
 		this->setRoot(this->getLocation()->getRoot());
@@ -470,7 +491,6 @@ void	Request::determinism()
 			if (_sentFinished == false)
 				_socketState = WRITE_STATE;
 			// std::cout << _LILAC "Sent finished : " << _sentFinished << std::endl;
-			// std::cout << "Response ready : " << _responseReady << _END << std::endl;
 		}
 
 		if (_responseReady == true)

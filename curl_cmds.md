@@ -19,6 +19,9 @@ Tests if the server blocks requests that exceed the client body sze limit - set 
 + Same as previous request for Client_Max_Body_size
 `curl -X POST -H "Content-Type: plain/text" --data "BODY IS HERE write something shorter or longer than body limit" localhost:8080`
 
++ Sending chunked request to Webslayyy
+`curl localhost:8080 -H "Transfer-Encoding: chunked" -d @www/Way_of_Kings.jpg`
+
 ## Tests DELETE request on a server/location that accepts DELETE requests and on another server/location that doesn't
 + Server/location that accepts DELETE requests
 `curl -X DELETE -H "Content-Type: plain/text" localhost:8080/images/png/delete/2.png`

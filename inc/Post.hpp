@@ -26,8 +26,9 @@ private:
 
 	void		startUpload();
 	bool		uploadFile();
+	bool		uploadChunkedFile();
 	void		buildHeader();
-	void		sendResponse();
+	void		buildResponse();
 	void		extractBoundary();
 
 };

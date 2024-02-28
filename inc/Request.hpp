@@ -67,6 +67,7 @@ public:
 	bool					getReady() const;
 	bool					getReadFinished() const;
 	bool					getSentFinished() const;
+	bool					getChunked() const;
 
 	/* SETTERS */
 	void					setServerHandler( ServerHandler *serverHandler );
@@ -127,6 +128,7 @@ protected:
 	int						_methods;
 
 	int						_readBytes;
+	bool					_chunked;
 	bool					_readFinished;
 	bool					_sentFinished;
 	bool					_responseReady;
@@ -141,6 +143,8 @@ private :
 	void					setLocation();
 	void					setMethodsRootIndex();
 	void					changeSocketState();
+
+	void					handleHeader();
 
 	bool					isCGI(std::string const & resource);
 	size_t					findContentLength(size_t const & found ) const;
