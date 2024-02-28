@@ -23,23 +23,14 @@ Post& Post::operator=(const Post& cpy) {
 
 /*****************  CLASS METHODS *****************/
 
-void	Post::buildHeader()
-{
-	this->_header = "HTTP/1.1 ";
-	this->_header += "202 Accepted\r\n\r\n";
-}
 
 void	Post::buildResponse()
 {
-	this->buildHeader();
-	this->_response = this->_header;
+	this->_response = "HTTP/1.1 201 Created\r\n\r\n";
 	this->_response += HTMLBODY1;
 	this->_response += HTMLBODY2;
 	this->_response += HTMLBODY3;
-	if (this->getCurrentRequest()->getLocation() != NULL)
-		this->_response += this->getCurrentRequest()->getLocation()->getUploadPath() + "/" + _filename;
-	else
-		this->_response += this->getCurrentRequest()->getCurrentServer()->getRoot() + "/" + _filename;
+	this->_response += _uploadedPath;
 	this->_response += HTMLBODY4;
 	this->getCurrentRequest()->setFinalResponse(this->_response);
 	this->getCurrentRequest()->setAsReady(true);
@@ -52,36 +43,21 @@ void Post::extractBoundary() {
 	std::string boundaryStart = "boundary=";
 
 	size_t boundaryPos = this->getCurrentRequest()->getRequest().find(boundaryStart);
-	if (boundaryPos == std::string::npos) {
-		std::cerr << "Error: Could not find boundary." << std::endl;
+	if (boundaryPos == std::string::npos)
 		return;
-	}
 	size_t boundaryEnd = this->getCurrentRequest()->getRequest().find("\r\n", boundaryPos);
 
+	if (boundaryEnd == std::string::npos)
+		return;
 	boundaryPos += boundaryStart.length();
 	_boundary = this->getCurrentRequest()->getRequest().substr(boundaryPos, boundaryEnd - boundaryPos);
 }
 
 bool Post::uploadChunkedFile() {
 
-	// CREATE PATH FOR UPLOAD
-	if (this->getCurrentRequest()->getLocation() != NULL)
-			this->_uploadedPath = this->getCurrentRequest()->getLocation()->getUploadPath() + "/" + _filename;
-		else
-			this->_uploadedPath = this->getCurrentRequest()->getCurrentServer()->getRoot() + "/" + _filename;
-	std::string path = this->getCurrentRequest()->getCurrentServer()->getRoot() + _uploadedPath;
-	
+	std::cout << _FOREST_GREEN "Uploaded POST request is chunked"  _END << std::endl;
 
-	// CREATE FILE
-	std::ofstream newFile(path.c_str());
-	if (!newFile) {
-		std::cerr << "Error: Could not create file" << std::endl;
-		responseError(500);
-		return false;
-	}
-
-	// Final string to write in file
-	std::string rawFileData = "";
+	_rawFileData = "";
 
 	// Remove Header
 	size_t hexStart = this->getCurrentRequest()->getRequest().find("\r\n\r\n") + 4;
@@ -96,7 +72,7 @@ bool Post::uploadChunkedFile() {
 	hexStart++;
 
 	// Append first chunk
-	rawFileData.append(this->getCurrentRequest()->getRequest().substr(hexStart + 5, hexSize));
+	_rawFileData.append(this->getCurrentRequest()->getRequest().substr(hexStart + 5, hexSize));
 
 	// LOOP : append each chunk until end of file / empty chunk
 	while (hexSize > 0 && hexEnd < this->getCurrentRequest()->getRequest().size()) {
@@ -106,30 +82,68 @@ bool Post::uploadChunkedFile() {
 			break;
 		hexStream.str(this->getCurrentRequest()->getRequest().substr(hexStart, hexEnd - hexStart));
 		hexStream >> std::hex >> hexSize;
-		rawFileData.append(this->getCurrentRequest()->getRequest().substr(hexEnd , hexSize));
+		_rawFileData.append(this->getCurrentRequest()->getRequest().substr(hexEnd , hexSize));
 	}
 
-	// Remove last(empty) chunk / eof
-	size_t dataEnd = rawFileData.rfind("0\r\n\r\n");
+	size_t dataEnd = _rawFileData.rfind("0\r\n\r\n");
 	if (dataEnd != std::string::npos)
-		rawFileData = rawFileData.substr(0, dataEnd);
+		_rawFileData = _rawFileData.substr(0, dataEnd);
+	return true;
+}
 
-	// Check if file is too big
-	if (static_cast<long long int>(rawFileData.size()) > this->getCurrentRequest()->getCurrentServer()->getClientMaxBodySize()) {
-		std::cerr << "Error: File too big" << std::endl;
+bool	Post::uploadBoundedFile()
+{
+	std::cout << _FOREST_GREEN "Uploaded POST request is bounded"  _END << std::endl;
+
+	size_t dataStart = this->getCurrentRequest()->getRequest().find(_boundary);
+	if (dataStart == std::string::npos) {
+		std::cerr << "Error: Could not find file's content" << std::endl;
+		return false; // ERROR ??
+	}
+	size_t tmpStart = this->getCurrentRequest()->getRequest().find("\r\n\r\n", dataStart + _boundary.size()) + 4;
+	size_t dataEnd = this->getCurrentRequest()->getRequest().rfind(_boundary);
+	
+	// Remove Header
+	dataStart = this->getCurrentRequest()->getRequest().find("\r\n\r\n", tmpStart) + 4;
+	
+	if (tmpStart != std::string::npos && dataEnd != std::string::npos) 
+		_rawFileData = this->getCurrentRequest()->getRequest().substr(dataStart);
+	else {
+		std::cerr << "Error: Could not find file's content" << std::endl;
+		return false; // ERROR ??
+	}
+	return true;
+}
+
+
+bool	Post::createUploadFile()
+{
+	if (static_cast<long long int>(_rawFileData.size()) > this->getCurrentRequest()->getCurrentServer()->getClientMaxBodySize())
 		return (responseError(413), false);
+	std::ofstream newFile(_fullPath.c_str());
+	if (!newFile) {
+		std::cerr << "Error: Could not create Upload File" << std::endl;
+		return (responseError(500), false);
 	}
 
 	// Write to final file and close
-	newFile.write(rawFileData.c_str(), rawFileData.size());
+	newFile.write(_rawFileData.c_str(), _rawFileData.size());
 	newFile.close();
 	return true;
 }
 
-bool Post::uploadFile() {
 
+void	Post::createUploadPath()
+{
+	if (this->getCurrentRequest()->getLocation() != NULL)
+		this->_uploadedPath = this->getCurrentRequest()->getLocation()->getUploadPath() + "/" + _filename;
+	else
+		this->_uploadedPath = this->getCurrentRequest()->getCurrentServer()->getRoot() + "/" + _filename;
+	_fullPath = this->getCurrentRequest()->getCurrentServer()->getRoot() + _uploadedPath;
+}
 
-	// GET FILENAME
+void	Post::createFilename()
+{
 	size_t filenameStart = this->getCurrentRequest()->getRequest().find("filename=\"");// + 10;
 	if (filenameStart == std::string::npos){
 		srand(time(NULL));
@@ -143,54 +157,30 @@ bool Post::uploadFile() {
 		size_t filenameEnd = this->getCurrentRequest()->getRequest().find("\"", filenameStart);
 		_filename = this->getCurrentRequest()->getRequest().substr(filenameStart, filenameEnd - filenameStart);
 	}
-	// std::cout << _PINK << "Filename: " << _filename << _END << std::endl;
+}
 
-	// GET BOUNDARY
+
+bool Post::uploadFile() {
+
+	createFilename();
+
 	extractBoundary();
 
-	// GET FILE DATA through boundary OR chunked
+	// GET CHUNKED FILE DATA
 	if (_boundary.empty()) {
-		std::cerr << "Error: Could not extract boundary." << std::endl;
 		if (this->getCurrentRequest()->getChunked() == true)
 			if (uploadChunkedFile())
 				return true;
 		return false;
 	}
 
-	// GET FILE DATA through boundary --> uploadBoundedFile()
-	size_t dataStart = this->getCurrentRequest()->getRequest().find(_boundary);
-	size_t tmpStart = this->getCurrentRequest()->getRequest().find("\r\n\r\n", dataStart + _boundary.size()) + 4;
-	size_t dataEnd = this->getCurrentRequest()->getRequest().rfind(_boundary);
-	
-	// Remove Header
-	dataStart = this->getCurrentRequest()->getRequest().find("\r\n\r\n", tmpStart) + 4;
-	
-	if (tmpStart != std::string::npos && dataEnd != std::string::npos) {
-		std::string imageData = this->getCurrentRequest()->getRequest().substr(dataStart);
-		// CREATE PATH FOR UPLOAD
-		if (this->getCurrentRequest()->getLocation() != NULL)
-			this->_uploadedPath = this->getCurrentRequest()->getLocation()->getUploadPath() + "/" + _filename;
-		else
-			this->_uploadedPath = this->getCurrentRequest()->getCurrentServer()->getRoot() + "/" + _filename;
-		std::string path = this->getCurrentRequest()->getCurrentServer()->getRoot() + _uploadedPath;
-		
-		// CREATE FILE
-		std::ofstream newFile(path.c_str());
-		if (!newFile) {
-			std::cerr << "Error: Could not create file" << std::endl;
-			responseError(500);
-			return false;
-		}
-	
-		// !!! Check if file is too big
+	// GET BOUNDED FILE DATA
+	if (uploadBoundedFile() == false)
+		return false;
 
-		// Write to final file and close
-		newFile.write(imageData.c_str(), imageData.size());
-		newFile.close();
-	}
-	else {
-		std::cerr << "Error: Could not find file's content" << std::endl;
-	}
+	createUploadPath();
+	if (createUploadFile() == false)
+		return false;
 	return true;
 }
 
@@ -200,4 +190,5 @@ void	Post::executeMethod()
 
 	if (uploadFile())
 		this->buildResponse();
+	// else ? error 
 }

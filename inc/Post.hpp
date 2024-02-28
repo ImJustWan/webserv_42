@@ -21,14 +21,21 @@ private:
 
 	std::string	_filename;
 	std::string	_uploadedPath;
+	std::string	_fullPath;
 	std::string	_boundary;
-	std::string	_data;
+	std::string	_rawFileData;
 
 	void		startUpload();
 	bool		uploadFile();
-	bool		uploadChunkedFile();
 	void		buildHeader();
 	void		buildResponse();
 	void		extractBoundary();
+
+	bool		uploadChunkedFile();
+	bool		uploadBoundedFile();
+
+	void		createFilename();
+	bool		createUploadFile();
+	void		createUploadPath();
 
 };
