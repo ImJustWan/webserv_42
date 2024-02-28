@@ -446,6 +446,34 @@ void	Request::changeSocketState()
 	}
 }
 
+void	Request::HandleCGI()
+{
+	if (this->_currentCGI == NULL){
+		_responseReady = false;
+		_currentCGI = new CgiHandler(this);
+		_socketState = WRITE_STATE;
+	}
+	else {
+		if (_responseReady == false && _currentCGI->getCgiStatus() == 4) {
+			_socketState = READ_STATE;
+			_currentCGI->sendResponse();
+			_responseReady = true;
+		}
+		else
+		{
+			if (_currentCGI->getCgiStatus() < 4) {
+				_currentCGI->execCGI();
+				_socketState = WRITE_STATE;
+			}
+			else if (_currentCGI->getCgiStatus() == 4) {
+				_responseReady = false;
+			}
+			if (_currentCGI->getCgiStatus() == 5)
+				_responseReady = true;
+		}
+	}
+}
+
 
 void	Request::determinism()
 {
@@ -465,30 +493,7 @@ void	Request::determinism()
 	{
 		std::cout << _AQUAMARINE "EPOLLOUT on baby_socket " << this->_event_socket << _END << std::endl;
 		if ( isCGI( this->getResource()) ) {
-			if (this->_currentCGI == NULL){
-				_responseReady = false;
-				_currentCGI = new CgiHandler(this);
-				_socketState = WRITE_STATE;
-			}
-			else {
-				if (_responseReady == false && _currentCGI->getCgiStatus() == 4) {
-					_socketState = READ_STATE;
-					_currentCGI->sendResponse();
-					_responseReady = true;
-				}
-				else
-				{
-					if (_currentCGI->getCgiStatus() < 4) {
-						_currentCGI->execCGI();
-						_socketState = WRITE_STATE;
-					}
-					else if (_currentCGI->getCgiStatus() == 4) {
-						_responseReady = false;
-					}
-					if (_currentCGI->getCgiStatus() == 5)
-						_responseReady = true;
-				}
-			}
+			HandleCGI();
 		}
 		else
 		{

@@ -145,6 +145,7 @@ private :
 	void					changeSocketState();
 
 	void					handleHeader();
+	void					HandleCGI();
 
 	bool					isCGI(std::string const & resource);
 	size_t					findContentLength(size_t const & found ) const;
