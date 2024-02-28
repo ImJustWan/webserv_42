@@ -363,6 +363,13 @@ void	Request::buildResponse()
 
 	for ( int i = 0; i < N_METHODS; i++ ) {
 		if ( _method == map_methods[i].s_method ) {
+			if (_method == "POST" && this->getLocation() && this->getLocation()->getUploadPath().empty() == true)
+			{
+				_currentResponse = new Response;
+				_currentResponse->setCurrentRequest(this);
+				_currentResponse->responseError(501);
+				break ;
+			}
 			if ( !(map_methods[i].method & _methods))
 			{
 				_currentResponse = new Response;
