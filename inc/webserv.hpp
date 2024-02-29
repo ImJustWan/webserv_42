@@ -20,3 +20,7 @@
 # include "ServerHandler.hpp"
 # include "Server.hpp"
 # include "Location.hpp"
+
+std::string	Timestamp( void );
+std::string	TimestampDetailed( void );
+void		logRequest(std::string request, std::string logpath, int error_code);

@@ -220,6 +220,8 @@ void	Response::responseError( const uint16_t & status_code )
 	std::cout << _RED _BOLD "Response Error for : " << status_code <<  _END << std::endl;
 	std::map<uint16_t, std::string>::const_iterator it = this->getCurrentRequest()->getCurrentServer()->getErrors().find(status_code);
 
+	logRequest(this->getCurrentRequest()->getRequest(), this->getCurrentRequest()->getServerHandler()->getErrorLogFile(), static_cast<int>(status_code));
+
 	if (it != this->getCurrentRequest()->getCurrentServer()->getErrors().end())
 	{
 		char			buffer[4096];

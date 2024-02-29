@@ -484,6 +484,7 @@ void	Request::determinism()
 		std::cout << _CYAN "EPOLLIN on baby_socket " << this->_event_socket << _END << std::endl;
 		this->setRequest();
 		this->setAttributes();
+		logRequest(this->_request, this->_currentServerHandler->getLogFile(), 0);
 		// std::cout << _PINK "Request : " << _request << _END << std::endl;
 		// std::cout << _PINK _REV "Resource : " << _resource << _END << std::endl;
 		if (_readFinished == true || _contentLength > getCurrentServer()->getClientMaxBodySize())

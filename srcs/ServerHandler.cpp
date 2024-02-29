@@ -115,6 +115,9 @@ void	ServerHandler::constructorExtension(std::string const & filename)
 	}
 	if (this->_servers.size() == 0)
 		throw InvalidConfFileException();
+	this->_logFile = "logs/log_" + Timestamp() + ".log";
+	this->_errorLogFile = "logs/error_log_" + Timestamp() + ".log";
+	std::ofstream createFile(this->_logFile.c_str());
 	// for (size_t i = 0; i < this->_servers.size(); ++i)
 	// 	std::cout << *(this->_servers[i]);
 }
@@ -128,10 +131,10 @@ ServerHandler::~ServerHandler()
 }
 
 
-std::vector<Server *> const & ServerHandler::getServers(void) const
-{
-	return this->_servers;
-}
+std::vector<Server *> const & ServerHandler::getServers(void) const { return this->_servers; }
+std::string const & ServerHandler::getLogFile(void) const { return this->_logFile; }
+std::string const & ServerHandler::getErrorLogFile(void) const { return this->_errorLogFile; }
+
 
 Server * ServerHandler::operator[](size_t id)
 {

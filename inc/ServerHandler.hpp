@@ -23,6 +23,8 @@ public:
 
 	std::map<std::string, std::string> const & getMimeMap(void) const;
 	std::vector<Server *> const & getServers(void)const;		// returns the vector containing servers;
+	std::string const & getLogFile(void) const;
+	std::string const & getErrorLogFile(void) const;
 	Server * operator[](size_t id); 							// returns a reference to the requested server;
 
 	class InvalidConfFileException : public std::exception {
@@ -54,6 +56,8 @@ private:
 	struct epoll_event							_readyList[30];
 	std::vector<Server *>						_servers;
 	int											_epfd;
+	std::string									_logFile;
+	std::string									_errorLogFile;
 
 	std::vector<std::string>					_tokens;
 	std::map<std::string, std::string>			_mimeMap;

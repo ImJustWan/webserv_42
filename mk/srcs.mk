@@ -1,4 +1,5 @@
 SRC += ./srcs/Get.cpp
+SRC += ./srcs/utils.cpp
 SRC += ./srcs/ServerHandler.cpp
 SRC += ./srcs/IEvent.cpp
 SRC += ./srcs/Location.cpp
