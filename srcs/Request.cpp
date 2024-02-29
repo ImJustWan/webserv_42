@@ -135,6 +135,8 @@ bool	Request::checkTimeout()
 size_t Request::findContentLength( size_t const & found ) const
 {
 	const size_t	length = _request.find("\n", found) - found;
+	if (length == std::string::npos)
+		return ( 0 );
 	const size_t	content_length = std::atoi(_request.substr(found, length).c_str());
 
 	return ( content_length );
@@ -183,7 +185,7 @@ void Request::handleHeader() {
 			size_t found = _request.find("Content-Length:");
 			if (found != std::string::npos)
 				_contentLength = findContentLength(found + 1 + std::strlen("Content-Length:"));
-			else
+			if (found == std::string::npos || _contentLength == 0)
 				_chunked = true;
 		}
 	}

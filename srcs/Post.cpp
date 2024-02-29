@@ -61,10 +61,16 @@ bool Post::uploadChunkedFile() {
 
 	// Remove Header
 	size_t hexStart = this->getCurrentRequest()->getRequest().find("\r\n\r\n") + 4;
+	if (hexStart == std::string::npos)
+		return (responseError(400), false);
 
 	// Get the first hexa size
 	size_t hexEnd = this->getCurrentRequest()->getRequest().find("\n", hexStart);
+	if (hexEnd == std::string::npos)
+		return (responseError(400), false);
 	std::string hexSizeStr = this->getCurrentRequest()->getRequest().substr(hexStart, hexEnd - hexStart);
+	if (hexSizeStr.empty())
+		return (responseError(400), false);
 	std::stringstream hexStream(hexSizeStr);
 	size_t hexSize;
 	hexStream >> std::hex >> hexSize;
@@ -72,17 +78,22 @@ bool Post::uploadChunkedFile() {
 	hexStart++;
 
 	// Append first chunk
+	if (hexSize + hexStart + 5 > this->getCurrentRequest()->getRequest().size())
+		return (responseError(400), false);
 	_rawFileData.append(this->getCurrentRequest()->getRequest().substr(hexStart + 5, hexSize));
 
 	// LOOP : append each chunk until end of file / empty chunk
 	while (hexSize > 0 && hexEnd < this->getCurrentRequest()->getRequest().size()) {
 		hexStart = hexEnd + 2 + hexSize;
 		hexEnd = this->getCurrentRequest()->getRequest().find("\n", hexStart) + 1;
-		if (hexEnd == std::string::npos || hexEnd >= this->getCurrentRequest()->getRequest().size() - 1)
+		if (hexEnd == std::string::npos || hexEnd > this->getCurrentRequest()->getRequest().size())
 			break;
 		hexStream.str(this->getCurrentRequest()->getRequest().substr(hexStart, hexEnd - hexStart));
 		hexStream >> std::hex >> hexSize;
-		_rawFileData.append(this->getCurrentRequest()->getRequest().substr(hexEnd , hexSize));
+		if (hexEnd + hexSize <= this->getCurrentRequest()->getRequest().size())
+			_rawFileData.append(this->getCurrentRequest()->getRequest().substr(hexEnd , hexSize));
+		else
+			return (responseError(400), false);
 	}
 
 	size_t dataEnd = _rawFileData.rfind("0\r\n\r\n");
@@ -96,22 +107,18 @@ bool	Post::uploadBoundedFile()
 	std::cout << _FOREST_GREEN "Uploaded POST request is bounded"  _END << std::endl;
 
 	size_t dataStart = this->getCurrentRequest()->getRequest().find(_boundary);
-	if (dataStart == std::string::npos) {
-		std::cerr << "Error: Could not find file's content" << std::endl;
-		return false; // ERROR ??
-	}
+	if (dataStart == std::string::npos)
+		return (responseError(400), false);
 	size_t tmpStart = this->getCurrentRequest()->getRequest().find("\r\n\r\n", dataStart + _boundary.size()) + 4;
 	size_t dataEnd = this->getCurrentRequest()->getRequest().rfind(_boundary);
 	
 	// Remove Header
 	dataStart = this->getCurrentRequest()->getRequest().find("\r\n\r\n", tmpStart) + 4;
 	
-	if (tmpStart != std::string::npos && dataEnd != std::string::npos) 
+	if (dataStart != std::string::npos && dataEnd != std::string::npos) 
 		_rawFileData = this->getCurrentRequest()->getRequest().substr(dataStart);
-	else {
-		std::cerr << "Error: Could not find file's content" << std::endl;
-		return false; // ERROR ??
-	}
+	else  
+		return (responseError(400), false);
 	return true;
 }
 
@@ -121,10 +128,8 @@ bool	Post::createUploadFile()
 	if (static_cast<long long int>(_rawFileData.size()) > this->getCurrentRequest()->getCurrentServer()->getClientMaxBodySize())
 		return (responseError(413), false);
 	std::ofstream newFile(_fullPath.c_str());
-	if (!newFile) {
-		std::cerr << "Error: Could not create Upload File" << std::endl;
+	if (!newFile) 
 		return (responseError(500), false);
-	}
 
 	// Write to final file and close
 	newFile.write(_rawFileData.c_str(), _rawFileData.size());
@@ -171,13 +176,14 @@ bool Post::uploadFile() {
 		if (this->getCurrentRequest()->getChunked() == true)
 			if (uploadChunkedFile())
 				return true;
-		return false;
+		return (responseError(400), false);
 	}
 
 	// GET BOUNDED FILE DATA
 	if (uploadBoundedFile() == false)
 		return false;
 
+	// CREATE FILE
 	createUploadPath();
 	if (createUploadFile() == false)
 		return false;
@@ -190,5 +196,4 @@ void	Post::executeMethod()
 
 	if (uploadFile())
 		this->buildResponse();
-	// else ? error 
 }
