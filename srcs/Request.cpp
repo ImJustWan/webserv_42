@@ -325,7 +325,7 @@ Response*	Request::newDelete() {
 	return ( new Delete() );
 }
 
-void	Request::buildResponse( const uint16_t & status_code )
+void	Request::buildErrorResponse( const uint16_t & status_code )
 {
 	if (_currentResponse)
 		_currentResponse->responseError(status_code);
@@ -338,12 +338,27 @@ void	Request::buildResponse( const uint16_t & status_code )
 	}
 }
 
+bool	Request::checkMethodsBlacklist()
+{
+	std::set<std::string>	blackList;
+	blackList.insert("HEAD");
+	blackList.insert("PUT");
+	blackList.insert("CONNECT");
+	blackList.insert("OPTIONS");
+	blackList.insert("TRACE");
+	blackList.insert("PATCH");
+
+	if (blackList.find(this->_method) != blackList.end())
+		return false;
+	return true;
+}
+
 
 void	Request::buildResponse()
 {
 	if (_currentResponse && _responseReady == false)
 	{
-		_currentResponse->executeMethod();	
+		_currentResponse->executeMethod();
 		return ;
 	}
 	if (_currentResponse)
@@ -353,10 +368,11 @@ void	Request::buildResponse()
 	}
 
 	if (_contentLength > _currentServer->getClientMaxBodySize())
-	{
-		buildResponse(413);
-		return ;
-	}
+		throw ResponseBuildingError(413);
+
+	if (checkMethodsBlacklist() == false) 
+		throw ResponseBuildingError(501);
+
 	map_method	map_methods[N_METHODS + 1] = {
 		{GET, "GET", &Request::newGet},
 		{POST, "POST", &Request::newPost},
@@ -367,19 +383,9 @@ void	Request::buildResponse()
 	for ( int i = 0; i < N_METHODS; i++ ) {
 		if ( _method == map_methods[i].s_method ) {
 			if (_method == "POST" && this->getLocation() && this->getLocation()->getUploadPath().empty() == true)
-			{
-				_currentResponse = new Response;
-				_currentResponse->setCurrentRequest(this);
-				_currentResponse->responseError(501);
-				break ;
-			}
+					throw ResponseBuildingError(501);
 			if ( !(map_methods[i].method & _methods))
-			{
-				_currentResponse = new Response;
-				_currentResponse->setCurrentRequest(this);
-				_currentResponse->responseError(405);
-				break ;
-			}
+					throw ResponseBuildingError(405);
 			_currentResponse = (this->*map_methods[i].newMethod)();
 			break ;
 		}
@@ -391,12 +397,7 @@ void	Request::buildResponse()
 		_currentResponse->executeMethod();	
 	}
 	else
-	{
-		_currentResponse = new Response;
-		_currentResponse->setCurrentRequest(this);
-		if (this->getReadBytes() != 0)
-			_currentResponse->responseError(400);
-	}
+		throw ResponseBuildingError(400);
 }
 
 bool	Request::isCGI(std::string const & resource)
@@ -476,7 +477,6 @@ void	Request::HandleCGI()
 	}
 }
 
-
 void	Request::determinism()
 {
 	this->setLastEvent();
@@ -499,12 +499,16 @@ void	Request::determinism()
 		}
 		else
 		{
-			buildResponse();
-			if (_method == "POST" && _readFinished == true)
-				_readBytes = 0;
-			if (_sentFinished == false)
-				_socketState = WRITE_STATE;
-			// std::cout << _LILAC "Sent finished : " << _sentFinished << std::endl;
+			try {
+				buildResponse();
+				if (_method == "POST" && _readFinished == true)
+					_readBytes = 0;
+				if (_sentFinished == false)
+					_socketState = WRITE_STATE;
+			}
+			catch (ResponseBuildingError &e) {
+				buildErrorResponse(e.getErrorCode());
+			}
 		}
 
 		if (_responseReady == true)

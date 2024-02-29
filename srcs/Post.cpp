@@ -184,7 +184,7 @@ void Post::uploadFile() {
 
 void	Post::executeMethod()
 {
-	std::cout << _LILAC _BOLD "EXECUTE POST" _END << std::endl;
+	// std::cout << _LILAC _BOLD "EXECUTE POST" _END << std::endl;
 	try{
 		this->uploadFile();
 		this->buildResponse();

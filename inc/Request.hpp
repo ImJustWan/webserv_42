@@ -98,7 +98,7 @@ public:
 	bool					checkTimeout();
 
 	void					buildResponse();
-	void					buildResponse( const uint16_t & status_code );
+	void					buildErrorResponse( const uint16_t & status_code );
 
 
 protected:
@@ -148,11 +148,21 @@ private :
 	void					HandleCGI();
 
 	bool					isCGI(std::string const & resource);
+	bool					checkMethodsBlacklist();
 	size_t					findContentLength(size_t const & found ) const;
 
 	Response*				newGet();
 	Response*				newPost();
 	Response*				newDelete();
+
+	class ResponseBuildingError : public std::exception {
+	public:
+		ResponseBuildingError(int code) : _errorCode(code) {}
+		virtual ~ResponseBuildingError() throw() {};
+		virtual int getErrorCode(void) const throw() {return this->_errorCode;}
+	private:
+		int _errorCode;
+	};
 
 };
 

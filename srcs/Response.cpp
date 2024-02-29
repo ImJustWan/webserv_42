@@ -133,10 +133,7 @@ bool	Response::checkResource()
 		this->getCurrentRequest()->setResource(this->getCurrentRequest()->getResource().substr(1));
 
 	if (stat(this->getCurrentRequest()->getResource().c_str(), &buffer))
-	{
-		std::cout << "stat error for " << this->getCurrentRequest()->getResource() << std::endl;
 		return (responseError(404), false);
-	}
 
 	if (S_ISREG(buffer.st_mode))
 		return true;

@@ -53,7 +53,7 @@ void	Delete::deleteResource()
 	else
 	{
 		std::cout << _RED "Failure to delete " << this->getCurrentRequest()->getResource() << _END << std::endl;
-		responseError(404);
+		responseError(403);
 	}
 	this->getCurrentRequest()->setReadBytes(0);
 }
@@ -61,8 +61,6 @@ void	Delete::deleteResource()
 void	Delete::executeMethod()
 {
 	// std::cout << _LILAC _BOLD "EXECUTE Delete" _END << std::endl;
-	// std::string path = this->trimSlash();
-	// this->getCurrentRequest()->setResource(this->getCurrentRequest()->getRoot() + path);
 	if (checkResource() && requestLineCheck())
 		this->deleteResource();
 }

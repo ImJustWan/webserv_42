@@ -21,7 +21,7 @@ CgiHandler::CgiHandler(Request * theRequest) : _theRequest(theRequest)
 	catch (ErrorInCGI &e){
 		std::cout << _RED _BOLD << "Error: " << _END << e.what() << std::endl;
 		this->_CgiStatus = 5;
-		this->_theRequest->buildResponse(e.getError());
+		this->_theRequest->buildErrorResponse(e.getError());
 	}
 }
 
@@ -244,7 +244,7 @@ void	CgiHandler::execCGI(void)
 	catch (ErrorInCGI &e){
 		std::cout << _RED _BOLD << "Error: " << _END << e.what() << std::endl;
 		this->_CgiStatus = 5;
-		this->_theRequest->buildResponse(e.getError());
+		this->_theRequest->buildErrorResponse(e.getError());
 		return;
 	} 
 }
