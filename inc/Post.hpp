@@ -26,16 +26,26 @@ private:
 	std::string	_rawFileData;
 
 	void		startUpload();
-	bool		uploadFile();
+	void		uploadFile();
 	void		buildHeader();
 	void		buildResponse();
 	void		extractBoundary();
 
-	bool		uploadChunkedFile();
-	bool		uploadBoundedFile();
+	void		uploadChunkedFile();
+	void		uploadBoundedFile();
 
 	void		createFilename();
-	bool		createUploadFile();
+	void		createUploadFile();
 	void		createUploadPath();
+
+	class PostError : public std::exception {
+	public:
+		PostError(int code) : _errorCode(code) {}
+		virtual ~PostError() throw() {};
+		virtual int getErrorCode(void) const throw() {return this->_errorCode;}
+		// virtual const char* what() const throw() {return "Post Error";}
+	private:
+		int _errorCode;
+	};
 
 };

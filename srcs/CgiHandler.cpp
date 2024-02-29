@@ -295,8 +295,12 @@ void	CgiHandler::execChild(void)
 	if (this->_theRequest->getMethod() == "POST") {
 		if (::dup2(this->_fdPost[READ], STDIN_FILENO) < 0)
 			throw ErrorInCGI("Dup2 failed for _fdPost[READ]", 500);
-		if (::write(this->_fdPost[WRITE], this->_requestBody.c_str(), this->_requestBody.size()) <= 0)
+		int written;
+		written = ::write(this->_fdPost[WRITE], this->_requestBody.c_str(), this->_requestBody.size());
+		if (written == -1)
 			throw ErrorInCGI("write to post failled", 500);
+		else if (written == 0)
+			std::cout << _GREY _ITALIC "Written response was empty" _END << std::endl;
 		if (::close(this->_fdPost[WRITE]) < 0)
 			throw ErrorInCGI("Close failed for _fdPost[WRITE]", 500);
 		this->_fdPost[WRITE] = -1;

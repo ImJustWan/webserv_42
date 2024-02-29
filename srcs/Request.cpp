@@ -138,7 +138,7 @@ size_t Request::findContentLength( size_t const & found ) const
 	if (length == std::string::npos)
 		return ( 0 );
 	const size_t	content_length = std::atoi(_request.substr(found, length).c_str());
-
+ 
 	return ( content_length );
 }
 
@@ -198,9 +198,10 @@ void Request::setRequest() {
 	_readBytes = recv(this->_event_socket, buffer, sizeof(buffer) - 1, 0);
 	
 	std::string tmp = buffer;
-	if (_readBytes == -1) // if 0, handled in determinism
+	if (_readBytes <= 0) // if 0, handled in determinism
 	{
-		this->_lastEvent = 0; // will delete client/socket in main loop
+		if (_readBytes == -1)
+			this->_lastEvent = 0; // will delete client/socket in main loop
 		return ;
 	}
 
@@ -393,7 +394,6 @@ void	Request::buildResponse()
 	{
 		_currentResponse = new Response;
 		_currentResponse->setCurrentRequest(this);
-		std::cout << "Method : " << _method << std::endl;
 		if (this->getReadBytes() != 0)
 			_currentResponse->responseError(400);
 	}
@@ -511,11 +511,14 @@ void	Request::determinism()
 		{
 			std::cout << _EMERALD "Response is ready" << _END << std::endl;
 			// std::cout << _PINK << this->_finalResponse << _END << std::endl;
-			if (send(this->_event_socket, this->_finalResponse.c_str(), this->_finalResponse.size(), 0) < 0)
+			int sent = send(this->_event_socket, this->_finalResponse.c_str(), this->_finalResponse.size(), 0);
+			if (sent == -1)
 			{
 				std::cout << _RED "Error sending response" << _END << std::endl;
 				this->_lastEvent = 0; // will delete client/socket in main loop
 			}
+			else if (sent == 0)
+				std::cout << _GREY _ITALIC "Sent response was empty" _END << std::endl;
 			_socketState = READ_STATE;
 			_request = "";
 		}

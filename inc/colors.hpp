@@ -5,8 +5,8 @@
 # define _ITALIC "\1\033[3m\2"
 # define _UNDER "\1\033[4m\2"
 # define _REV "\1\033[7m\2"
-#define _UNDERLINE "\x1b[4m"
-#define _BLINK "\033[5m"
+# define _UNDERLINE "\x1b[4m"
+# define _BLINK "\033[5m"
 
 # define _RED "\1\033[31m\2"
 # define _FOREST_GREEN "\1\033[32m\2"

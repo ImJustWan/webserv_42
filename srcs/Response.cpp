@@ -199,13 +199,16 @@ void	Response::errorPageBuilder(const uint16_t & status_code)
 	this->_body += _status_code[status_code];
 	this->_body += ERRPAGEBODY4;
 
+	std::ostringstream bodySize;
+	bodySize << this->_body.size();
+
 	this->_header += "HTTP/1.1 ";
 	this->_header += status_code_str.str();
 	this->_header += " ";
 	this->_header +=  _status_code[status_code];
 	this->_header += "\r\n";
 	this->_header += "Content-Length: ";
-	this->_header += this->_body.size();
+	this->_header += bodySize.str();
 	this->_header += "\r\n";
 	this->_header += "Connection: Keep-Alive\r\n";
 	this->_header += "\r\n";
