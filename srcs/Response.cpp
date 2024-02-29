@@ -65,10 +65,9 @@ void	Response::buildHeader( std::ifstream & file, unsigned int const & status_co
 	{
 		this->_header += "Location: ";
 		this->_header += this->getCurrentRequest()->getLocation()->getRewrite().begin()->second;
-		this->_header += "\r\n\r\n";
+		this->_header += "\r\n";
 		this->getCurrentRequest()->setFinalResponse(this->_header);
 		this->getCurrentRequest()->setAsReady(true);
-		return;
 	}
 	this->_header += "Content-Length: ";
 	this->_header += file_size_str.str();
@@ -234,6 +233,7 @@ void	Response::responseError( const uint16_t & status_code )
 
 		buildHeader(error_page, status_code);
 		this->_response = this->_header;
+
 		while (!error_page.eof())
 		{
 			error_page.read(buffer, 4096);
