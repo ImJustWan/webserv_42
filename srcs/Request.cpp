@@ -164,7 +164,6 @@ void	Request::setLocation()
 	{
 		if (locations.find(resource) != locations.end())
 		{
-			// std::cout << _LILAC "Location found : " << resource << _END << std::endl;
 			this->setLocation(locations[resource]);
 			return ;
 		}
@@ -327,6 +326,8 @@ Response*	Request::newDelete() {
 
 void	Request::buildErrorResponse( const uint16_t & status_code )
 {
+	if (status_code >= 500)
+		this->_lastEvent = 0;
 	if (_currentResponse)
 		_currentResponse->responseError(status_code);
 	else
@@ -384,8 +385,8 @@ void	Request::buildResponse()
 		if ( _method == map_methods[i].s_method ) {
 			if (_method == "POST" && this->getLocation() && this->getLocation()->getUploadPath().empty() == true)
 					throw ResponseBuildingError(501);
-			if ( !(map_methods[i].method & _methods))
-					throw ResponseBuildingError(405);
+			if (!(map_methods[i].method & _methods))
+				throw ResponseBuildingError(405);
 			_currentResponse = (this->*map_methods[i].newMethod)();
 			break ;
 		}
@@ -519,8 +520,9 @@ void	Request::determinism()
 			int sent = send(this->_event_socket, this->_finalResponse.c_str(), this->_finalResponse.size(), 0);
 			if (sent == -1)
 			{
-				std::cout << _RED "Error sending response" << _END << std::endl;
+				std::cout << _RED "Error sending response -> " << _event_socket << _END << std::endl;
 				this->_lastEvent = 0; // will delete client/socket in main loop
+				return;
 			}
 			else if (sent == 0)
 				std::cout << _GREY _ITALIC "Sent response was empty" _END << std::endl;
@@ -530,9 +532,14 @@ void	Request::determinism()
 	}
 
 	changeSocketState();
-	if (_readBytes <= 0)
+	if (_readBytes == 0 )
 	{
-		_event_socket = this->getCurrentServer()->closeSocket(_event_socket);
+		std::cout << _BLUE << "Empty request -> " << this->_event_socket << _END << std::endl;
+		this->_lastEvent = 0; // will delete client/socket in main loop
+	}
+	else if (_readBytes == -1)
+	{
+		std::cout << _BLUE << "recv() failed" << this->_event_socket << _END << std::endl;
 		this->_lastEvent = 0; // will delete client/socket in main loop
 	}
 }

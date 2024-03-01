@@ -253,7 +253,7 @@ void	CgiHandler::execParent(void)
 {
 	int		status;
 	pid_t	finisher;
-	if (time(NULL) - this->_time < 2) {
+	if (time(NULL) - this->_time < 4) {
 		finisher = waitpid(this->_pid, &status, WNOHANG);
 		if (finisher == this->_pid){
 			char *buffer = new char[READ_BUFFER_SIZE];

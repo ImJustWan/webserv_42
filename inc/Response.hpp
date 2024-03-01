@@ -39,6 +39,7 @@ protected:
 	std::string		_body;
 	std::string		_status;
 	std::string		_response;
+	std::string		_fileExt;
 
 private :
 

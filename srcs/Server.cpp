@@ -275,13 +275,13 @@ void Server::setServerHandler(ServerHandler *serverHandler) { this->_currentServ
 void Server::setMasterSocket(int masterSocket) { this->_master_socket = masterSocket; }
 void Server::setEpfd(const int epfd) { this->_epfd = epfd; }
 
-
 void Server::eraseRequest(int index)
 {
 	if (index < _request_index)
 	{
 		if (_requests[index] != NULL)
 		{
+			std::cout << _SALMON "Closing socket " << _requests[index]->getEventSocket() << _END << std::endl;
 			_requests[index]->setEventSocket(closeSocket(_requests[index]->getEventSocket()));
 			delete _requests[index];
 			_requests[index] = NULL;
@@ -345,7 +345,7 @@ void Server::serverProcess() {
 	if (this->_request_index == MAX_BBY_SOCKET)
 		return ;
 	if ((this->_baby_socket[_request_index] = accept(this->_master_socket, (struct sockaddr *)&address, &addrlen)) < 0)
-		throw SocketLoopError();
+		return;
 
 	Request *current = new Request;
 

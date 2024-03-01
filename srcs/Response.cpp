@@ -61,6 +61,13 @@ void	Response::buildHeader( std::ifstream & file, unsigned int const & status_co
 	this->_header += " ";
 	this->_header +=  _status_code[status_code];
 	this->_header += "\r\n";
+	if (this->getCurrentRequest()->getServerHandler()->getMimeMap().find(this->_fileExt) !=
+		this->getCurrentRequest()->getServerHandler()->getMimeMap().end())
+	{
+		this->_header += "Content-Type: ";
+		this->_header += this->getCurrentRequest()->getServerHandler()->getMimeMap().find(this->_fileExt)->second;
+		this->_header += "\r\n";
+	}
 	if (this->getCurrentRequest()->getLocation() && !this->getCurrentRequest()->getLocation()->getRewrite().empty())
 	{
 		std::cout << _GREY _ITALIC "Redirecting to " << this->getCurrentRequest()->getLocation()->getRewrite().begin()->second << _END << std::endl;
@@ -86,11 +93,13 @@ bool	Response::extensionCheck()
 
 	if (extension != std::string::npos) {
 		ext = getCurrentRequest()->getResource().substr(extension);
-		if (this->getCurrentRequest()->getCurrentServer()->getServerHandler()->getMimeMap().find(ext) == this->getCurrentRequest()->getCurrentServer()->getServerHandler()->getMimeMap().end())
+		if (this->getCurrentRequest()->getCurrentServer()->getServerHandler()->getMimeMap().find(ext)
+			== this->getCurrentRequest()->getCurrentServer()->getServerHandler()->getMimeMap().end())
 			return ( false );
 	}
 	else if (extension == std::string::npos)
 		return ( false );
+	this->_fileExt = ext;
 	return ( true );
 }
 
@@ -116,7 +125,6 @@ std::string	Response::trimSlash()
 	if (!buff.empty() && buff[buff.length() - 1] == '/') {
 		buff.erase(buff.length() - 1);
 	}
-
 	return buff.empty() ? "/" : buff;
 }
 
@@ -128,6 +136,7 @@ bool	Response::checkResource()
 		this->getCurrentRequest()->setResource(this->getCurrentRequest()->getLocation()->getRewrite().begin()->second);
 
 	this->getCurrentRequest()->setResource(this->trimSlash());
+
 	if (this->getCurrentRequest()->getResource().find(this->getCurrentRequest()->getRoot()) == std::string::npos)
 		this->getCurrentRequest()->setResource(this->getCurrentRequest()->getRoot() + this->getCurrentRequest()->getResource());
 
