@@ -522,7 +522,6 @@ void	Request::determinism()
 			{
 				std::cout << _RED "Error sending response -> " << _event_socket << _END << std::endl;
 				this->_lastEvent = 0; // will delete client/socket in main loop
-				return;
 			}
 			else if (sent == 0)
 				std::cout << _GREY _ITALIC "Sent response was empty" _END << std::endl;

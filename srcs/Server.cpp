@@ -123,6 +123,14 @@ void Server::checkMinimumConf(void)
 		}
 		testUp.close();
 	}
+	if (this->_methods == 0) {
+		if (this->_currentLocations.find("/") != this->_currentLocations.end() && this->_currentLocations.find("/")->second->getMethods() != 0)
+				this->_methods = this->_currentLocations.find("/")->second->getMethods();
+		else {
+			std::cout << _BLUE _ITALIC << this->_serverNames[0] << ":" << this->_listen << " -> ";
+			std::cout << "This server root path and location have no allowed methods" _END << std::endl;
+		}
+	}
 }
 
 /* ****************  GETTERS **************** */
