@@ -531,14 +531,13 @@ void	Request::determinism()
 	}
 
 	changeSocketState();
-	if (_readBytes == 0 )
+	if (_readBytes <= 0)
 	{
-		std::cout << _BLUE << "Empty request -> " << this->_event_socket << _END << std::endl;
+		if (_readBytes == 0)
+			std::cout << _BLUE << "Empty request" << _END << std::endl;
+		else if (_readBytes == -1)
+			std::cout << _BLUE << "recv() failed" _END << std::endl;
 		this->_lastEvent = 0; // will delete client/socket in main loop
-	}
-	else if (_readBytes == -1)
-	{
-		std::cout << _BLUE << "recv() failed" << this->_event_socket << _END << std::endl;
-		this->_lastEvent = 0; // will delete client/socket in main loop
+		_event_socket = this->getCurrentServer()->closeSocket(_event_socket);
 	}
 }

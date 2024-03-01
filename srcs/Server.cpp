@@ -289,7 +289,7 @@ void Server::eraseRequest(int index)
 	{
 		if (_requests[index] != NULL)
 		{
-			std::cout << _SALMON "Closing socket " << _requests[index]->getEventSocket() << _END << std::endl;
+			std::cout << _SALMON "Closing socket" << _END << std::endl;
 			_requests[index]->setEventSocket(closeSocket(_requests[index]->getEventSocket()));
 			delete _requests[index];
 			_requests[index] = NULL;
